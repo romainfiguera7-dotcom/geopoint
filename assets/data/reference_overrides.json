@@ -1,0 +1,26 @@
+[
+  {
+    "entityId": "CLP",
+    "countryId": "FRA",
+    "countryIsoA2": "FR",
+    "name": "Île Clipperton",
+    "latitude": 10.302,
+    "longitude": -109.217,
+    "type": "territory",
+    "parentCountryName": "France",
+    "officialCapitalName": "Paris",
+    "description": "Île française inhabitée du Pacifique."
+  },
+  {
+    "entityId": "ATC",
+    "countryId": "AUS",
+    "countryIsoA2": "AU",
+    "name": "Ashmore Reef",
+    "latitude": -12.233,
+    "longitude": 123.033,
+    "type": "territory",
+    "parentCountryName": "Australie",
+    "officialCapitalName": "Canberra",
+    "description": "Territoire extérieur australien."
+  }
+]

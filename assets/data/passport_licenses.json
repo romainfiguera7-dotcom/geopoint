@@ -1,0 +1,191 @@
+[
+  {
+    "id": 1,
+    "name": "Premiers pas",
+    "title": "Débutant",
+    "description": "Découvre les pays les plus emblématiques du monde.",
+    "difficultyMax": 1,
+    "questionCount": 10,
+    "questionDurationSeconds": 45,
+    "categories": [
+      "country"
+    ],
+    "requirements": [
+      {
+        "stampId": "countries",
+        "minimumMedal": "bronze"
+      },
+      {
+        "stampId": "capitals",
+        "minimumMedal": "bronze"
+      },
+      {
+        "stampId": "flags",
+        "minimumMedal": "bronze"
+      },
+      {
+        "stampId": "mixed",
+        "minimumMedal": "bronze"
+      }
+    ],
+    "isUnlockedByDefault": true
+  },
+  {
+    "id": 2,
+    "name": "Voyageur",
+    "title": "Voyageur",
+    "description": "Améliore tes connaissances des pays, capitales et drapeaux.",
+    "difficultyMax": 2,
+    "questionCount": 10,
+    "questionDurationSeconds": 40,
+    "categories": [
+      "country"
+    ],
+    "requirements": [
+      {
+        "stampId": "countries",
+        "minimumMedal": "silver"
+      },
+      {
+        "stampId": "capitals",
+        "minimumMedal": "silver"
+      },
+      {
+        "stampId": "flags",
+        "minimumMedal": "silver"
+      },
+      {
+        "stampId": "mixed",
+        "minimumMedal": "silver"
+      }
+    ],
+    "isUnlockedByDefault": false
+  },
+  {
+    "id": 3,
+    "name": "Explorateur",
+    "title": "Explorateur",
+    "description": "Affronte des pays moins connus et progresse dans chaque compétence.",
+    "difficultyMax": 3,
+    "questionCount": 10,
+    "questionDurationSeconds": 35,
+    "categories": [
+      "country"
+    ],
+    "requirements": [
+      {
+        "stampId": "countries",
+        "minimumMedal": "gold"
+      },
+      {
+        "stampId": "capitals",
+        "minimumMedal": "gold"
+      },
+      {
+        "stampId": "flags",
+        "minimumMedal": "gold"
+      },
+      {
+        "stampId": "mixed",
+        "minimumMedal": "gold"
+      }
+    ],
+    "isUnlockedByDefault": false
+  },
+  {
+    "id": 4,
+    "name": "Aventurier",
+    "title": "Aventurier",
+    "description": "Découvre de nouvelles catégories et les pays les moins évidents.",
+    "difficultyMax": 4,
+    "questionCount": 10,
+    "questionDurationSeconds": 35,
+    "categories": [
+      "country"
+    ],
+    "requirements": [
+      {
+        "stampId": "countries",
+        "minimumMedal": "gold"
+      },
+      {
+        "stampId": "capitals",
+        "minimumMedal": "gold"
+      },
+      {
+        "stampId": "flags",
+        "minimumMedal": "gold"
+      },
+      {
+        "stampId": "mixed",
+        "minimumMedal": "gold"
+      }
+    ],
+    "isUnlockedByDefault": false
+  },
+  {
+    "id": 5,
+    "name": "Globe-trotteur",
+    "title": "Globe-trotteur",
+    "description": "Maîtrise le monde entier, y compris les micro-États.",
+    "difficultyMax": 5,
+    "questionCount": 10,
+    "questionDurationSeconds": 30,
+    "categories": [
+      "country",
+      "microstate"
+    ],
+    "requirements": [
+      {
+        "stampId": "countries",
+        "minimumMedal": "gold"
+      },
+      {
+        "stampId": "capitals",
+        "minimumMedal": "gold"
+      },
+      {
+        "stampId": "flags",
+        "minimumMedal": "gold"
+      },
+      {
+        "stampId": "mixed",
+        "minimumMedal": "gold"
+      }
+    ],
+    "isUnlockedByDefault": false
+  },
+  {
+    "id": 6,
+    "name": "Maître cartographe",
+    "title": "Maître cartographe",
+    "description": "Plus aucun pays, micro-État ou territoire ne t'échappe.",
+    "difficultyMax": 6,
+    "questionCount": 10,
+    "questionDurationSeconds": 30,
+    "categories": [
+      "country",
+      "microstate",
+      "territory"
+    ],
+    "requirements": [
+      {
+        "stampId": "countries",
+        "minimumMedal": "gold"
+      },
+      {
+        "stampId": "capitals",
+        "minimumMedal": "gold"
+      },
+      {
+        "stampId": "flags",
+        "minimumMedal": "gold"
+      },
+      {
+        "stampId": "mixed",
+        "minimumMedal": "gold"
+      }
+    ],
+    "isUnlockedByDefault": false
+  }
+]

@@ -1,0 +1,30 @@
+[
+  {
+    "id": "find_country",
+    "name": "Trouver le pays",
+    "description": "Repère le pays demandé directement sur la carte.",
+    "iconName": "public",
+    "isEnabled": true
+  },
+  {
+    "id": "find_capital",
+    "name": "Trouver la capitale",
+    "description": "Retrouve la capitale demandée sur la carte.",
+    "iconName": "location_city",
+    "isEnabled": true
+  },
+  {
+    "id": "find_flag",
+    "name": "Reconnaître le drapeau",
+    "description": "Associe le drapeau affiché au bon pays.",
+    "iconName": "flag",
+    "isEnabled": true
+  },
+  {
+    "id": "mixed",
+    "name": "Épreuve mixte",
+    "description": "Enchaîne plusieurs types de questions dans une même partie.",
+    "iconName": "shuffle",
+    "isEnabled": true
+  }
+]

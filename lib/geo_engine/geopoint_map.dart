@@ -1,0 +1,1751 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+
+import 'country_spatial_index.dart';
+import 'geo_country.dart';
+import 'geo_hit_test.dart';
+import 'geojson_loader.dart';
+
+class GeoPointMap extends StatefulWidget {
+  const GeoPointMap({
+    super.key,
+    this.answerPoint,
+    this.answerCountry,
+    this.onTap,
+    this.onCountrySelected,
+    this.showInformationPanel = true,
+    this.allowInteraction = true,
+  });
+
+  final LatLng? answerPoint;
+  final GeoCountry? answerCountry;
+
+  final ValueChanged<LatLng>? onTap;
+  final ValueChanged<GeoCountry?>? onCountrySelected;
+
+  final bool showInformationPanel;
+  final bool allowInteraction;
+
+  @override
+  State<GeoPointMap> createState() {
+    return _GeoPointMapState();
+  }
+}
+
+class _GeoPointMapState extends State<GeoPointMap>
+    with SingleTickerProviderStateMixin {
+  static const Color _oceanColor =
+      Color(0xFF67B7D1);
+
+  static const Color _selectedCountryColor =
+      Color(0xFFE94B3C);
+
+  static const Color _selectedCountryBorderColor =
+      Color(0xFF8F1710);
+
+  static const Color _answerCountryColor =
+      Color(0xFF63E276);
+
+  static const Color _answerCountryBorderColor =
+      Color(0xFF056F27);
+
+  static const double _maximumLatitude =
+      85.05112878;
+
+  static const Duration _cameraAnimationDuration =
+      Duration(milliseconds: 850);
+
+  static const int _maximumCameraPolygonPoints =
+      140;
+
+  final MapController _mapController =
+      MapController();
+
+  late final AnimationController
+      _cameraAnimationController;
+
+  late final Future<List<GeoCountry>>
+      _countriesFuture;
+
+  CountrySpatialIndex? _spatialIndex;
+
+  GeoCountry? _selectedCountry;
+  GeoCountry? _resolvedAnswerCountry;
+
+  LatLng? _selectedPoint;
+
+  int? _candidateCount;
+
+  bool _mapIsReady = false;
+  bool _cameraFitScheduled = false;
+
+  Animation<double>? _latitudeAnimation;
+  Animation<double>? _longitudeAnimation;
+  Animation<double>? _zoomAnimation;
+
+  LatLng? _finalCameraCenter;
+  double? _finalCameraZoom;
+
+  bool get _isAnswerRevealed {
+    return widget.answerPoint != null;
+  }
+
+  GeoCountry? get _effectiveAnswerCountry {
+    return _resolvedAnswerCountry ??
+        widget.answerCountry;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _cameraAnimationController =
+        AnimationController(
+      vsync: this,
+      duration: _cameraAnimationDuration,
+    );
+
+    _cameraAnimationController.addListener(
+      _handleCameraAnimation,
+    );
+
+    _cameraAnimationController.addStatusListener(
+      _handleCameraAnimationStatus,
+    );
+
+    _countriesFuture = _loadCountries();
+  }
+
+  @override
+  void didUpdateWidget(
+    covariant GeoPointMap oldWidget,
+  ) {
+    super.didUpdateWidget(oldWidget);
+
+    final bool answerHasJustAppeared =
+        oldWidget.answerPoint == null &&
+            widget.answerPoint != null;
+
+    final bool answerPointChanged =
+        !_samePoint(
+      oldWidget.answerPoint,
+      widget.answerPoint,
+    );
+
+    final bool answerCountryChanged =
+        !_sameCountry(
+      oldWidget.answerCountry,
+      widget.answerCountry,
+    );
+
+    if (answerHasJustAppeared ||
+        answerPointChanged ||
+        answerCountryChanged) {
+      _resolveAnswerCountry();
+      _scheduleCameraFit();
+    }
+  }
+
+  @override
+  void dispose() {
+    _cameraAnimationController.removeListener(
+      _handleCameraAnimation,
+    );
+
+    _cameraAnimationController
+        .removeStatusListener(
+      _handleCameraAnimationStatus,
+    );
+
+    _cameraAnimationController.dispose();
+    _mapController.dispose();
+
+    super.dispose();
+  }
+
+  Future<List<GeoCountry>> _loadCountries() async {
+    final List<GeoCountry> countries =
+        await GeoJsonLoader.loadCountries();
+
+    _spatialIndex = CountrySpatialIndex(
+      countries: countries,
+    );
+
+    _resolveAnswerCountry();
+
+    return countries;
+  }
+
+  void _handleMapTap(
+    TapPosition tapPosition,
+    LatLng point,
+  ) {
+    if (!widget.allowInteraction) {
+      return;
+    }
+
+    final CountrySpatialIndex? spatialIndex =
+        _spatialIndex;
+
+    if (spatialIndex == null) {
+      return;
+    }
+
+    _cameraAnimationController.stop();
+
+    final int candidateCount =
+        spatialIndex.candidateCountAt(point);
+
+    final GeoCountry? country =
+        GeoHitTest.findCountry(
+      point,
+      spatialIndex,
+    );
+
+    debugPrint(
+      'GeoPoint : '
+      '${point.latitude.toStringAsFixed(4)}, '
+      '${point.longitude.toStringAsFixed(4)} '
+      '→ $candidateCount pays candidats',
+    );
+
+    setState(() {
+      _selectedPoint = point;
+      _selectedCountry = country;
+      _candidateCount = candidateCount;
+    });
+
+    widget.onTap?.call(point);
+    widget.onCountrySelected?.call(country);
+  }
+
+  void _resolveAnswerCountry() {
+    final LatLng? answerPoint =
+        widget.answerPoint;
+
+    final CountrySpatialIndex? spatialIndex =
+        _spatialIndex;
+
+    if (answerPoint == null ||
+        spatialIndex == null) {
+      _resolvedAnswerCountry = null;
+      return;
+    }
+
+    final GeoCountry? countryFromPoint =
+        GeoHitTest.findCountry(
+      answerPoint,
+      spatialIndex,
+    );
+
+    if (countryFromPoint != null) {
+      _resolvedAnswerCountry =
+          countryFromPoint;
+
+      debugPrint(
+        'GeoPoint : pays de réponse résolu '
+        'avec la position → '
+        '${countryFromPoint.name}',
+      );
+
+      return;
+    }
+
+    _resolvedAnswerCountry =
+        widget.answerCountry;
+
+    debugPrint(
+      'GeoPoint : pays de réponse résolu '
+      'avec les identifiants → '
+      '${_resolvedAnswerCountry?.name ?? 'introuvable'}',
+    );
+  }
+
+  bool _samePoint(
+    LatLng? first,
+    LatLng? second,
+  ) {
+    if (first == null && second == null) {
+      return true;
+    }
+
+    if (first == null || second == null) {
+      return false;
+    }
+
+    return first.latitude ==
+            second.latitude &&
+        first.longitude ==
+            second.longitude;
+  }
+
+  bool _sameCountry(
+    GeoCountry? first,
+    GeoCountry? second,
+  ) {
+    if (first == null || second == null) {
+      return false;
+    }
+
+    final String firstId =
+        first.id.trim().toUpperCase();
+
+    final String secondId =
+        second.id.trim().toUpperCase();
+
+    if (firstId.isNotEmpty &&
+        secondId.isNotEmpty &&
+        firstId == secondId) {
+      return true;
+    }
+
+    final String firstIsoA2 =
+        first.isoA2.trim().toUpperCase();
+
+    final String secondIsoA2 =
+        second.isoA2.trim().toUpperCase();
+
+    if (firstIsoA2.isNotEmpty &&
+        secondIsoA2.isNotEmpty &&
+        firstIsoA2 == secondIsoA2) {
+      return true;
+    }
+
+    final String firstName =
+        _normalizeCountryName(
+      first.name,
+    );
+
+    final String secondName =
+        _normalizeCountryName(
+      second.name,
+    );
+
+    return firstName.isNotEmpty &&
+        firstName == secondName;
+  }
+
+  String _normalizeCountryName(
+    String value,
+  ) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replaceAll('é', 'e')
+        .replaceAll('è', 'e')
+        .replaceAll('ê', 'e')
+        .replaceAll('ë', 'e')
+        .replaceAll('à', 'a')
+        .replaceAll('â', 'a')
+        .replaceAll('ä', 'a')
+        .replaceAll('î', 'i')
+        .replaceAll('ï', 'i')
+        .replaceAll('ô', 'o')
+        .replaceAll('ö', 'o')
+        .replaceAll('ù', 'u')
+        .replaceAll('û', 'u')
+        .replaceAll('ü', 'u')
+        .replaceAll('ç', 'c')
+        .replaceAll(
+          RegExp(r'[^a-z0-9]+'),
+          '',
+        );
+  }
+
+  void _scheduleCameraFit() {
+    if (_cameraFitScheduled) {
+      return;
+    }
+
+    _cameraFitScheduled = true;
+
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        _cameraFitScheduled = false;
+
+        if (!mounted) {
+          return;
+        }
+
+        _animateCameraToResult();
+      },
+    );
+  }
+
+  void _animateCameraToResult() {
+    if (!_mapIsReady) {
+      return;
+    }
+
+    final LatLng? answerPoint =
+        widget.answerPoint;
+
+    if (answerPoint == null) {
+      return;
+    }
+
+    final LatLng? selectedPoint =
+        _selectedPoint;
+
+    final List<LatLng> cameraPoints =
+        <LatLng>[];
+
+    /*
+     * Pays choisi :
+     * on conserve uniquement le territoire entourant
+     * exactement le clic du joueur.
+     */
+    cameraPoints.addAll(
+      _cameraPointsForCountry(
+        country: _selectedCountry,
+        referencePoint: selectedPoint,
+      ),
+    );
+
+    /*
+     * Bonne réponse :
+     * on conserve uniquement le territoire entourant
+     * la capitale ou le point de réponse.
+     */
+    cameraPoints.addAll(
+      _cameraPointsForCountry(
+        country: _effectiveAnswerCountry,
+        referencePoint: answerPoint,
+      ),
+    );
+
+    if (selectedPoint != null) {
+      cameraPoints.add(
+        selectedPoint,
+      );
+    }
+
+    cameraPoints.add(
+      answerPoint,
+    );
+
+    /*
+     * Clic dans l’océan ou pays introuvable :
+     * les deux marqueurs restent malgré tout cadrés.
+     */
+    if (cameraPoints.length < 2) {
+      if (selectedPoint != null) {
+        cameraPoints.add(
+          selectedPoint,
+        );
+      }
+
+      cameraPoints.add(
+        answerPoint,
+      );
+    }
+
+    /*
+     * Si les deux positions sont proches ou si le
+     * territoire est minuscule, on crée une petite
+     * zone minimale autour de la réponse.
+     */
+    if (selectedPoint == null ||
+        _pointsAreVeryClose(
+          selectedPoint,
+          answerPoint,
+        ) ||
+        _cameraBoundsAreVerySmall(
+          cameraPoints,
+        )) {
+      cameraPoints.addAll(
+        _minimumAreaAround(
+          answerPoint,
+        ),
+      );
+    }
+
+    final LatLngBounds bounds =
+        LatLngBounds.fromPoints(
+      cameraPoints,
+    );
+
+    final Size screenSize =
+        MediaQuery.sizeOf(context);
+
+    final double bottomPadding =
+        (screenSize.height * 0.42)
+            .clamp(
+              260.0,
+              380.0,
+            )
+            .toDouble();
+
+    final double topPadding =
+        (screenSize.height * 0.10)
+            .clamp(
+              85.0,
+              120.0,
+            )
+            .toDouble();
+
+    final CameraFit cameraFit =
+        CameraFit.bounds(
+      bounds: bounds,
+      padding: EdgeInsets.fromLTRB(
+        42,
+        topPadding,
+        42,
+        bottomPadding,
+      ),
+      maxZoom: 7.4,
+      minZoom: 1.2,
+    );
+
+    try {
+      final MapCamera startCamera =
+          _mapController.camera;
+
+      final MapCamera targetCamera =
+          cameraFit.fit(
+        startCamera,
+      );
+
+      final LatLng startCenter =
+          startCamera.center;
+
+      final LatLng targetCenter =
+          targetCamera.center;
+
+      final double animatedTargetLongitude =
+          _nearestLongitude(
+        startCenter.longitude,
+        targetCenter.longitude,
+      );
+
+      final CurvedAnimation curvedAnimation =
+          CurvedAnimation(
+        parent: _cameraAnimationController,
+        curve: Curves.easeInOutCubic,
+      );
+
+      _latitudeAnimation =
+          Tween<double>(
+        begin: startCenter.latitude,
+        end: targetCenter.latitude,
+      ).animate(
+        curvedAnimation,
+      );
+
+      _longitudeAnimation =
+          Tween<double>(
+        begin: startCenter.longitude,
+        end: animatedTargetLongitude,
+      ).animate(
+        curvedAnimation,
+      );
+
+      _zoomAnimation =
+          Tween<double>(
+        begin: startCamera.zoom,
+        end: targetCamera.zoom,
+      ).animate(
+        curvedAnimation,
+      );
+
+      _finalCameraCenter =
+          targetCenter;
+
+      _finalCameraZoom =
+          targetCamera.zoom;
+
+      _cameraAnimationController
+        ..stop()
+        ..reset()
+        ..forward();
+    } catch (error) {
+      debugPrint(
+        'Impossible d’animer la caméra : '
+        '$error',
+      );
+    }
+  }
+
+  List<LatLng> _cameraPointsForCountry({
+    required GeoCountry? country,
+    required LatLng? referencePoint,
+  }) {
+    if (country == null) {
+      return const <LatLng>[];
+    }
+
+    final List<LatLng>? bestPolygon =
+        _findBestPolygon(
+      country.polygons,
+      referencePoint,
+    );
+
+    if (bestPolygon == null ||
+        bestPolygon.isEmpty) {
+      return <LatLng>[
+        LatLng(
+          country.bounds.minLatitude,
+          country.bounds.minLongitude,
+        ),
+        LatLng(
+          country.bounds.minLatitude,
+          country.bounds.maxLongitude,
+        ),
+        LatLng(
+          country.bounds.maxLatitude,
+          country.bounds.minLongitude,
+        ),
+        LatLng(
+          country.bounds.maxLatitude,
+          country.bounds.maxLongitude,
+        ),
+      ];
+    }
+
+    return _samplePolygonPoints(
+      bestPolygon,
+    );
+  }
+
+  List<LatLng>? _findBestPolygon(
+    List<List<LatLng>> polygons,
+    LatLng? referencePoint,
+  ) {
+    if (polygons.isEmpty) {
+      return null;
+    }
+
+    if (referencePoint == null) {
+      return _largestPolygon(
+        polygons,
+      );
+    }
+
+    final List<List<LatLng>>
+        containingPolygons =
+        <List<LatLng>>[];
+
+    for (final List<LatLng> polygon
+        in polygons) {
+      if (_polygonBoundsContain(
+        polygon,
+        referencePoint,
+      )) {
+        containingPolygons.add(
+          polygon,
+        );
+      }
+    }
+
+    if (containingPolygons.isNotEmpty) {
+      containingPolygons.sort(
+        (
+          List<LatLng> first,
+          List<LatLng> second,
+        ) {
+          return _polygonBoundsArea(first)
+              .compareTo(
+            _polygonBoundsArea(second),
+          );
+        },
+      );
+
+      return containingPolygons.first;
+    }
+
+    List<LatLng>? nearestPolygon;
+    double? nearestDistance;
+
+    for (final List<LatLng> polygon
+        in polygons) {
+      if (polygon.isEmpty) {
+        continue;
+      }
+
+      final LatLng center =
+          _polygonBoundsCenter(
+        polygon,
+      );
+
+      final double distance =
+          _simpleCoordinateDistanceSquared(
+        center,
+        referencePoint,
+      );
+
+      if (nearestDistance == null ||
+          distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestPolygon = polygon;
+      }
+    }
+
+    return nearestPolygon ??
+        _largestPolygon(polygons);
+  }
+
+  List<LatLng>? _largestPolygon(
+    List<List<LatLng>> polygons,
+  ) {
+    List<LatLng>? largest;
+    double largestArea = -1;
+
+    for (final List<LatLng> polygon
+        in polygons) {
+      final double area =
+          _polygonBoundsArea(
+        polygon,
+      );
+
+      if (area > largestArea) {
+        largestArea = area;
+        largest = polygon;
+      }
+    }
+
+    return largest;
+  }
+
+  bool _polygonBoundsContain(
+    List<LatLng> polygon,
+    LatLng point,
+  ) {
+    if (polygon.isEmpty) {
+      return false;
+    }
+
+    double minLatitude = 90;
+    double maxLatitude = -90;
+    double minLongitude = 180;
+    double maxLongitude = -180;
+
+    for (final LatLng polygonPoint
+        in polygon) {
+      if (polygonPoint.latitude <
+          minLatitude) {
+        minLatitude =
+            polygonPoint.latitude;
+      }
+
+      if (polygonPoint.latitude >
+          maxLatitude) {
+        maxLatitude =
+            polygonPoint.latitude;
+      }
+
+      if (polygonPoint.longitude <
+          minLongitude) {
+        minLongitude =
+            polygonPoint.longitude;
+      }
+
+      if (polygonPoint.longitude >
+          maxLongitude) {
+        maxLongitude =
+            polygonPoint.longitude;
+      }
+    }
+
+    return point.latitude >= minLatitude &&
+        point.latitude <= maxLatitude &&
+        point.longitude >= minLongitude &&
+        point.longitude <= maxLongitude;
+  }
+
+  double _polygonBoundsArea(
+    List<LatLng> polygon,
+  ) {
+    if (polygon.isEmpty) {
+      return 0;
+    }
+
+    double minLatitude = 90;
+    double maxLatitude = -90;
+    double minLongitude = 180;
+    double maxLongitude = -180;
+
+    for (final LatLng point in polygon) {
+      if (point.latitude < minLatitude) {
+        minLatitude = point.latitude;
+      }
+
+      if (point.latitude > maxLatitude) {
+        maxLatitude = point.latitude;
+      }
+
+      if (point.longitude < minLongitude) {
+        minLongitude = point.longitude;
+      }
+
+      if (point.longitude > maxLongitude) {
+        maxLongitude = point.longitude;
+      }
+    }
+
+    return (maxLatitude - minLatitude).abs() *
+        (maxLongitude - minLongitude).abs();
+  }
+
+  LatLng _polygonBoundsCenter(
+    List<LatLng> polygon,
+  ) {
+    if (polygon.isEmpty) {
+      return const LatLng(0, 0);
+    }
+
+    double minLatitude = 90;
+    double maxLatitude = -90;
+    double minLongitude = 180;
+    double maxLongitude = -180;
+
+    for (final LatLng point in polygon) {
+      if (point.latitude < minLatitude) {
+        minLatitude = point.latitude;
+      }
+
+      if (point.latitude > maxLatitude) {
+        maxLatitude = point.latitude;
+      }
+
+      if (point.longitude < minLongitude) {
+        minLongitude = point.longitude;
+      }
+
+      if (point.longitude > maxLongitude) {
+        maxLongitude = point.longitude;
+      }
+    }
+
+    return LatLng(
+      (minLatitude + maxLatitude) / 2,
+      (minLongitude + maxLongitude) / 2,
+    );
+  }
+
+  double _simpleCoordinateDistanceSquared(
+    LatLng first,
+    LatLng second,
+  ) {
+    final double latitudeDifference =
+        first.latitude -
+            second.latitude;
+
+    double longitudeDifference =
+        first.longitude -
+            second.longitude;
+
+    if (longitudeDifference > 180) {
+      longitudeDifference -= 360;
+    } else if (longitudeDifference < -180) {
+      longitudeDifference += 360;
+    }
+
+    return latitudeDifference *
+            latitudeDifference +
+        longitudeDifference *
+            longitudeDifference;
+  }
+
+  List<LatLng> _samplePolygonPoints(
+    List<LatLng> polygon,
+  ) {
+    if (polygon.length <=
+        _maximumCameraPolygonPoints) {
+      return List<LatLng>.from(
+        polygon,
+      );
+    }
+
+    final int step =
+        (polygon.length /
+                _maximumCameraPolygonPoints)
+            .ceil();
+
+    final List<LatLng> sampledPoints =
+        <LatLng>[];
+
+    for (
+      int index = 0;
+      index < polygon.length;
+      index += step
+    ) {
+      sampledPoints.add(
+        polygon[index],
+      );
+    }
+
+    if (sampledPoints.last !=
+        polygon.last) {
+      sampledPoints.add(
+        polygon.last,
+      );
+    }
+
+    return sampledPoints;
+  }
+
+  bool _cameraBoundsAreVerySmall(
+    List<LatLng> points,
+  ) {
+    if (points.isEmpty) {
+      return true;
+    }
+
+    double minLatitude = 90;
+    double maxLatitude = -90;
+    double minLongitude = 180;
+    double maxLongitude = -180;
+
+    for (final LatLng point in points) {
+      if (point.latitude < minLatitude) {
+        minLatitude = point.latitude;
+      }
+
+      if (point.latitude > maxLatitude) {
+        maxLatitude = point.latitude;
+      }
+
+      if (point.longitude < minLongitude) {
+        minLongitude = point.longitude;
+      }
+
+      if (point.longitude > maxLongitude) {
+        maxLongitude = point.longitude;
+      }
+    }
+
+    return (maxLatitude - minLatitude).abs() <
+            0.7 &&
+        (maxLongitude - minLongitude).abs() <
+            0.7;
+  }
+
+  List<LatLng> _minimumAreaAround(
+    LatLng point,
+  ) {
+    const double latitudeMargin = 0.42;
+    const double longitudeMargin = 0.42;
+
+    return <LatLng>[
+      LatLng(
+        point.latitude - latitudeMargin,
+        point.longitude - longitudeMargin,
+      ),
+      LatLng(
+        point.latitude + latitudeMargin,
+        point.longitude + longitudeMargin,
+      ),
+    ];
+  }
+
+  double _nearestLongitude(
+    double startLongitude,
+    double targetLongitude,
+  ) {
+    double difference =
+        targetLongitude -
+            startLongitude;
+
+    if (difference > 180) {
+      difference -= 360;
+    } else if (difference < -180) {
+      difference += 360;
+    }
+
+    return startLongitude +
+        difference;
+  }
+
+  double _normalizeLongitude(
+    double longitude,
+  ) {
+    double normalized =
+        longitude;
+
+    while (normalized > 180) {
+      normalized -= 360;
+    }
+
+    while (normalized < -180) {
+      normalized += 360;
+    }
+
+    return normalized;
+  }
+
+  void _handleCameraAnimation() {
+    if (!_mapIsReady) {
+      return;
+    }
+
+    final Animation<double>? latitude =
+        _latitudeAnimation;
+
+    final Animation<double>? longitude =
+        _longitudeAnimation;
+
+    final Animation<double>? zoom =
+        _zoomAnimation;
+
+    if (latitude == null ||
+        longitude == null ||
+        zoom == null) {
+      return;
+    }
+
+    final double safeLatitude =
+        latitude.value.clamp(
+      -_maximumLatitude,
+      _maximumLatitude,
+    );
+
+    _mapController.move(
+      LatLng(
+        safeLatitude,
+        _normalizeLongitude(
+          longitude.value,
+        ),
+      ),
+      zoom.value,
+      id: 'geopoint-result-animation',
+    );
+  }
+
+  void _handleCameraAnimationStatus(
+    AnimationStatus status,
+  ) {
+    if (status !=
+            AnimationStatus.completed ||
+        !_mapIsReady) {
+      return;
+    }
+
+    final LatLng? finalCenter =
+        _finalCameraCenter;
+
+    final double? finalZoom =
+        _finalCameraZoom;
+
+    if (finalCenter == null ||
+        finalZoom == null) {
+      return;
+    }
+
+    _mapController.move(
+      LatLng(
+        finalCenter.latitude.clamp(
+          -_maximumLatitude,
+          _maximumLatitude,
+        ),
+        _normalizeLongitude(
+          finalCenter.longitude,
+        ),
+      ),
+      finalZoom,
+      id: 'geopoint-result-final',
+    );
+  }
+
+  bool _pointsAreVeryClose(
+    LatLng first,
+    LatLng second,
+  ) {
+    final double latitudeDifference =
+        (
+          first.latitude -
+          second.latitude
+        ).abs();
+
+    double longitudeDifference =
+        (
+          first.longitude -
+          second.longitude
+        ).abs();
+
+    if (longitudeDifference > 180) {
+      longitudeDifference =
+          360 - longitudeDifference;
+    }
+
+    return latitudeDifference < 0.08 &&
+        longitudeDifference < 0.08;
+  }
+
+  Color _countryColor(
+    GeoCountry country,
+  ) {
+    final String continent =
+        country.continent
+            .toLowerCase()
+            .trim();
+
+    if (continent.contains('africa')) {
+      return const Color(0xFFF2C14E);
+    }
+
+    if (continent.contains('asia')) {
+      return const Color(0xFFE07A5F);
+    }
+
+    if (continent.contains('europe')) {
+      return const Color(0xFF81B29A);
+    }
+
+    if (continent.contains(
+      'north america',
+    )) {
+      return const Color(0xFF8ECAE6);
+    }
+
+    if (continent.contains(
+      'south america',
+    )) {
+      return const Color(0xFF90BE6D);
+    }
+
+    if (continent.contains('oceania')) {
+      return const Color(0xFFB388EB);
+    }
+
+    if (continent.contains(
+      'antarctica',
+    )) {
+      return const Color(0xFFEAF4F4);
+    }
+
+    return const Color(0xFFD9C2A6);
+  }
+
+  List<Polygon<Object>> _buildCountryPolygons(
+    List<GeoCountry> countries,
+  ) {
+    final List<Polygon<Object>>
+        normalPolygons =
+        <Polygon<Object>>[];
+
+    final List<Polygon<Object>>
+        selectedPolygons =
+        <Polygon<Object>>[];
+
+    final List<Polygon<Object>>
+        answerPolygons =
+        <Polygon<Object>>[];
+
+    final GeoCountry? effectiveAnswer =
+        _effectiveAnswerCountry;
+
+    for (final GeoCountry country
+        in countries) {
+      final bool isSelectedCountry =
+          _sameCountry(
+        country,
+        _selectedCountry,
+      );
+
+      final bool isAnswerCountry =
+          _sameCountry(
+        country,
+        effectiveAnswer,
+      );
+
+      final bool isWrongSelectedCountry =
+          _isAnswerRevealed &&
+              isSelectedCountry &&
+              !isAnswerCountry;
+
+      final Color normalColor =
+          _countryColor(country);
+
+      for (final List<LatLng> countryPolygon
+          in country.polygons) {
+        if (_isAnswerRevealed &&
+            isAnswerCountry) {
+          answerPolygons.add(
+            Polygon<Object>(
+              points: countryPolygon,
+              color:
+                  _answerCountryColor
+                      .withValues(
+                alpha: 0.98,
+              ),
+              borderColor:
+                  Colors.white,
+              borderStrokeWidth: 6,
+            ),
+          );
+
+          answerPolygons.add(
+            Polygon<Object>(
+              points: countryPolygon,
+              color: Colors.transparent,
+              borderColor:
+                  _answerCountryBorderColor,
+              borderStrokeWidth: 3.5,
+            ),
+          );
+
+          continue;
+        }
+
+        if (isWrongSelectedCountry) {
+          selectedPolygons.add(
+            Polygon<Object>(
+              points: countryPolygon,
+              color:
+                  _selectedCountryColor
+                      .withValues(
+                alpha: 0.97,
+              ),
+              borderColor:
+                  Colors.white,
+              borderStrokeWidth: 5.5,
+            ),
+          );
+
+          selectedPolygons.add(
+            Polygon<Object>(
+              points: countryPolygon,
+              color: Colors.transparent,
+              borderColor:
+                  _selectedCountryBorderColor,
+              borderStrokeWidth: 3.2,
+            ),
+          );
+
+          continue;
+        }
+
+        if (!_isAnswerRevealed &&
+            isSelectedCountry) {
+          selectedPolygons.add(
+            Polygon<Object>(
+              points: countryPolygon,
+              color:
+                  const Color(0xFFFF8C42)
+                      .withValues(
+                alpha: 0.95,
+              ),
+              borderColor:
+                  const Color(0xFFD94801),
+              borderStrokeWidth: 2.8,
+            ),
+          );
+
+          continue;
+        }
+
+        normalPolygons.add(
+          Polygon<Object>(
+            points: countryPolygon,
+            color:
+                normalColor.withValues(
+              alpha: 0.92,
+            ),
+            borderColor:
+                Colors.white.withValues(
+              alpha: 0.78,
+            ),
+            borderStrokeWidth: 0.75,
+          ),
+        );
+      }
+    }
+
+    return <Polygon<Object>>[
+      ...normalPolygons,
+      ...selectedPolygons,
+      ...answerPolygons,
+    ];
+  }
+
+  List<Polyline<Object>> _buildAnswerLines() {
+    final LatLng? selectedPoint =
+        _selectedPoint;
+
+    final LatLng? answerPoint =
+        widget.answerPoint;
+
+    if (selectedPoint == null ||
+        answerPoint == null) {
+      return const <Polyline<Object>>[];
+    }
+
+    return <Polyline<Object>>[
+      Polyline<Object>(
+        points: <LatLng>[
+          selectedPoint,
+          answerPoint,
+        ],
+        strokeWidth: 6,
+        color: Colors.black.withValues(
+          alpha: 0.24,
+        ),
+      ),
+      Polyline<Object>(
+        points: <LatLng>[
+          selectedPoint,
+          answerPoint,
+        ],
+        strokeWidth: 3.5,
+        color: const Color(0xFFFF3B30),
+      ),
+    ];
+  }
+
+  List<Marker> _buildMarkers() {
+    final List<Marker> markers =
+        <Marker>[];
+
+    final LatLng? selectedPoint =
+        _selectedPoint;
+
+    final LatLng? answerPoint =
+        widget.answerPoint;
+
+    if (selectedPoint != null) {
+      markers.add(
+        Marker(
+          point: selectedPoint,
+          width: 48,
+          height: 52,
+          alignment:
+              Alignment.topCenter,
+          child:
+              const _SelectedPointMarker(),
+        ),
+      );
+    }
+
+    if (answerPoint != null) {
+      markers.add(
+        Marker(
+          point: answerPoint,
+          width: 46,
+          height: 46,
+          alignment:
+              Alignment.center,
+          child: const _AnswerGlow(),
+        ),
+      );
+
+      markers.add(
+        Marker(
+          point: answerPoint,
+          width: 46,
+          height: 50,
+          alignment:
+              Alignment.topCenter,
+          child:
+              const _AnswerFlagMarker(),
+        ),
+      );
+    }
+
+    return markers;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<GeoCountry>>(
+      future: _countriesFuture,
+      builder: (
+        BuildContext context,
+        AsyncSnapshot<List<GeoCountry>>
+            snapshot,
+      ) {
+        if (snapshot.connectionState ==
+            ConnectionState.waiting) {
+          return const ColoredBox(
+            color: _oceanColor,
+            child: Center(
+              child:
+                  CircularProgressIndicator(
+                color: Colors.white,
+              ),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return ColoredBox(
+            color: _oceanColor,
+            child: Center(
+              child: Padding(
+                padding:
+                    const EdgeInsets.all(24),
+                child: Text(
+                  'Erreur pendant le chargement '
+                  'de la carte :\n'
+                  '${snapshot.error}',
+                  textAlign:
+                      TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight:
+                        FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        final List<GeoCountry> countries =
+            snapshot.data ??
+                const <GeoCountry>[];
+
+        if (countries.isEmpty) {
+          return const ColoredBox(
+            color: _oceanColor,
+            child: Center(
+              child: Text(
+                'Aucun pays trouvé dans '
+                'le fichier GeoJSON.',
+                textAlign:
+                    TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          );
+        }
+
+        final List<Polyline<Object>>
+            answerLines =
+            _buildAnswerLines();
+
+        final List<Marker> markers =
+            _buildMarkers();
+
+        return Stack(
+          children: <Widget>[
+            Positioned.fill(
+              child: ColoredBox(
+                color: _oceanColor,
+                child: FlutterMap(
+                  mapController:
+                      _mapController,
+                  options: MapOptions(
+                    initialCenter:
+                        const LatLng(
+                      20,
+                      0,
+                    ),
+                    initialZoom: 2.2,
+                    minZoom: 1.2,
+                    maxZoom: 12,
+                    backgroundColor:
+                        _oceanColor,
+                    cameraConstraint:
+                        const CameraConstraint
+                            .containLatitude(
+                      -_maximumLatitude,
+                      _maximumLatitude,
+                    ),
+                    interactionOptions:
+                        const InteractionOptions(
+                      flags:
+                          InteractiveFlag.drag |
+                              InteractiveFlag
+                                  .pinchZoom |
+                              InteractiveFlag
+                                  .doubleTapZoom |
+                              InteractiveFlag
+                                  .scrollWheelZoom,
+                    ),
+                    onMapReady: () {
+                      _mapIsReady = true;
+
+                      _resolveAnswerCountry();
+
+                      if (widget.answerPoint !=
+                          null) {
+                        _scheduleCameraFit();
+                      }
+                    },
+                    onTap: _handleMapTap,
+                  ),
+                  children: <Widget>[
+                    PolygonLayer<Object>(
+                      polygons:
+                          _buildCountryPolygons(
+                        countries,
+                      ),
+                    ),
+                    if (answerLines.isNotEmpty)
+                      PolylineLayer<Object>(
+                        polylines:
+                            answerLines,
+                      ),
+                    if (markers.isNotEmpty)
+                      MarkerLayer(
+                        markers: markers,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            if (widget.showInformationPanel)
+              Positioned(
+                top:
+                    MediaQuery.paddingOf(
+                              context,
+                            ).top +
+                        12,
+                left: 12,
+                right: 12,
+                child: _InformationPanel(
+                  selectedCountry:
+                      _selectedCountry,
+                  selectedPoint:
+                      _selectedPoint,
+                  candidateCount:
+                      _candidateCount,
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SelectedPointMarker
+    extends StatelessWidget {
+  const _SelectedPointMarker();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: <Widget>[
+        Positioned(
+          top: 8,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color:
+                      const Color(0xFFFF5C35)
+                          .withValues(
+                    alpha: 0.48,
+                  ),
+                  blurRadius: 13,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const Icon(
+          Icons.location_pin,
+          size: 46,
+          color: Color(0xFFFF5C35),
+          shadows: <Shadow>[
+            Shadow(
+              color: Colors.black38,
+              blurRadius: 5,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _AnswerGlow extends StatelessWidget {
+  const _AnswerGlow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 12,
+        height: 12,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color:
+              const Color(0xFF8DFF86),
+          border: Border.all(
+            color: Colors.white,
+            width: 1.2,
+          ),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color:
+                  const Color(0xFF75FF70)
+                      .withValues(
+                alpha: 0.78,
+              ),
+              blurRadius: 12,
+              spreadRadius: 3,
+            ),
+            BoxShadow(
+              color:
+                  const Color(0xFF75FF70)
+                      .withValues(
+                alpha: 0.26,
+              ),
+              blurRadius: 20,
+              spreadRadius: 5,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AnswerFlagMarker
+    extends StatelessWidget {
+  const _AnswerFlagMarker();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Icon(
+      Icons.flag,
+      size: 42,
+      color: Color(0xFF38C95A),
+      shadows: <Shadow>[
+        Shadow(
+          color: Colors.black45,
+          blurRadius: 5,
+          offset: Offset(0, 2),
+        ),
+        Shadow(
+          color: Color(0xFF79FF82),
+          blurRadius: 8,
+        ),
+      ],
+    );
+  }
+}
+
+class _InformationPanel
+    extends StatelessWidget {
+  const _InformationPanel({
+    required this.selectedCountry,
+    required this.selectedPoint,
+    required this.candidateCount,
+  });
+
+  final GeoCountry? selectedCountry;
+  final LatLng? selectedPoint;
+  final int? candidateCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final LatLng? point =
+        selectedPoint;
+
+    if (point == null) {
+      return const SizedBox.shrink();
+    }
+
+    final GeoCountry? country =
+        selectedCountry;
+
+    final String locationText =
+        country == null
+            ? 'Océan ou zone non reconnue'
+            : country.name;
+
+    final String coordinatesText =
+        '${point.latitude.toStringAsFixed(5)}, '
+        '${point.longitude.toStringAsFixed(5)}';
+
+    final String candidateText =
+        candidateCount == null
+            ? ''
+            : '$candidateCount pays candidats testés';
+
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(
+          maxWidth: 430,
+        ),
+        padding:
+            const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 11,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(
+            alpha: 0.72,
+          ),
+          borderRadius:
+              BorderRadius.circular(14),
+          border: Border.all(
+            color:
+                Colors.white.withValues(
+              alpha: 0.32,
+            ),
+          ),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: Colors.black.withValues(
+                alpha: 0.20,
+              ),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize:
+              MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              locationText,
+              textAlign:
+                  TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight:
+                    FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              coordinatesText,
+              textAlign:
+                  TextAlign.center,
+              style: TextStyle(
+                color:
+                    Colors.white.withValues(
+                  alpha: 0.82,
+                ),
+                fontSize: 13,
+              ),
+            ),
+            if (candidateText.isNotEmpty)
+              ...<Widget>[
+                const SizedBox(height: 3),
+                Text(
+                  candidateText,
+                  textAlign:
+                      TextAlign.center,
+                  style: TextStyle(
+                    color:
+                        Colors.white.withValues(
+                      alpha: 0.62,
+                    ),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+          ],
+        ),
+      ),
+    );
+  }
+}

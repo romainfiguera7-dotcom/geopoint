@@ -1,0 +1,50 @@
+[
+  {
+    "entityId": "FRA",
+    "title": "France",
+    "continent": "Europe",
+    "population": 68600000,
+    "areaSquareKilometers": 551695,
+    "currency": "Euro",
+    "languages": [
+      "Français"
+    ],
+    "shortFact": "La France possède des territoires répartis sur plusieurs océans.",
+    "history": "La France est un pays d'Europe occidentale dont le territoire comprend aussi plusieurs collectivités et territoires ultramarins. Cette présence mondiale lui donne l'une des plus vastes zones maritimes de la planète."
+  },
+  {
+    "entityId": "PRT",
+    "title": "Portugal",
+    "continent": "Europe",
+    "population": 10400000,
+    "areaSquareKilometers": 92212,
+    "currency": "Euro",
+    "languages": [
+      "Portugais"
+    ],
+    "shortFact": "Le Portugal comprend aussi les archipels des Açores et de Madère.",
+    "history": "Situé à l'extrémité occidentale de l'Europe, le Portugal possède une longue façade sur l'océan Atlantique. Lisbonne est sa capitale et sa plus grande ville."
+  },
+  {
+    "entityId": "CLP",
+    "title": "Île Clipperton",
+    "continent": "Amérique du Nord",
+    "population": 0,
+    "areaSquareKilometers": 6,
+    "currency": null,
+    "languages": [],
+    "shortFact": "Clipperton est un atoll français inhabité situé dans le Pacifique oriental.",
+    "history": "L'île Clipperton est un petit atoll corallien administré par la France. Elle se situe à plus de 1 000 kilomètres des côtes du Mexique et est principalement utilisée pour des missions scientifiques."
+  },
+  {
+    "entityId": "ATC",
+    "title": "Îles Ashmore-et-Cartier",
+    "continent": "Océanie",
+    "population": 0,
+    "areaSquareKilometers": 5,
+    "currency": null,
+    "languages": [],
+    "shortFact": "Ashmore-et-Cartier est un territoire extérieur australien inhabité.",
+    "history": "Les îles Ashmore-et-Cartier se trouvent dans la mer de Timor, au nord-ouest de l'Australie. Elles sont inhabitées et protégées en grande partie pour leur biodiversité marine."
+  }
+]

@@ -1,0 +1,46 @@
+[
+  {
+    "id": "countries",
+    "modeId": "find_country",
+    "name": "Pays",
+    "description": "Repérer correctement les pays sur la carte.",
+    "iconName": "public",
+    "bronzeScore": 650,
+    "silverScore": 800,
+    "goldScore": 900,
+    "isEnabled": true
+  },
+  {
+    "id": "capitals",
+    "modeId": "find_capital",
+    "name": "Capitales",
+    "description": "Retrouver correctement les capitales.",
+    "iconName": "location_city",
+    "bronzeScore": 650,
+    "silverScore": 800,
+    "goldScore": 900,
+    "isEnabled": true
+  },
+  {
+    "id": "flags",
+    "modeId": "find_flag",
+    "name": "Drapeaux",
+    "description": "Reconnaître les drapeaux et les associer au bon pays.",
+    "iconName": "flag",
+    "bronzeScore": 650,
+    "silverScore": 800,
+    "goldScore": 900,
+    "isEnabled": true
+  },
+  {
+    "id": "mixed",
+    "modeId": "mixed",
+    "name": "Mix",
+    "description": "Réussir une partie combinant plusieurs types de questions.",
+    "iconName": "shuffle",
+    "bronzeScore": 650,
+    "silverScore": 800,
+    "goldScore": 900,
+    "isEnabled": true
+  }
+]

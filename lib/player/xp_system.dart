@@ -18,45 +18,29 @@ class XpSystem {
   }) {
     int earnedXp = baseGameXp;
 
-    earnedXp +=
-        correctAnswers * correctAnswerXp;
+    earnedXp += correctAnswers * correctAnswerXp;
 
-    if (correctAnswers ==
-        totalQuestions) {
-      earnedXp +=
-          perfectGameBonus;
+    if (correctAnswers == totalQuestions) {
+      earnedXp += perfectGameBonus;
     }
 
     if (averageDistanceKm <= 50) {
-      earnedXp +=
-          precisionBonus;
+      earnedXp += precisionBonus;
     }
 
-    final int previousXp =
-        profile.totalXp;
+    final int previousXp = profile.totalXp;
 
-    final int newXp =
-        previousXp + earnedXp;
+    final int newXp = previousXp + earnedXp;
 
-    final int previousLevel =
-        profile.currentLevel;
+    final int previousLevel = profile.currentLevel;
 
-    final int newLevel =
-        PlayerLevelCatalog.levelForTotalXp(
-      newXp,
-    );
+    final int newLevel = PlayerLevelCatalog.levelForTotalXp(newXp);
 
-    final String previousTitle =
-        PlayerLevelCatalog
-            .titleForLevel(
+    final String previousTitle = PlayerLevelCatalog.titleForLevel(
       previousLevel,
     );
 
-    final String newTitle =
-        PlayerLevelCatalog
-            .titleForLevel(
-      newLevel,
-    );
+    final String newTitle = PlayerLevelCatalog.titleForLevel(newLevel);
 
     return LevelResult(
       earnedXp: earnedXp,
@@ -64,10 +48,8 @@ class XpSystem {
       newTotalXp: newXp,
       previousLevel: previousLevel,
       newLevel: newLevel,
-      previousTitle:
-          previousTitle,
-      newTitle:
-          newTitle,
+      previousTitle: previousTitle,
+      newTitle: newTitle,
     );
   }
 }

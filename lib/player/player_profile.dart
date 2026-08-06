@@ -44,24 +44,13 @@ class PlayerProfile {
     String avatarId = 'default',
     DateTime? createdAt,
   }) {
-    final DateTime now =
-        createdAt ?? DateTime.now();
+    final DateTime now = createdAt ?? DateTime.now();
 
     return PlayerProfile(
-      schemaVersion:
-          currentSchemaVersion,
-      playerId:
-          playerId.trim().isEmpty
-              ? 'local_player'
-              : playerId.trim(),
-      displayName:
-          displayName.trim().isEmpty
-              ? 'Voyageur'
-              : displayName.trim(),
-      avatarId:
-          avatarId.trim().isEmpty
-              ? 'default'
-              : avatarId.trim(),
+      schemaVersion: currentSchemaVersion,
+      playerId: playerId.trim().isEmpty ? 'local_player' : playerId.trim(),
+      displayName: displayName.trim().isEmpty ? 'Voyageur' : displayName.trim(),
+      avatarId: avatarId.trim().isEmpty ? 'default' : avatarId.trim(),
       totalXp: 0,
       gamesPlayed: 0,
       correctAnswers: 0,
@@ -75,15 +64,11 @@ class PlayerProfile {
   }
 
   int get currentLevel {
-    return PlayerLevelCatalog.levelForTotalXp(
-      totalXp,
-    );
+    return PlayerLevelCatalog.levelForTotalXp(totalXp);
   }
 
   PlayerLevel get level {
-    return PlayerLevelCatalog.forLevel(
-      currentLevel,
-    );
+    return PlayerLevelCatalog.forLevel(currentLevel);
   }
 
   String get title {
@@ -91,32 +76,23 @@ class PlayerProfile {
   }
 
   int get xpIntoCurrentLevel {
-    return PlayerLevelCatalog.xpIntoCurrentLevel(
-      totalXp,
-    );
+    return PlayerLevelCatalog.xpIntoCurrentLevel(totalXp);
   }
 
   int get xpForNextLevel {
-    return PlayerLevelCatalog.currentLevelXpTarget(
-      totalXp,
-    );
+    return PlayerLevelCatalog.currentLevelXpTarget(totalXp);
   }
 
   int get xpRemainingForNextLevel {
-    return PlayerLevelCatalog.xpNeededForNextLevel(
-      totalXp,
-    );
+    return PlayerLevelCatalog.xpNeededForNextLevel(totalXp);
   }
 
   double get levelProgress {
-    return PlayerLevelCatalog.progressToNextLevel(
-      totalXp,
-    );
+    return PlayerLevelCatalog.progressToNextLevel(totalXp);
   }
 
   bool get isMaximumLevel {
-    return currentLevel >=
-        PlayerLevelCatalog.maximumLevel;
+    return currentLevel >= PlayerLevelCatalog.maximumLevel;
   }
 
   bool get hasPlayed {
@@ -128,8 +104,7 @@ class PlayerProfile {
       return 0;
     }
 
-    return correctAnswers /
-        totalAnswers;
+    return correctAnswers / totalAnswers;
   }
 
   double get averageScore {
@@ -137,8 +112,7 @@ class PlayerProfile {
       return 0;
     }
 
-    return totalScore /
-        gamesPlayed;
+    return totalScore / gamesPlayed;
   }
 
   double get averageDistanceInKilometers {
@@ -146,8 +120,7 @@ class PlayerProfile {
       return 0;
     }
 
-    return totalDistanceInKilometers /
-        totalAnswers;
+    return totalDistanceInKilometers / totalAnswers;
   }
 
   double get averageElapsedSeconds {
@@ -155,14 +128,11 @@ class PlayerProfile {
       return 0;
     }
 
-    return totalElapsedSeconds /
-        totalAnswers;
+    return totalElapsedSeconds / totalAnswers;
   }
 
   Duration get totalPlayTime {
-    return Duration(
-      seconds: totalElapsedSeconds,
-    );
+    return Duration(seconds: totalElapsedSeconds);
   }
 
   PlayerProfile registerGameResult({
@@ -175,93 +145,58 @@ class PlayerProfile {
     DateTime? playedAt,
   }) {
     if (earnedXp < 0) {
-      throw ArgumentError(
-        'L’XP gagnée ne peut pas être négative.',
-      );
+      throw ArgumentError('L’XP gagnée ne peut pas être négative.');
     }
 
     if (gameScore < 0) {
-      throw ArgumentError(
-        'Le score ne peut pas être négatif.',
-      );
+      throw ArgumentError('Le score ne peut pas être négatif.');
     }
 
     if (gameCorrectAnswers < 0 ||
         gameTotalAnswers < 0 ||
-        gameCorrectAnswers >
-            gameTotalAnswers) {
-      throw ArgumentError(
-        'Le nombre de bonnes réponses est invalide.',
-      );
+        gameCorrectAnswers > gameTotalAnswers) {
+      throw ArgumentError('Le nombre de bonnes réponses est invalide.');
     }
 
     if (gameDistanceInKilometers < 0) {
-      throw ArgumentError(
-        'La distance totale ne peut pas être négative.',
-      );
+      throw ArgumentError('La distance totale ne peut pas être négative.');
     }
 
     if (gameElapsedSeconds < 0) {
-      throw ArgumentError(
-        'Le temps total ne peut pas être négatif.',
-      );
+      throw ArgumentError('Le temps total ne peut pas être négatif.');
     }
 
     return copyWith(
-      totalXp:
-          totalXp + earnedXp,
-      gamesPlayed:
-          gamesPlayed + 1,
-      correctAnswers:
-          correctAnswers +
-              gameCorrectAnswers,
-      totalAnswers:
-          totalAnswers +
-              gameTotalAnswers,
-      totalScore:
-          totalScore +
-              gameScore,
+      totalXp: totalXp + earnedXp,
+      gamesPlayed: gamesPlayed + 1,
+      correctAnswers: correctAnswers + gameCorrectAnswers,
+      totalAnswers: totalAnswers + gameTotalAnswers,
+      totalScore: totalScore + gameScore,
       totalDistanceInKilometers:
-          totalDistanceInKilometers +
-              gameDistanceInKilometers,
-      totalElapsedSeconds:
-          totalElapsedSeconds +
-              gameElapsedSeconds,
-      lastPlayedAt:
-          playedAt ?? DateTime.now(),
+          totalDistanceInKilometers + gameDistanceInKilometers,
+      totalElapsedSeconds: totalElapsedSeconds + gameElapsedSeconds,
+      lastPlayedAt: playedAt ?? DateTime.now(),
     );
   }
 
-  PlayerProfile rename(
-    String newDisplayName,
-  ) {
-    final String normalizedName =
-        newDisplayName.trim();
+  PlayerProfile rename(String newDisplayName) {
+    final String normalizedName = newDisplayName.trim();
 
-    if (normalizedName.isEmpty ||
-        normalizedName == displayName) {
+    if (normalizedName.isEmpty || normalizedName == displayName) {
       return this;
     }
 
-    return copyWith(
-      displayName: normalizedName,
-    );
+    return copyWith(displayName: normalizedName);
   }
 
-  PlayerProfile changeAvatar(
-    String newAvatarId,
-  ) {
-    final String normalizedAvatarId =
-        newAvatarId.trim();
+  PlayerProfile changeAvatar(String newAvatarId) {
+    final String normalizedAvatarId = newAvatarId.trim();
 
-    if (normalizedAvatarId.isEmpty ||
-        normalizedAvatarId == avatarId) {
+    if (normalizedAvatarId.isEmpty || normalizedAvatarId == avatarId) {
       return this;
     }
 
-    return copyWith(
-      avatarId: normalizedAvatarId,
-    );
+    return copyWith(avatarId: normalizedAvatarId);
   }
 
   PlayerProfile copyWith({
@@ -281,176 +216,76 @@ class PlayerProfile {
     bool clearLastPlayedAt = false,
   }) {
     return PlayerProfile(
-      schemaVersion:
-          schemaVersion ??
-              this.schemaVersion,
-      playerId:
-          playerId ??
-              this.playerId,
-      displayName:
-          displayName ??
-              this.displayName,
-      avatarId:
-          avatarId ??
-              this.avatarId,
-      totalXp:
-          totalXp ??
-              this.totalXp,
-      gamesPlayed:
-          gamesPlayed ??
-              this.gamesPlayed,
-      correctAnswers:
-          correctAnswers ??
-              this.correctAnswers,
-      totalAnswers:
-          totalAnswers ??
-              this.totalAnswers,
-      totalScore:
-          totalScore ??
-              this.totalScore,
+      schemaVersion: schemaVersion ?? this.schemaVersion,
+      playerId: playerId ?? this.playerId,
+      displayName: displayName ?? this.displayName,
+      avatarId: avatarId ?? this.avatarId,
+      totalXp: totalXp ?? this.totalXp,
+      gamesPlayed: gamesPlayed ?? this.gamesPlayed,
+      correctAnswers: correctAnswers ?? this.correctAnswers,
+      totalAnswers: totalAnswers ?? this.totalAnswers,
+      totalScore: totalScore ?? this.totalScore,
       totalDistanceInKilometers:
-          totalDistanceInKilometers ??
-              this.totalDistanceInKilometers,
-      totalElapsedSeconds:
-          totalElapsedSeconds ??
-              this.totalElapsedSeconds,
-      createdAt:
-          createdAt ??
-              this.createdAt,
-      lastPlayedAt:
-          clearLastPlayedAt
-              ? null
-              : lastPlayedAt ??
-                  this.lastPlayedAt,
+          totalDistanceInKilometers ?? this.totalDistanceInKilometers,
+      totalElapsedSeconds: totalElapsedSeconds ?? this.totalElapsedSeconds,
+      createdAt: createdAt ?? this.createdAt,
+      lastPlayedAt: clearLastPlayedAt
+          ? null
+          : lastPlayedAt ?? this.lastPlayedAt,
     );
   }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'schemaVersion':
-          schemaVersion,
-      'playerId':
-          playerId,
-      'displayName':
-          displayName,
-      'avatarId':
-          avatarId,
-      'totalXp':
-          totalXp,
-      'gamesPlayed':
-          gamesPlayed,
-      'correctAnswers':
-          correctAnswers,
-      'totalAnswers':
-          totalAnswers,
-      'totalScore':
-          totalScore,
-      'totalDistanceInKilometers':
-          totalDistanceInKilometers,
-      'totalElapsedSeconds':
-          totalElapsedSeconds,
-      'createdAt':
-          createdAt.toIso8601String(),
-      'lastPlayedAt':
-          lastPlayedAt?.toIso8601String(),
+      'schemaVersion': schemaVersion,
+      'playerId': playerId,
+      'displayName': displayName,
+      'avatarId': avatarId,
+      'totalXp': totalXp,
+      'gamesPlayed': gamesPlayed,
+      'correctAnswers': correctAnswers,
+      'totalAnswers': totalAnswers,
+      'totalScore': totalScore,
+      'totalDistanceInKilometers': totalDistanceInKilometers,
+      'totalElapsedSeconds': totalElapsedSeconds,
+      'createdAt': createdAt.toIso8601String(),
+      'lastPlayedAt': lastPlayedAt?.toIso8601String(),
     };
   }
 
-  factory PlayerProfile.fromJson(
-    Map<String, dynamic> json,
-  ) {
-    final DateTime now =
-        DateTime.now();
+  factory PlayerProfile.fromJson(Map<String, dynamic> json) {
+    final DateTime now = DateTime.now();
 
     return PlayerProfile(
-      schemaVersion:
-          _readInt(
+      schemaVersion: _readInt(
         json['schemaVersion'],
-        fallback:
-            currentSchemaVersion,
+        fallback: currentSchemaVersion,
       ),
-      playerId:
-          _readString(
-        json['playerId'],
-        fallback:
-            'local_player',
-      ),
-      displayName:
-          _readString(
-        json['displayName'],
-        fallback:
-            'Voyageur',
-      ),
-      avatarId:
-          _readString(
-        json['avatarId'],
-        fallback:
-            'default',
-      ),
-      totalXp:
-          _readInt(
-        json['totalXp'],
+      playerId: _readString(json['playerId'], fallback: 'local_player'),
+      displayName: _readString(json['displayName'], fallback: 'Voyageur'),
+      avatarId: _readString(json['avatarId'], fallback: 'default'),
+      totalXp: _readInt(json['totalXp'], fallback: 0),
+      gamesPlayed: _readInt(json['gamesPlayed'], fallback: 0),
+      correctAnswers: _readInt(json['correctAnswers'], fallback: 0),
+      totalAnswers: _readInt(json['totalAnswers'], fallback: 0),
+      totalScore: _readInt(json['totalScore'], fallback: 0),
+      totalDistanceInKilometers: _readDouble(
+        json['totalDistanceInKilometers'],
         fallback: 0,
       ),
-      gamesPlayed:
-          _readInt(
-        json['gamesPlayed'],
-        fallback: 0,
-      ),
-      correctAnswers:
-          _readInt(
-        json['correctAnswers'],
-        fallback: 0,
-      ),
-      totalAnswers:
-          _readInt(
-        json['totalAnswers'],
-        fallback: 0,
-      ),
-      totalScore:
-          _readInt(
-        json['totalScore'],
-        fallback: 0,
-      ),
-      totalDistanceInKilometers:
-          _readDouble(
-        json[
-            'totalDistanceInKilometers'],
-        fallback: 0,
-      ),
-      totalElapsedSeconds:
-          _readInt(
-        json['totalElapsedSeconds'],
-        fallback: 0,
-      ),
-      createdAt:
-          _readDateTime(
-        json['createdAt'],
-        fallback: now,
-      ),
-      lastPlayedAt:
-          _readOptionalDateTime(
-        json['lastPlayedAt'],
-      ),
+      totalElapsedSeconds: _readInt(json['totalElapsedSeconds'], fallback: 0),
+      createdAt: _readDateTime(json['createdAt'], fallback: now),
+      lastPlayedAt: _readOptionalDateTime(json['lastPlayedAt']),
     );
   }
 
-  static String _readString(
-    Object? value, {
-    required String fallback,
-  }) {
-    final String text =
-        value?.toString().trim() ?? '';
+  static String _readString(Object? value, {required String fallback}) {
+    final String text = value?.toString().trim() ?? '';
 
-    return text.isEmpty
-        ? fallback
-        : text;
+    return text.isEmpty ? fallback : text;
   }
 
-  static int _readInt(
-    Object? value, {
-    required int fallback,
-  }) {
+  static int _readInt(Object? value, {required int fallback}) {
     if (value is int) {
       return value;
     }
@@ -459,16 +294,10 @@ class PlayerProfile {
       return value.toInt();
     }
 
-    return int.tryParse(
-          value?.toString() ?? '',
-        ) ??
-        fallback;
+    return int.tryParse(value?.toString() ?? '') ?? fallback;
   }
 
-  static double _readDouble(
-    Object? value, {
-    required double fallback,
-  }) {
+  static double _readDouble(Object? value, {required double fallback}) {
     if (value is double) {
       return value;
     }
@@ -477,32 +306,21 @@ class PlayerProfile {
       return value.toDouble();
     }
 
-    return double.tryParse(
-          value?.toString() ?? '',
-        ) ??
-        fallback;
+    return double.tryParse(value?.toString() ?? '') ?? fallback;
   }
 
-  static DateTime _readDateTime(
-    Object? value, {
-    required DateTime fallback,
-  }) {
-    final String text =
-        value?.toString().trim() ?? '';
+  static DateTime _readDateTime(Object? value, {required DateTime fallback}) {
+    final String text = value?.toString().trim() ?? '';
 
     if (text.isEmpty) {
       return fallback;
     }
 
-    return DateTime.tryParse(text) ??
-        fallback;
+    return DateTime.tryParse(text) ?? fallback;
   }
 
-  static DateTime? _readOptionalDateTime(
-    Object? value,
-  ) {
-    final String text =
-        value?.toString().trim() ?? '';
+  static DateTime? _readOptionalDateTime(Object? value) {
+    final String text = value?.toString().trim() ?? '';
 
     if (text.isEmpty) {
       return null;

@@ -274,9 +274,10 @@ class _GameScreenState extends State<GameScreen> {
           children: <Widget>[
             Positioned.fill(
               child: GeoPointMap(
-                key: ValueKey<int>(
-                  questionNumber,
-                ),
+                initialZoom:
+                    _controller.currentInitialZoom,
+                initialCenter:
+                    _controller.currentInitialCenter,
                 answerPoint:
                     _controller.answerPoint,
                 answerCountry:

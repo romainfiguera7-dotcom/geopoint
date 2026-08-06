@@ -16,6 +16,9 @@ class GeoPointMap extends StatefulWidget {
     this.onCountrySelected,
     this.showInformationPanel = true,
     this.allowInteraction = true,
+    this.initialCenter =
+        const LatLng(20, 0),
+    this.initialZoom = 2.2,
   });
 
   final LatLng? answerPoint;
@@ -26,6 +29,8 @@ class GeoPointMap extends StatefulWidget {
 
   final bool showInformationPanel;
   final bool allowInteraction;
+  final LatLng initialCenter;
+  final double initialZoom;
 
   @override
   State<GeoPointMap> createState() {
@@ -127,6 +132,10 @@ class _GeoPointMapState extends State<GeoPointMap>
         oldWidget.answerPoint == null &&
             widget.answerPoint != null;
 
+    final bool answerHasJustDisappeared =
+        oldWidget.answerPoint != null &&
+            widget.answerPoint == null;
+
     final bool answerPointChanged =
         !_samePoint(
       oldWidget.answerPoint,
@@ -139,12 +148,74 @@ class _GeoPointMapState extends State<GeoPointMap>
       widget.answerCountry,
     );
 
-    if (answerHasJustAppeared ||
-        answerPointChanged ||
-        answerCountryChanged) {
+    final bool initialCenterChanged =
+        !_samePoint(
+      oldWidget.initialCenter,
+      widget.initialCenter,
+    );
+
+    final bool initialZoomChanged =
+        oldWidget.initialZoom !=
+            widget.initialZoom;
+
+    final bool newQuestionIsDisplayed =
+        widget.answerPoint == null &&
+            (
+              answerHasJustDisappeared ||
+                  initialCenterChanged ||
+                  initialZoomChanged
+            );
+
+    if (newQuestionIsDisplayed) {
+      _resetQuestionView();
+
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) {
+        if (!mounted || !_mapIsReady) {
+          return;
+        }
+
+        _mapController.move(
+          widget.initialCenter,
+          widget.initialZoom,
+        );
+      });
+    }
+
+    if (widget.answerPoint != null &&
+        (
+          answerHasJustAppeared ||
+              answerPointChanged ||
+              answerCountryChanged
+        )) {
       _resolveAnswerCountry();
       _scheduleCameraFit();
     }
+  }
+
+  void _resetQuestionView() {
+    /*
+     * Une nouvelle question doit repartir d'une
+     * carte totalement propre. Sans cette remise à
+     * zéro, le marqueur, le pays choisi et la fin de
+     * l'animation précédente peuvent rester visibles
+     * lorsque deux pays successifs sont proches.
+     */
+    _cameraAnimationController.stop();
+
+    _cameraFitScheduled = false;
+
+    _latitudeAnimation = null;
+    _longitudeAnimation = null;
+    _zoomAnimation = null;
+
+    _finalCameraCenter = null;
+    _finalCameraZoom = null;
+
+    _selectedPoint = null;
+    _selectedCountry = null;
+    _resolvedAnswerCountry = null;
+    _candidateCount = null;
   }
 
   @override
@@ -1431,11 +1502,9 @@ class _GeoPointMapState extends State<GeoPointMap>
                       _mapController,
                   options: MapOptions(
                     initialCenter:
-                        const LatLng(
-                      20,
-                      0,
-                    ),
-                    initialZoom: 2.2,
+                        widget.initialCenter,
+                    initialZoom:
+                        widget.initialZoom,
                     minZoom: 1.2,
                     maxZoom: 12,
                     backgroundColor:
@@ -1459,6 +1528,12 @@ class _GeoPointMapState extends State<GeoPointMap>
                     ),
                     onMapReady: () {
                       _mapIsReady = true;
+
+                      _mapController.move(
+                        widget.initialCenter,
+                        widget.initialZoom,
+                        id: 'geopoint-question-initial',
+                      );
 
                       _resolveAnswerCountry();
 

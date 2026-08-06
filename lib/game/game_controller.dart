@@ -139,6 +139,57 @@ class GameController extends ChangeNotifier {
   String get currentModeId =>
       _currentModeId;
 
+  double get currentInitialZoom =>
+      _difficulties[_currentDifficultyId]
+          ?.initialZoom ??
+      2.2;
+
+  LatLng get currentInitialCenter {
+    final GameQuestion? question =
+        _session.currentQuestion;
+
+    if (question == null) {
+      return const LatLng(
+        20,
+        0,
+      );
+    }
+
+    final GeoCountry? country =
+        _findCountryById(
+      question.countryId,
+    );
+
+    if (country == null) {
+      return const LatLng(
+        20,
+        0,
+      );
+    }
+
+    final ReferencePoint? referencePoint =
+        _findReferenceOverride(
+      country,
+    );
+
+    if (referencePoint != null) {
+      return referencePoint.position;
+    }
+
+    final Capital? capital =
+        _findCapital(
+      country,
+    );
+
+    if (capital != null) {
+      return capital.position;
+    }
+
+    return _calculateCountryCenter(
+      country,
+    );
+  }
+
   bool get isFindCapitalMode =>
       _currentModeId == 'find_capital';
 

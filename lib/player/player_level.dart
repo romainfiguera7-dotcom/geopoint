@@ -12,9 +12,7 @@ class PlayerLevel {
   final int requiredTotalXp;
 
   bool get isValid {
-    return level >= 1 &&
-        title.trim().isNotEmpty &&
-        requiredTotalXp >= 0;
+    return level >= 1 && title.trim().isNotEmpty && requiredTotalXp >= 0;
   }
 
   @override
@@ -33,43 +31,42 @@ class PlayerLevelCatalog {
   static const int minimumLevel = 1;
   static const int maximumLevel = 100;
 
-  static PlayerLevel forLevel(
-    int level,
-  ) {
-    final int normalizedLevel =
-        level.clamp(
-      minimumLevel,
-      maximumLevel,
-    );
+  static PlayerLevel forLevel(int level) {
+    final int normalizedLevel = level.clamp(minimumLevel, maximumLevel);
 
     return PlayerLevel(
       level: normalizedLevel,
-      title: titleForLevel(
-        normalizedLevel,
-      ),
-      requiredTotalXp:
-          requiredTotalXpForLevel(
-        normalizedLevel,
-      ),
+      title: titleForLevel(normalizedLevel),
+      requiredTotalXp: requiredTotalXpForLevel(normalizedLevel),
     );
   }
 
-  static String titleForLevel(
-    int level,
-  ) {
+  static String titleForLevel(int level) {
     if (level >= 100) {
       return 'Maître du Monde';
+    }
+
+    if (level >= 90) {
+      return 'Légende du globe';
     }
 
     if (level >= 75) {
       return 'Grand Cartographe';
     }
 
+    if (level >= 60) {
+      return 'Expert du monde';
+    }
+
     if (level >= 50) {
       return 'Cartographe';
     }
 
-    if (level >= 35) {
+    if (level >= 40) {
+      return 'Géographe';
+    }
+
+    if (level >= 30) {
       return 'Globe-trotteur';
     }
 
@@ -88,14 +85,8 @@ class PlayerLevelCatalog {
     return 'Touriste';
   }
 
-  static int requiredTotalXpForLevel(
-    int level,
-  ) {
-    final int normalizedLevel =
-        level.clamp(
-      minimumLevel,
-      maximumLevel,
-    );
+  static int requiredTotalXpForLevel(int level) {
+    final int normalizedLevel = level.clamp(minimumLevel, maximumLevel);
 
     if (normalizedLevel <= 1) {
       return 0;
@@ -112,135 +103,75 @@ class PlayerLevelCatalog {
      */
     int totalXp = 0;
 
-    for (
-      int currentLevel = 1;
-      currentLevel < normalizedLevel;
-      currentLevel++
-    ) {
-      totalXp +=
-          xpRequiredForNextLevel(
-        currentLevel,
-      );
+    for (int currentLevel = 1; currentLevel < normalizedLevel; currentLevel++) {
+      totalXp += xpRequiredForNextLevel(currentLevel);
     }
 
     return totalXp;
   }
 
-  static int xpRequiredForNextLevel(
-    int currentLevel,
-  ) {
-    final int normalizedLevel =
-        currentLevel.clamp(
-      minimumLevel,
-      maximumLevel,
-    );
+  static int xpRequiredForNextLevel(int currentLevel) {
+    final int normalizedLevel = currentLevel.clamp(minimumLevel, maximumLevel);
 
     if (normalizedLevel >= maximumLevel) {
       return 0;
     }
 
-    return 80 +
-        normalizedLevel * 35;
+    return 80 + normalizedLevel * 35;
   }
 
-  static int levelForTotalXp(
-    int totalXp,
-  ) {
-    final int normalizedXp =
-        totalXp < 0
-            ? 0
-            : totalXp;
+  static int levelForTotalXp(int totalXp) {
+    final int normalizedXp = totalXp < 0 ? 0 : totalXp;
 
     int level = minimumLevel;
 
-    while (
-      level < maximumLevel &&
-      normalizedXp >=
-          requiredTotalXpForLevel(
-            level + 1,
-          )
-    ) {
+    while (level < maximumLevel &&
+        normalizedXp >= requiredTotalXpForLevel(level + 1)) {
       level++;
     }
 
     return level;
   }
 
-  static int xpIntoCurrentLevel(
-    int totalXp,
-  ) {
-    final int level =
-        levelForTotalXp(
-      totalXp,
-    );
+  static int xpIntoCurrentLevel(int totalXp) {
+    final int level = levelForTotalXp(totalXp);
 
-    final int levelStartXp =
-        requiredTotalXpForLevel(
-      level,
-    );
+    final int levelStartXp = requiredTotalXpForLevel(level);
 
     return totalXp - levelStartXp;
   }
 
-  static int xpNeededForNextLevel(
-    int totalXp,
-  ) {
-    final int level =
-        levelForTotalXp(
-      totalXp,
-    );
+  static int xpNeededForNextLevel(int totalXp) {
+    final int level = levelForTotalXp(totalXp);
 
     if (level >= maximumLevel) {
       return 0;
     }
 
-    final int nextLevelXp =
-        requiredTotalXpForLevel(
-      level + 1,
-    );
+    final int nextLevelXp = requiredTotalXpForLevel(level + 1);
 
     return nextLevelXp - totalXp;
   }
 
-  static int currentLevelXpTarget(
-    int totalXp,
-  ) {
-    final int level =
-        levelForTotalXp(
-      totalXp,
-    );
+  static int currentLevelXpTarget(int totalXp) {
+    final int level = levelForTotalXp(totalXp);
 
     if (level >= maximumLevel) {
       return 0;
     }
 
-    return xpRequiredForNextLevel(
-      level,
-    );
+    return xpRequiredForNextLevel(level);
   }
 
-  static double progressToNextLevel(
-    int totalXp,
-  ) {
-    final int target =
-        currentLevelXpTarget(
-      totalXp,
-    );
+  static double progressToNextLevel(int totalXp) {
+    final int target = currentLevelXpTarget(totalXp);
 
     if (target <= 0) {
       return 1;
     }
 
-    final int current =
-        xpIntoCurrentLevel(
-      totalXp,
-    );
+    final int current = xpIntoCurrentLevel(totalXp);
 
-    return (
-      current / target
-    ).clamp(
-      0,
-      1,
-    );
+    return (current / target).clamp(0, 1);
   }
 }

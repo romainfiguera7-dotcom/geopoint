@@ -1,6 +1,8 @@
 class ExpeditionProgress {
   const ExpeditionProgress({
     required this.starsByExpedition,
+    this.bestScoresByExpedition =
+        const <String, Map<String, int>>{},
   });
 
   static const List<String> primaryMissionIds =
@@ -17,11 +19,30 @@ class ExpeditionProgress {
   final Map<String, Map<String, int>>
       starsByExpedition;
 
+  /// Meilleur score total obtenu pour chaque
+  /// combinaison expédition + épreuve.
+  ///
+  /// Exemple :
+  /// bestScoresByExpedition['easy']['find_country'].
+  final Map<String, Map<String, int>>
+      bestScoresByExpedition;
+
   factory ExpeditionProgress.initial() {
     return const ExpeditionProgress(
       starsByExpedition:
           <String, Map<String, int>>{},
+      bestScoresByExpedition:
+          <String, Map<String, int>>{},
     );
+  }
+
+  int bestScoreFor({
+    required String difficultyId,
+    required String missionId,
+  }) {
+    return bestScoresByExpedition[difficultyId]
+            ?[missionId] ??
+        0;
   }
 
   int starsFor({
@@ -128,6 +149,76 @@ class ExpeditionProgress {
 
     return ExpeditionProgress(
       starsByExpedition: updated,
+      bestScoresByExpedition:
+          bestScoresByExpedition,
+    );
+  }
+
+  ExpeditionProgress registerMissionScore({
+    required String difficultyId,
+    required String missionId,
+    required int score,
+  }) {
+    final int normalizedScore =
+        score < 0 ? 0 : score;
+
+    final int currentBestScore =
+        bestScoreFor(
+      difficultyId: difficultyId,
+      missionId: missionId,
+    );
+
+    if (normalizedScore <= currentBestScore) {
+      return this;
+    }
+
+    final Map<String, Map<String, int>>
+        updated =
+        <String, Map<String, int>>{};
+
+    for (
+      final MapEntry<
+              String,
+              Map<String, int>>
+          entry
+      in bestScoresByExpedition.entries
+    ) {
+      updated[entry.key] =
+          Map<String, int>.from(
+        entry.value,
+      );
+    }
+
+    final Map<String, int> missions =
+        updated.putIfAbsent(
+      difficultyId,
+      () => <String, int>{},
+    );
+
+    missions[missionId] =
+        normalizedScore;
+
+    return ExpeditionProgress(
+      starsByExpedition:
+          starsByExpedition,
+      bestScoresByExpedition: updated,
+    );
+  }
+
+  ExpeditionProgress registerMissionResult({
+    required String difficultyId,
+    required String missionId,
+    required int stars,
+    required int score,
+  }) {
+    return registerMissionStars(
+      difficultyId: difficultyId,
+      missionId: missionId,
+      stars: stars,
+    ).registerMissionScore(
+      difficultyId: difficultyId,
+      missionId: missionId,
+      score: score,
     );
   }
 
@@ -135,6 +226,8 @@ class ExpeditionProgress {
     return <String, dynamic>{
       'starsByExpedition':
           starsByExpedition,
+      'bestScoresByExpedition':
+          bestScoresByExpedition,
     };
   }
 
@@ -144,8 +237,31 @@ class ExpeditionProgress {
     final Object? raw =
         json['starsByExpedition'];
 
+    final Map<String, Map<String, int>>
+        result = _readNestedIntMap(
+      raw,
+      maximumValue: 3,
+    );
+
+    final Map<String, Map<String, int>>
+        bestScores = _readNestedIntMap(
+      json['bestScoresByExpedition'],
+    );
+
+    return ExpeditionProgress(
+      starsByExpedition: result,
+      bestScoresByExpedition:
+          bestScores,
+    );
+  }
+
+  static Map<String, Map<String, int>>
+      _readNestedIntMap(
+    Object? raw, {
+    int? maximumValue,
+  }) {
     if (raw is! Map) {
-      return ExpeditionProgress.initial();
+      return <String, Map<String, int>>{};
     }
 
     final Map<String, Map<String, int>>
@@ -183,27 +299,35 @@ class ExpeditionProgress {
                 .toString()
                 .trim();
 
-        final int? stars =
+        final int? parsedValue =
             int.tryParse(
           missionEntry.value
               .toString(),
         );
 
         if (missionId.isEmpty ||
-            stars == null) {
+            parsedValue == null) {
           continue;
         }
 
+        final int normalizedValue =
+            parsedValue < 0
+                ? 0
+                : maximumValue == null
+                    ? parsedValue
+                    : parsedValue.clamp(
+                        0,
+                        maximumValue,
+                      );
+
         missions[missionId] =
-            stars.clamp(0, 3);
+            normalizedValue;
       }
 
       result[difficultyId] =
           missions;
     }
 
-    return ExpeditionProgress(
-      starsByExpedition: result,
-    );
+    return result;
   }
 }

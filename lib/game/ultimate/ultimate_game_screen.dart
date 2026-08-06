@@ -7,11 +7,22 @@ import 'country_silhouette.dart';
 import 'ultimate_question.dart';
 import 'ultimate_question_generator.dart';
 
+class UltimateGameResult {
+  const UltimateGameResult({
+    required this.earnedStars,
+    required this.totalScore,
+  });
+
+  final int earnedStars;
+  final int totalScore;
+}
+
 class UltimateGameScreen extends StatefulWidget {
   const UltimateGameScreen({
     required this.availableCountries,
     required this.countryDifficulties,
     required this.difficultyId,
+    required this.previousBestScore,
     this.missionTitle = 'Défi Silhouettes',
     super.key,
   });
@@ -19,6 +30,7 @@ class UltimateGameScreen extends StatefulWidget {
   final List<GeoCountry> availableCountries;
   final Map<String, int> countryDifficulties;
   final String difficultyId;
+  final int previousBestScore;
   final String missionTitle;
 
   @override
@@ -837,6 +849,14 @@ class _UltimateGameScreenState
     final int earnedStars =
         _calculateEarnedStars();
 
+    final int displayedRecord =
+        _totalScore > widget.previousBestScore
+            ? _totalScore
+            : widget.previousBestScore;
+
+    final bool isNewRecord =
+        _totalScore > widget.previousBestScore;
+
     return Scaffold(
       backgroundColor:
           const Color(0xFF071B3A),
@@ -942,6 +962,65 @@ class _UltimateGameScreenState
                           FontWeight.w700,
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 11,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(
+                        0xFFFFD166,
+                      ).withValues(
+                        alpha: 0.12,
+                      ),
+                      borderRadius:
+                          BorderRadius.circular(
+                        15,
+                      ),
+                      border: Border.all(
+                        color: const Color(
+                          0xFFFFD166,
+                        ).withValues(
+                          alpha: 0.45,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.center,
+                      children: <Widget>[
+                        const Icon(
+                          Icons.emoji_events_rounded,
+                          color: Color(
+                            0xFFFFD166,
+                          ),
+                        ),
+                        const SizedBox(width: 9),
+                        Flexible(
+                          child: Text(
+                            isNewRecord
+                                ? 'NOUVEAU RECORD : '
+                                    '$displayedRecord pts'
+                                : 'RECORD : '
+                                    '$displayedRecord pts',
+                            textAlign:
+                                TextAlign.center,
+                            style: const TextStyle(
+                              color: Color(
+                                0xFFFFD166,
+                              ),
+                              fontSize: 16,
+                              fontWeight:
+                                  FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 22),
                   SizedBox(
                     width:
@@ -952,7 +1031,12 @@ class _UltimateGameScreenState
                         Navigator.of(
                           context,
                         ).pop(
-                          earnedStars,
+                          UltimateGameResult(
+                            earnedStars:
+                                earnedStars,
+                            totalScore:
+                                _totalScore,
+                          ),
                         );
                       },
                       icon: const Icon(

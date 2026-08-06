@@ -594,6 +594,10 @@ class GameController extends ChangeNotifier {
           distanceInKilometers,
       elapsedSeconds:
           elapsedSeconds,
+      includeDistanceInAverage:
+          questionModeId ==
+                  'find_capital' ||
+              !isCorrectCountry,
     );
 
     if (questionModeId ==
@@ -839,8 +843,7 @@ class GameController extends ChangeNotifier {
     );
 
     final double totalGameDistance =
-        _session.averageDistanceInKilometers *
-            _session.totalQuestions;
+        _session.totalDistanceInKilometers;
 
     final int totalGameElapsedSeconds =
         (

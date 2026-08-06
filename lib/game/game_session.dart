@@ -160,6 +160,7 @@ class GameSession {
     required bool isCorrectCountry,
     required double distanceInKilometers,
     required int elapsedSeconds,
+    bool includeDistanceInAverage = true,
   }) {
     if (hasAnswered) {
       return this;
@@ -191,9 +192,14 @@ class GameSession {
       correctAnswers: updatedCorrectAnswers,
       totalDistanceInKilometers:
           totalDistanceInKilometers +
-              distanceInKilometers,
+              (includeDistanceInAverage
+                  ? distanceInKilometers
+                  : 0),
       answersWithDistance:
-          answersWithDistance + 1,
+          answersWithDistance +
+              (includeDistanceInAverage
+                  ? 1
+                  : 0),
       totalElapsedSeconds:
           totalElapsedSeconds +
               elapsedSeconds,

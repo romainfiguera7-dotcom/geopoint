@@ -279,10 +279,25 @@ class _ExpeditionDetailScreenState
     ExpeditionMission mission,
   ) async {
     if (mission.isUltimate) {
-      final int? earnedStars =
+      final ExpeditionProgress progress =
+          await ExpeditionStorage.load();
+
+      final int previousBestScore =
+          progress.bestScoreFor(
+        difficultyId:
+            widget.difficulty.id,
+        missionId: mission.id,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      final UltimateGameResult? result =
           await Navigator.of(context)
-              .push<int>(
-        MaterialPageRoute<int>(
+              .push<UltimateGameResult>(
+        MaterialPageRoute<
+            UltimateGameResult>(
           builder: (
             BuildContext context,
           ) {
@@ -299,23 +314,27 @@ class _ExpeditionDetailScreenState
                   widget.difficulty.id,
               missionTitle:
                   mission.title,
+              previousBestScore:
+                  previousBestScore,
             );
           },
         ),
       );
 
-      if (earnedStars != null) {
+      if (result != null) {
         final ExpeditionProgress currentProgress =
             await ExpeditionStorage.load();
 
         final ExpeditionProgress updatedProgress =
-            currentProgress.registerMissionStars(
+            currentProgress.registerMissionResult(
           difficultyId:
               widget.difficulty.id,
           missionId:
               mission.id,
           stars:
-              earnedStars,
+              result.earnedStars,
+          score:
+              result.totalScore,
         );
 
         await ExpeditionStorage.save(
@@ -471,6 +490,14 @@ class _ExpeditionDetailScreenState
                     _TrialCard(
                       mission:
                           missions[index],
+                      bestScore:
+                          progress.bestScoreFor(
+                        difficultyId:
+                            widget
+                                .difficulty.id,
+                        missionId:
+                            missions[index].id,
+                      ),
                       stars:
                           progress.starsFor(
                         difficultyId:
@@ -807,6 +834,7 @@ class _ExpeditionHeader extends StatelessWidget {
 class _TrialCard extends StatelessWidget {
   const _TrialCard({
     required this.mission,
+    required this.bestScore,
     required this.stars,
     required this.isLocked,
     required this.isAvailable,
@@ -814,6 +842,7 @@ class _TrialCard extends StatelessWidget {
   });
 
   final ExpeditionMission mission;
+  final int bestScore;
   final int stars;
   final bool isLocked;
   final bool isAvailable;
@@ -899,7 +928,39 @@ class _TrialCard extends StatelessWidget {
                             FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: <Widget>[
+                        Icon(
+                          Icons.emoji_events_rounded,
+                          color: disabled
+                              ? Colors.white38
+                              : const Color(
+                                  0xFFFFD166,
+                                ),
+                          size: 15,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          bestScore > 0
+                              ? 'Record : '
+                                  '$bestScore pts'
+                              : 'Record : —',
+                          style:
+                              GoogleFonts.nunitoSans(
+                            color: disabled
+                                ? Colors.white38
+                                : const Color(
+                                    0xFFFFD166,
+                                  ),
+                            fontSize: 12,
+                            fontWeight:
+                                FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
                     Text(
                       mission.description,
                       maxLines: 2,

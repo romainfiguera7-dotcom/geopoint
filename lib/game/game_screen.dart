@@ -44,6 +44,8 @@ class _GameScreenState extends State<GameScreen> {
 
   bool _showGameOverPanel = false;
   bool _missionProgressSaved = false;
+  int _previousMissionRecord = 0;
+  bool _missionRecordLoaded = false;
 
   LatLng? _pendingSelectedPoint;
 
@@ -63,9 +65,32 @@ class _GameScreenState extends State<GameScreen> {
     _showGameOverPanel = false;
     _missionProgressSaved = false;
 
+    unawaited(
+      _loadMissionRecord(),
+    );
+
     _controller.addListener(
       _handleControllerChanged,
     );
+  }
+
+  Future<void> _loadMissionRecord() async {
+    final ExpeditionProgress progress =
+        await ExpeditionStorage.load();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _previousMissionRecord =
+          progress.bestScoreFor(
+        difficultyId:
+            widget.difficultyId,
+        missionId: widget.modeId,
+      );
+      _missionRecordLoaded = true;
+    });
   }
 
   void _handleControllerChanged() {
@@ -100,14 +125,16 @@ class _GameScreenState extends State<GameScreen> {
     _pendingSelectedPoint = null;
   }
 
-  void _handleNextQuestion() {
+  Future<void> _handleNextQuestion() async {
     _pendingSelectedPoint = null;
 
     if (_controller.session.isLastQuestion &&
         _controller.hasAnswered) {
-      unawaited(
-        _saveMissionProgress(),
-      );
+      await _saveMissionProgress();
+
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         _showGameOverPanel = true;
@@ -156,14 +183,22 @@ class _GameScreenState extends State<GameScreen> {
     final ExpeditionProgress currentProgress =
         await ExpeditionStorage.load();
 
+    final int previousRecord =
+        currentProgress.bestScoreFor(
+      difficultyId: widget.difficultyId,
+      missionId: widget.modeId,
+    );
+
     final ExpeditionProgress updatedProgress =
-        currentProgress.registerMissionStars(
+        currentProgress.registerMissionResult(
       difficultyId:
           widget.difficultyId,
       missionId:
           widget.modeId,
       stars:
           _calculateEarnedStars(),
+      score:
+          _controller.session.totalScore,
     );
 
     final bool saved =
@@ -173,6 +208,15 @@ class _GameScreenState extends State<GameScreen> {
 
     if (!saved) {
       _missionProgressSaved = false;
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _previousMissionRecord =
+            previousRecord;
+        _missionRecordLoaded = true;
+      });
     }
   }
 
@@ -349,6 +393,10 @@ class _GameScreenState extends State<GameScreen> {
                       _controller
                           .session
                           .maximumGameScore,
+                  missionRecord:
+                      _missionRecordLoaded
+                          ? _previousMissionRecord
+                          : 0,
                   correctAnswers:
                       _controller
                           .correctAnswers,
@@ -475,178 +523,183 @@ class _GameHeader extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
           children: <Widget>[
-            IconButton(
-              onPressed: onClose,
-              tooltip:
-                  'Retour à l’accueil',
-              icon: const Icon(
-                Icons.close,
-                color: Colors.white,
-              ),
+            Row(
+              children: <Widget>[
+                IconButton(
+                  onPressed: onClose,
+                  tooltip:
+                      'Retour à l’accueil',
+                  icon: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                  ),
+                ),
+
+                const SizedBox(width: 4),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    mainAxisSize:
+                        MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        '${expeditionLabel.toUpperCase()} • '
+                        '${missionTitle.toUpperCase()}',
+                        style: TextStyle(
+                          color: Colors.white
+                              .withValues(
+                            alpha: 0.66,
+                          ),
+                          fontSize: 11,
+                          fontWeight:
+                              FontWeight.w700,
+                        ),
+                      ),
+
+                      const SizedBox(height: 2),
+
+                      Text(
+                        'QUESTION '
+                        '$questionNumber / '
+                        '$totalQuestions',
+                        style: TextStyle(
+                          color: Colors.white
+                              .withValues(
+                            alpha: 0.56,
+                          ),
+                          fontSize: 10,
+                          fontWeight:
+                              FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
+                Column(
+                  mainAxisSize:
+                      MainAxisSize.min,
+                  children: <Widget>[
+                    Icon(
+                      Icons.timer_outlined,
+                      color: timerColor,
+                      size: 20,
+                    ),
+
+                    Text(
+                      '$secondsRemaining',
+                      style: TextStyle(
+                        color: timerColor,
+                        fontSize: 23,
+                        fontWeight:
+                            FontWeight.w900,
+                      ),
+                    ),
+
+                    Text(
+                      'SEC.',
+                      style: TextStyle(
+                        color: timerColor
+                            .withValues(
+                          alpha: 0.78,
+                        ),
+                        fontSize: 9,
+                        fontWeight:
+                            FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(width: 12),
+
+                Column(
+                  mainAxisSize:
+                      MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      '$totalScore',
+                      style: const TextStyle(
+                        color:
+                            Color(0xFFFFD166),
+                        fontSize: 21,
+                        fontWeight:
+                            FontWeight.w900,
+                      ),
+                    ),
+
+                    Text(
+                      'POINTS',
+                      style: TextStyle(
+                        color: Colors.white
+                            .withValues(
+                          alpha: 0.66,
+                        ),
+                        fontSize: 10,
+                        fontWeight:
+                            FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
 
-            const SizedBox(width: 4),
+            const SizedBox(height: 6),
 
-            Expanded(
-              child: Column(
+            if (question?.isFindFlag == true)
+              Row(
                 crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                mainAxisSize:
-                    MainAxisSize.min,
+                    CrossAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    '${expeditionLabel.toUpperCase()} • '
-                    '${missionTitle.toUpperCase()}',
-                    style: TextStyle(
-                      color: Colors.white
-                          .withValues(
-                        alpha: 0.66,
-                      ),
-                      fontSize: 11,
-                      fontWeight:
-                          FontWeight.w700,
+                    question!.flagEmoji,
+                    style: const TextStyle(
+                      fontSize: 42,
                     ),
                   ),
-
-                  const SizedBox(height: 2),
-
-                  Text(
-                    'QUESTION '
-                    '$questionNumber / '
-                    '$totalQuestions',
-                    style: TextStyle(
-                      color: Colors.white
-                          .withValues(
-                        alpha: 0.56,
-                      ),
-                      fontSize: 10,
-                      fontWeight:
-                          FontWeight.w700,
-                    ),
-                  ),
-
-                  const SizedBox(height: 3),
-
-                  if (question?.isFindFlag ==
-                      true)
-                    Row(
-                      children: <Widget>[
-                        Text(
-                          question!.flagEmoji,
-                          style:
-                              const TextStyle(
-                            fontSize: 42,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            questionPrompt
-                                .toUpperCase(),
-                            maxLines: 2,
-                            overflow:
-                                TextOverflow
-                                    .ellipsis,
-                            style:
-                                const TextStyle(
-                              color:
-                                  Colors.white,
-                              fontSize: 16,
-                              fontWeight:
-                                  FontWeight
-                                      .w800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  else
-                    Text(
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
                       questionPrompt.toUpperCase(),
-                      maxLines: 2,
-                      overflow:
-                          TextOverflow.ellipsis,
+                      softWrap: true,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight:
                             FontWeight.w800,
                       ),
                     ),
+                  ),
                 ],
-              ),
-            ),
-
-            const SizedBox(width: 10),
-
-            Column(
-              mainAxisSize:
-                  MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.timer_outlined,
-                  color: timerColor,
-                  size: 20,
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 8,
+                  right: 8,
+                  bottom: 2,
                 ),
-
-                Text(
-                  '$secondsRemaining',
-                  style: TextStyle(
-                    color: timerColor,
-                    fontSize: 23,
-                    fontWeight:
-                        FontWeight.w900,
-                  ),
-                ),
-
-                Text(
-                  'SEC.',
-                  style: TextStyle(
-                    color: timerColor
-                        .withValues(
-                      alpha: 0.78,
-                    ),
-                    fontSize: 9,
-                    fontWeight:
-                        FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(width: 12),
-
-            Column(
-              mainAxisSize:
-                  MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  '$totalScore',
+                child: Text(
+                  questionPrompt.toUpperCase(),
+                  softWrap: true,
                   style: const TextStyle(
-                    color:
-                        Color(0xFFFFD166),
-                    fontSize: 21,
-                    fontWeight:
-                        FontWeight.w900,
+                    color: Colors.white,
+                    fontSize: 18,
+                    height: 1.15,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-
-                Text(
-                  'POINTS',
-                  style: TextStyle(
-                    color: Colors.white
-                        .withValues(
-                      alpha: 0.66,
-                    ),
-                    fontSize: 10,
-                    fontWeight:
-                        FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
+              ),
           ],
         ),
       ),
@@ -706,6 +759,9 @@ class _ResultPanel extends StatelessWidget {
 
     final bool isFlagMode =
         modeId == 'find_flag';
+
+    final bool isCountryMode =
+        modeId == 'find_country';
 
     if (isTimeUp) {
       resultTitle = 'Temps écoulé !';
@@ -1008,7 +1064,8 @@ class _ResultPanel extends StatelessWidget {
                 ),
               ],
 
-            if (distanceText.isNotEmpty)
+            if (distanceText.isNotEmpty &&
+                !((isCountryMode || isFlagMode) && isCorrect))
               ...<Widget>[
                 const SizedBox(height: 7),
 
@@ -1221,6 +1278,7 @@ class _GameOverPanel extends StatelessWidget {
     required this.missionTitle,
     required this.totalScore,
     required this.maximumScore,
+    required this.missionRecord,
     required this.correctAnswers,
     required this.totalQuestions,
     required this.averageDistanceInKilometers,
@@ -1239,6 +1297,7 @@ class _GameOverPanel extends StatelessWidget {
   final String missionTitle;
   final int totalScore;
   final int maximumScore;
+  final int missionRecord;
 
   final int correctAnswers;
   final int totalQuestions;
@@ -1315,6 +1374,14 @@ class _GameOverPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final int displayedRecord =
+        totalScore > missionRecord
+            ? totalScore
+            : missionRecord;
+
+    final bool isNewRecord =
+        totalScore > missionRecord;
+
     final String rank =
         _getRank();
 
@@ -1383,7 +1450,7 @@ class _GameOverPanel extends StatelessWidget {
                   const SizedBox(height: 8),
 
                   Text(
-                    '${missionTitle.toUpperCase()} TERMINÉE',
+                    'PARTIE TERMINÉE',
                     textAlign:
                         TextAlign.center,
                     style: TextStyle(
@@ -1443,6 +1510,68 @@ class _GameOverPanel extends StatelessWidget {
                       fontSize: 19,
                       fontWeight:
                           FontWeight.w800,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 11,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(
+                        0xFFFFD166,
+                      ).withValues(
+                        alpha: 0.12,
+                      ),
+                      borderRadius:
+                          BorderRadius.circular(
+                        15,
+                      ),
+                      border: Border.all(
+                        color: const Color(
+                          0xFFFFD166,
+                        ).withValues(
+                          alpha: 0.45,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.center,
+                      children: <Widget>[
+                        const Icon(
+                          Icons.emoji_events_rounded,
+                          color: Color(
+                            0xFFFFD166,
+                          ),
+                          size: 23,
+                        ),
+                        const SizedBox(width: 9),
+                        Flexible(
+                          child: Text(
+                            isNewRecord
+                                ? 'NOUVEAU RECORD : '
+                                    '$displayedRecord pts'
+                                : 'RECORD : '
+                                    '$displayedRecord pts',
+                            textAlign:
+                                TextAlign.center,
+                            style: const TextStyle(
+                              color: Color(
+                                0xFFFFD166,
+                              ),
+                              fontSize: 16,
+                              fontWeight:
+                                  FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
@@ -1637,7 +1766,7 @@ class _GameOverPanel extends StatelessWidget {
                     icon:
                         Icons.trending_up,
                     label:
-                        'Meilleur score',
+                        'Meilleure question',
                     value:
                         '$bestScore points',
                   ),

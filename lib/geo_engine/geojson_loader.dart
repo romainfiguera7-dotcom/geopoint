@@ -138,9 +138,6 @@ class GeoJsonLoader {
       },
     );
 
-for (final country in countries.take(10)) {
-  print('${country.name} -> ${country.id} / ${country.isoA2}');
-}
     return countries;
   }
 

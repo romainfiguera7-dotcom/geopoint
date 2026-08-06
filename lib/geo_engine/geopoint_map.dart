@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -12,6 +14,7 @@ class GeoPointMap extends StatefulWidget {
     super.key,
     this.answerPoint,
     this.answerCountry,
+    this.resultRadiusInKilometers,
     this.onTap,
     this.onCountrySelected,
     this.showInformationPanel = true,
@@ -23,6 +26,7 @@ class GeoPointMap extends StatefulWidget {
 
   final LatLng? answerPoint;
   final GeoCountry? answerCountry;
+  final double? resultRadiusInKilometers;
 
   final ValueChanged<LatLng>? onTap;
   final ValueChanged<GeoCountry?>? onCountrySelected;
@@ -58,6 +62,32 @@ class _GeoPointMapState extends State<GeoPointMap>
   static const double _maximumLatitude =
       85.05112878;
 
+  /*
+   * Le cadrage du resultat reserve beaucoup de place
+   * au panneau situe en bas de l'ecran. Il peut donc
+   * decaler les bords visibles au-dela des latitudes
+   * du monde, meme lorsque le centre reste valide.
+   *
+   * On contraint uniquement le centre de la camera :
+   * cela evite le conflit de flutter_map lors d'une
+   * mise a jour de MapOptions, tout en empechant le
+   * joueur de faire sortir le centre hors du monde.
+   */
+  static final CameraConstraint
+      _worldCenterConstraint =
+      CameraConstraint.containCenter(
+    bounds: LatLngBounds(
+      const LatLng(
+        -_maximumLatitude,
+        -180,
+      ),
+      const LatLng(
+        _maximumLatitude,
+        180,
+      ),
+    ),
+  );
+
   static const Duration _cameraAnimationDuration =
       Duration(milliseconds: 850);
 
@@ -91,6 +121,8 @@ class _GeoPointMapState extends State<GeoPointMap>
 
   LatLng? _finalCameraCenter;
   double? _finalCameraZoom;
+  String _cameraAnimationId =
+      'geopoint-camera-animation';
 
   bool get _isAnswerRevealed {
     return widget.answerPoint != null;
@@ -175,9 +207,13 @@ class _GeoPointMapState extends State<GeoPointMap>
           return;
         }
 
-        _mapController.move(
-          widget.initialCenter,
-          widget.initialZoom,
+        _startCameraAnimation(
+          targetCenter:
+              widget.initialCenter,
+          targetZoom:
+              widget.initialZoom,
+          animationId:
+              'geopoint-question-animation',
         );
       });
     }
@@ -220,6 +256,8 @@ class _GeoPointMapState extends State<GeoPointMap>
 
   @override
   void dispose() {
+    _mapIsReady = false;
+
     _cameraAnimationController.removeListener(
       _handleCameraAnimation,
     );
@@ -462,29 +500,40 @@ class _GeoPointMapState extends State<GeoPointMap>
     final List<LatLng> cameraPoints =
         <LatLng>[];
 
+    final double? resultRadiusInKilometers =
+        widget.resultRadiusInKilometers;
+
+    final bool hasCircularResultZone =
+        resultRadiusInKilometers != null &&
+            resultRadiusInKilometers > 0;
+
     /*
      * Pays choisi :
      * on conserve uniquement le territoire entourant
      * exactement le clic du joueur.
      */
-    cameraPoints.addAll(
-      _cameraPointsForCountry(
-        country: _selectedCountry,
-        referencePoint: selectedPoint,
-      ),
-    );
+    if (!hasCircularResultZone) {
+      cameraPoints.addAll(
+        _cameraPointsForCountry(
+          country: _selectedCountry,
+          referencePoint: selectedPoint,
+        ),
+      );
+    }
 
     /*
      * Bonne réponse :
      * on conserve uniquement le territoire entourant
      * la capitale ou le point de réponse.
      */
-    cameraPoints.addAll(
-      _cameraPointsForCountry(
-        country: _effectiveAnswerCountry,
-        referencePoint: answerPoint,
-      ),
-    );
+    if (!hasCircularResultZone) {
+      cameraPoints.addAll(
+        _cameraPointsForCountry(
+          country: _effectiveAnswerCountry,
+          referencePoint: answerPoint,
+        ),
+      );
+    }
 
     if (selectedPoint != null) {
       cameraPoints.add(
@@ -495,6 +544,15 @@ class _GeoPointMapState extends State<GeoPointMap>
     cameraPoints.add(
       answerPoint,
     );
+
+    if (hasCircularResultZone) {
+      cameraPoints.addAll(
+        _areaAroundResultRadius(
+          answerPoint,
+          resultRadiusInKilometers,
+        ),
+      );
+    }
 
     /*
      * Clic dans l’océan ou pays introuvable :
@@ -570,72 +628,92 @@ class _GeoPointMapState extends State<GeoPointMap>
     );
 
     try {
-      final MapCamera startCamera =
-          _mapController.camera;
-
       final MapCamera targetCamera =
           cameraFit.fit(
-        startCamera,
+        _mapController.camera,
       );
 
-      final LatLng startCenter =
-          startCamera.center;
-
-      final LatLng targetCenter =
-          targetCamera.center;
-
-      final double animatedTargetLongitude =
-          _nearestLongitude(
-        startCenter.longitude,
-        targetCenter.longitude,
+      _startCameraAnimation(
+        targetCenter:
+            targetCamera.center,
+        targetZoom:
+            targetCamera.zoom,
+        animationId:
+            'geopoint-result-animation',
       );
-
-      final CurvedAnimation curvedAnimation =
-          CurvedAnimation(
-        parent: _cameraAnimationController,
-        curve: Curves.easeInOutCubic,
-      );
-
-      _latitudeAnimation =
-          Tween<double>(
-        begin: startCenter.latitude,
-        end: targetCenter.latitude,
-      ).animate(
-        curvedAnimation,
-      );
-
-      _longitudeAnimation =
-          Tween<double>(
-        begin: startCenter.longitude,
-        end: animatedTargetLongitude,
-      ).animate(
-        curvedAnimation,
-      );
-
-      _zoomAnimation =
-          Tween<double>(
-        begin: startCamera.zoom,
-        end: targetCamera.zoom,
-      ).animate(
-        curvedAnimation,
-      );
-
-      _finalCameraCenter =
-          targetCenter;
-
-      _finalCameraZoom =
-          targetCamera.zoom;
-
-      _cameraAnimationController
-        ..stop()
-        ..reset()
-        ..forward();
     } catch (error) {
       debugPrint(
         'Impossible d’animer la caméra : '
         '$error',
       );
     }
+  }
+
+  void _startCameraAnimation({
+    required LatLng targetCenter,
+    required double targetZoom,
+    required String animationId,
+  }) {
+    if (!_mapIsReady) {
+      return;
+    }
+
+    final MapCamera startCamera =
+        _mapController.camera;
+
+    final LatLng startCenter =
+        startCamera.center;
+
+    final double animatedTargetLongitude =
+        _nearestLongitude(
+      startCenter.longitude,
+      targetCenter.longitude,
+    );
+
+    final Animation<double> curvedAnimation =
+        _cameraAnimationController.drive(
+      CurveTween(
+        curve: Curves.easeInOutCubic,
+      ),
+    );
+
+    _latitudeAnimation =
+        Tween<double>(
+      begin: startCenter.latitude,
+      end: targetCenter.latitude,
+    ).animate(
+      curvedAnimation,
+    );
+
+    _longitudeAnimation =
+        Tween<double>(
+      begin: startCenter.longitude,
+      end: animatedTargetLongitude,
+    ).animate(
+      curvedAnimation,
+    );
+
+    _zoomAnimation =
+        Tween<double>(
+      begin: startCamera.zoom,
+      end: targetZoom,
+    ).animate(
+      curvedAnimation,
+    );
+
+    _finalCameraCenter =
+        targetCenter;
+
+    _finalCameraZoom =
+        targetZoom;
+
+    _cameraAnimationId =
+        animationId;
+
+    _cameraAnimationController
+      ..stop()
+      ..reset()
+      ..forward();
   }
 
   List<LatLng> _cameraPointsForCountry({
@@ -1010,6 +1088,46 @@ class _GeoPointMapState extends State<GeoPointMap>
     ];
   }
 
+  List<LatLng> _areaAroundResultRadius(
+    LatLng point,
+    double radiusInKilometers,
+  ) {
+    final double latitudeMargin =
+        radiusInKilometers / 110.574;
+
+    final double latitudeInRadians =
+        point.latitude * math.pi / 180;
+
+    final double longitudeScale =
+        math.cos(latitudeInRadians)
+            .abs()
+            .clamp(0.15, 1.0)
+            .toDouble();
+
+    final double longitudeMargin =
+        radiusInKilometers /
+            (111.320 * longitudeScale);
+
+    return <LatLng>[
+      LatLng(
+        point.latitude - latitudeMargin,
+        point.longitude,
+      ),
+      LatLng(
+        point.latitude + latitudeMargin,
+        point.longitude,
+      ),
+      LatLng(
+        point.latitude,
+        point.longitude - longitudeMargin,
+      ),
+      LatLng(
+        point.latitude,
+        point.longitude + longitudeMargin,
+      ),
+    ];
+  }
+
   double _nearestLongitude(
     double startLongitude,
     double targetLongitude,
@@ -1079,7 +1197,7 @@ class _GeoPointMapState extends State<GeoPointMap>
         ),
       ),
       zoom.value,
-      id: 'geopoint-result-animation',
+      id: '$_cameraAnimationId-frame',
     );
   }
 
@@ -1114,7 +1232,7 @@ class _GeoPointMapState extends State<GeoPointMap>
         ),
       ),
       finalZoom,
-      id: 'geopoint-result-final',
+      id: '$_cameraAnimationId-final',
     );
   }
 
@@ -1225,13 +1343,52 @@ class _GeoPointMapState extends State<GeoPointMap>
               isSelectedCountry &&
               !isAnswerCountry;
 
+      final List<LatLng>?
+          selectedTerritory =
+          isSelectedCountry
+              ? _findBestPolygon(
+                  country.polygons,
+                  _selectedPoint,
+                )
+              : null;
+
+      final List<LatLng>?
+          answerTerritory =
+          isAnswerCountry
+              ? _findBestPolygon(
+                  country.polygons,
+                  widget.answerPoint,
+                )
+              : null;
+
       final Color normalColor =
           _countryColor(country);
 
       for (final List<LatLng> countryPolygon
           in country.polygons) {
+        final bool isSelectedTerritory =
+            identical(
+          countryPolygon,
+          selectedTerritory,
+        );
+
+        final bool isAnswerTerritory =
+            identical(
+          countryPolygon,
+          answerTerritory,
+        );
+
+        final bool isCorrectSelectedTerritory =
+            _isAnswerRevealed &&
+                isSelectedCountry &&
+                isAnswerCountry &&
+                isSelectedTerritory;
+
         if (_isAnswerRevealed &&
-            isAnswerCountry) {
+            (
+              isAnswerTerritory ||
+                  isCorrectSelectedTerritory
+            )) {
           answerPolygons.add(
             Polygon<Object>(
               points: countryPolygon,
@@ -1241,25 +1398,16 @@ class _GeoPointMapState extends State<GeoPointMap>
                 alpha: 0.98,
               ),
               borderColor:
-                  Colors.white,
-              borderStrokeWidth: 6,
-            ),
-          );
-
-          answerPolygons.add(
-            Polygon<Object>(
-              points: countryPolygon,
-              color: Colors.transparent,
-              borderColor:
                   _answerCountryBorderColor,
-              borderStrokeWidth: 3.5,
+              borderStrokeWidth: 2.8,
             ),
           );
 
           continue;
         }
 
-        if (isWrongSelectedCountry) {
+        if (isWrongSelectedCountry &&
+            isSelectedTerritory) {
           selectedPolygons.add(
             Polygon<Object>(
               points: countryPolygon,
@@ -1269,18 +1417,8 @@ class _GeoPointMapState extends State<GeoPointMap>
                 alpha: 0.97,
               ),
               borderColor:
-                  Colors.white,
-              borderStrokeWidth: 5.5,
-            ),
-          );
-
-          selectedPolygons.add(
-            Polygon<Object>(
-              points: countryPolygon,
-              color: Colors.transparent,
-              borderColor:
                   _selectedCountryBorderColor,
-              borderStrokeWidth: 3.2,
+              borderStrokeWidth: 2.8,
             ),
           );
 
@@ -1288,7 +1426,8 @@ class _GeoPointMapState extends State<GeoPointMap>
         }
 
         if (!_isAnswerRevealed &&
-            isSelectedCountry) {
+            isSelectedCountry &&
+            isSelectedTerritory) {
           selectedPolygons.add(
             Polygon<Object>(
               points: countryPolygon,
@@ -1327,6 +1466,40 @@ class _GeoPointMapState extends State<GeoPointMap>
       ...normalPolygons,
       ...selectedPolygons,
       ...answerPolygons,
+    ];
+  }
+
+  List<CircleMarker<Object>>
+      _buildResultCircles() {
+    final LatLng? answerPoint =
+        widget.answerPoint;
+
+    final double? radiusInKilometers =
+        widget.resultRadiusInKilometers;
+
+    if (answerPoint == null ||
+        radiusInKilometers == null ||
+        radiusInKilometers <= 0) {
+      return const <CircleMarker<Object>>[];
+    }
+
+    return <CircleMarker<Object>>[
+      CircleMarker<Object>(
+        point: answerPoint,
+        radius:
+            radiusInKilometers * 1000,
+        useRadiusInMeter: true,
+        color: const Color(0xFF63E276)
+            .withValues(
+          alpha: 0.18,
+        ),
+        borderColor:
+            const Color(0xFF056F27)
+                .withValues(
+          alpha: 0.90,
+        ),
+        borderStrokeWidth: 2.2,
+      ),
     ];
   }
 
@@ -1489,6 +1662,10 @@ class _GeoPointMapState extends State<GeoPointMap>
             answerLines =
             _buildAnswerLines();
 
+        final List<CircleMarker<Object>>
+            resultCircles =
+            _buildResultCircles();
+
         final List<Marker> markers =
             _buildMarkers();
 
@@ -1510,11 +1687,7 @@ class _GeoPointMapState extends State<GeoPointMap>
                     backgroundColor:
                         _oceanColor,
                     cameraConstraint:
-                        const CameraConstraint
-                            .containLatitude(
-                      -_maximumLatitude,
-                      _maximumLatitude,
-                    ),
+                        _worldCenterConstraint,
                     interactionOptions:
                         const InteractionOptions(
                       flags:
@@ -1551,15 +1724,15 @@ class _GeoPointMapState extends State<GeoPointMap>
                         countries,
                       ),
                     ),
-                    if (answerLines.isNotEmpty)
-                      PolylineLayer<Object>(
-                        polylines:
-                            answerLines,
-                      ),
-                    if (markers.isNotEmpty)
-                      MarkerLayer(
-                        markers: markers,
-                      ),
+                    CircleLayer<Object>(
+                      circles: resultCircles,
+                    ),
+                    PolylineLayer<Object>(
+                      polylines: answerLines,
+                    ),
+                    MarkerLayer(
+                      markers: markers,
+                    ),
                   ],
                 ),
               ),

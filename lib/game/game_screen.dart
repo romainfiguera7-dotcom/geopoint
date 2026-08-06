@@ -243,6 +243,39 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  double? _resultRadiusInKilometers(
+    GameQuestion? question,
+  ) {
+    final String currentModeId =
+        question?.modeId ??
+            widget.modeId;
+
+    /*
+     * Les modes Pays et Drapeaux utilisent le
+     * territoire lui-même comme zone correcte.
+     * Seules les questions de capitale ont une
+     * tolérance géographique circulaire.
+     */
+    if (currentModeId != 'find_capital') {
+      return null;
+    }
+
+    switch (widget.difficultyId) {
+      case 'discovery':
+        return 300;
+      case 'easy':
+        return 220;
+      case 'intermediate':
+        return 150;
+      case 'hard':
+        return 90;
+      case 'expert':
+        return 50;
+      default:
+        return 150;
+    }
+  }
+
   @override
   void dispose() {
     _controller.removeListener(
@@ -282,6 +315,10 @@ class _GameScreenState extends State<GameScreen> {
                     _controller.answerPoint,
                 answerCountry:
                     _controller.answerCountry,
+                resultRadiusInKilometers:
+                    _resultRadiusInKilometers(
+                  question,
+                ),
                 showInformationPanel: false,
                 allowInteraction:
                     !_controller.hasAnswered &&

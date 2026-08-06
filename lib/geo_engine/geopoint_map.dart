@@ -15,6 +15,7 @@ class GeoPointMap extends StatefulWidget {
     this.answerPoint,
     this.answerCountry,
     this.resultRadiusInKilometers,
+    this.resultPanelCollapsed = false,
     this.onTap,
     this.onCountrySelected,
     this.showInformationPanel = true,
@@ -28,10 +29,22 @@ class GeoPointMap extends StatefulWidget {
   final GeoCountry? answerCountry;
   final double? resultRadiusInKilometers;
 
+  /// Indique que la fiche de résultat est repliée.
+  ///
+  /// La caméra réserve alors moins de place en bas
+  /// afin de montrer davantage la carte.
+  final bool resultPanelCollapsed;
+
   final ValueChanged<LatLng>? onTap;
   final ValueChanged<GeoCountry?>? onCountrySelected;
 
   final bool showInformationPanel;
+
+  /// Autorise la sélection d’une réponse par toucher.
+  ///
+  /// Le déplacement et le zoom restent disponibles
+  /// lorsque cette valeur est fausse, ce qui permet
+  /// d’explorer la carte après la validation.
   final bool allowInteraction;
   final LatLng initialCenter;
   final double initialZoom;
@@ -190,6 +203,10 @@ class _GeoPointMapState extends State<GeoPointMap>
         oldWidget.initialZoom !=
             widget.initialZoom;
 
+    final bool resultPanelStateChanged =
+        oldWidget.resultPanelCollapsed !=
+            widget.resultPanelCollapsed;
+
     final bool newQuestionIsDisplayed =
         widget.answerPoint == null &&
             (
@@ -222,7 +239,8 @@ class _GeoPointMapState extends State<GeoPointMap>
         (
           answerHasJustAppeared ||
               answerPointChanged ||
-              answerCountryChanged
+              answerCountryChanged ||
+              resultPanelStateChanged
         )) {
       _resolveAnswerCountry();
       _scheduleCameraFit();
@@ -599,12 +617,19 @@ class _GeoPointMapState extends State<GeoPointMap>
         MediaQuery.sizeOf(context);
 
     final double bottomPadding =
-        (screenSize.height * 0.42)
-            .clamp(
-              260.0,
-              380.0,
-            )
-            .toDouble();
+        widget.resultPanelCollapsed
+            ? (screenSize.height * 0.18)
+                .clamp(
+                  125.0,
+                  170.0,
+                )
+                .toDouble()
+            : (screenSize.height * 0.42)
+                .clamp(
+                  260.0,
+                  380.0,
+                )
+                .toDouble();
 
     final double topPadding =
         (screenSize.height * 0.10)
@@ -1715,7 +1740,9 @@ class _GeoPointMapState extends State<GeoPointMap>
                         _scheduleCameraFit();
                       }
                     },
-                    onTap: _handleMapTap,
+                    onTap: widget.allowInteraction
+                        ? _handleMapTap
+                        : null,
                   ),
                   children: <Widget>[
                     PolygonLayer<Object>(

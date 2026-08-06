@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../geo_engine/country_info.dart';
+import '../geo_engine/country_info_loader.dart';
 import '../geo_engine/flag_emoji.dart';
 import '../geo_engine/geo_country.dart';
 import '../geo_engine/geopoint_map.dart';
@@ -43,9 +45,12 @@ class _GameScreenState extends State<GameScreen> {
   late final GameController _controller;
 
   bool _showGameOverPanel = false;
+  bool _isResultPanelCollapsed = false;
   bool _missionProgressSaved = false;
   int _previousMissionRecord = 0;
   bool _missionRecordLoaded = false;
+  Map<String, CountryInfo> _countryInfos =
+      const <String, CountryInfo>{};
 
   LatLng? _pendingSelectedPoint;
 
@@ -67,6 +72,10 @@ class _GameScreenState extends State<GameScreen> {
 
     unawaited(
       _loadMissionRecord(),
+    );
+
+    unawaited(
+      _loadCountryInfos(),
     );
 
     _controller.addListener(
@@ -91,6 +100,38 @@ class _GameScreenState extends State<GameScreen> {
       );
       _missionRecordLoaded = true;
     });
+  }
+
+  Future<void> _loadCountryInfos() async {
+    try {
+      final Map<String, CountryInfo> countryInfos =
+          await CountryInfoLoader.loadCountryInfos();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _countryInfos = countryInfos;
+      });
+    } on Object catch (error) {
+      debugPrint(
+        'GeoPoint : chargement des fiches pays impossible : $error',
+      );
+    }
+  }
+
+  CountryInfo? _countryInfoFor(
+    GeoCountry? country,
+  ) {
+    final String countryId =
+        country?.id.trim().toUpperCase() ?? '';
+
+    if (countryId.isEmpty) {
+      return null;
+    }
+
+    return _countryInfos[countryId];
   }
 
   void _handleControllerChanged() {
@@ -127,6 +168,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _handleNextQuestion() async {
     _pendingSelectedPoint = null;
+    _isResultPanelCollapsed = false;
 
     if (_controller.session.isLastQuestion &&
         _controller.hasAnswered) {
@@ -144,6 +186,13 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     _controller.startNextQuestion();
+  }
+
+  void _toggleResultPanel() {
+    setState(() {
+      _isResultPanelCollapsed =
+          !_isResultPanelCollapsed;
+    });
   }
 
   int _calculateEarnedStars() {
@@ -319,6 +368,8 @@ class _GameScreenState extends State<GameScreen> {
                     _resultRadiusInKilometers(
                   question,
                 ),
+                resultPanelCollapsed:
+                    _isResultPanelCollapsed,
                 showInformationPanel: false,
                 allowInteraction:
                     !_controller.hasAnswered &&
@@ -396,6 +447,11 @@ class _GameScreenState extends State<GameScreen> {
                   answerCountry:
                       _controller
                           .answerCountry,
+                  countryInfo:
+                      _countryInfoFor(
+                    _controller
+                        .answerCountry,
+                  ),
                   answerCapitalName:
                       _controller
                           .answerCapitalName,
@@ -415,6 +471,10 @@ class _GameScreenState extends State<GameScreen> {
                       _controller
                           .session
                           .isLastQuestion,
+                  isCollapsed:
+                      _isResultPanelCollapsed,
+                  onToggleCollapsed:
+                      _toggleResultPanel,
                   onNext:
                       _handleNextQuestion,
                 ),
@@ -755,12 +815,15 @@ class _ResultPanel extends StatelessWidget {
     required this.distanceInKilometers,
     required this.selectedCountry,
     required this.answerCountry,
+    required this.countryInfo,
     required this.answerCapitalName,
     required this.answerReferencePointName,
     required this.answerReferencePointTypeLabel,
     required this.answerOfficialCapitalName,
     required this.usesReferenceOverride,
     required this.isLastQuestion,
+    required this.isCollapsed,
+    required this.onToggleCollapsed,
     required this.onNext,
   });
 
@@ -774,6 +837,7 @@ class _ResultPanel extends StatelessWidget {
 
   final GeoCountry? selectedCountry;
   final GeoCountry? answerCountry;
+  final CountryInfo? countryInfo;
 
   final String? answerCapitalName;
   final String? answerReferencePointName;
@@ -782,7 +846,9 @@ class _ResultPanel extends StatelessWidget {
 
   final bool usesReferenceOverride;
   final bool isLastQuestion;
+  final bool isCollapsed;
 
+  final VoidCallback onToggleCollapsed;
   final VoidCallback onNext;
 
   @override
@@ -836,13 +902,46 @@ class _ResultPanel extends StatelessWidget {
           const Color(0xFFFFD166);
     }
 
-    final String answerName =
-        answerCountry?.displayNameWithFlag ??
-            'Pays inconnu';
-
     final String selectedCountryName =
         selectedCountry?.displayNameWithFlag ??
             '🌊 Océan';
+
+    final String infoTitle =
+        countryInfo?.title.trim() ?? '';
+
+    final String countryName =
+        infoTitle.isNotEmpty
+            ? infoTitle
+            : answerCountry?.name ??
+                'Pays inconnu';
+
+    final String flag =
+        FlagEmoji.fromIsoA2(
+      answerCountry?.isoA2 ?? '',
+    );
+
+    final String infoContinent =
+        countryInfo?.continent.trim() ?? '';
+
+    final String continentName =
+        infoContinent.isNotEmpty
+            ? infoContinent
+            : answerCountry?.continent
+                    .trim() ??
+                '';
+
+    final String savedFact =
+        countryInfo?.shortFact?.trim() ?? '';
+
+    final String pedagogicalFact =
+        savedFact.isNotEmpty
+            ? savedFact
+            : continentName.isNotEmpty
+                ? '$countryName se situe en '
+                    '$continentName.'
+                : 'Observe bien sa position '
+                    'sur la carte pour mieux '
+                    'la mémoriser.';
 
     final String distanceText =
         distance == null
@@ -879,10 +978,141 @@ class _ResultPanel extends StatelessWidget {
                 '${_capitalValidationRadiusKm().round()} km'
             : '';
 
+    final double maxPanelHeight =
+        (MediaQuery.sizeOf(context).height *
+                0.70)
+            .clamp(340.0, 610.0)
+            .toDouble();
+
+    if (isCollapsed) {
+      return Center(
+        child: Container(
+          constraints: const BoxConstraints(
+            maxWidth: 520,
+          ),
+          padding: const EdgeInsets.fromLTRB(
+            12,
+            8,
+            10,
+            10,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(
+              alpha: 0.86,
+            ),
+            borderRadius:
+                BorderRadius.circular(18),
+            border: Border.all(
+              color: Colors.white.withValues(
+                alpha: 0.30,
+              ),
+            ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: Colors.black.withValues(
+                  alpha: 0.22,
+                ),
+                blurRadius: 14,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Icon(
+                    isCorrect
+                        ? Icons.check_circle
+                        : isTimeUp
+                            ? Icons.timer_off
+                            : Icons.info,
+                    color: resultColor,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          resultTitle,
+                          maxLines: 1,
+                          overflow:
+                              TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: resultColor,
+                            fontSize: 15,
+                            fontWeight:
+                                FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          '${flag.isEmpty ? '' : '$flag '}$countryName',
+                          maxLines: 1,
+                          overflow:
+                              TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight:
+                                FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '+$lastScore',
+                    style: const TextStyle(
+                      color: Color(0xFFFFD166),
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: onToggleCollapsed,
+                    tooltip: 'Rouvrir la fiche',
+                    icon: const Icon(
+                      Icons.keyboard_arrow_up_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: onNext,
+                  icon: Icon(
+                    isLastQuestion
+                        ? Icons.emoji_events
+                        : Icons.arrow_forward,
+                  ),
+                  label: Text(
+                    isLastQuestion
+                        ? 'VOIR LES RÉSULTATS'
+                        : 'QUESTION SUIVANTE',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Center(
       child: Container(
-        constraints: const BoxConstraints(
+        constraints: BoxConstraints(
           maxWidth: 520,
+          maxHeight: maxPanelHeight,
         ),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -910,14 +1140,31 @@ class _ResultPanel extends StatelessWidget {
           mainAxisSize:
               MainAxisSize.min,
           children: <Widget>[
-            Text(
-              resultTitle,
-              style: TextStyle(
-                color: resultColor,
-                fontSize: 22,
-                fontWeight:
-                    FontWeight.w900,
-              ),
+            Row(
+              children: <Widget>[
+                const SizedBox(width: 48),
+                Expanded(
+                  child: Text(
+                    resultTitle,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: resultColor,
+                      fontSize: 22,
+                      fontWeight:
+                          FontWeight.w900,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: onToggleCollapsed,
+                  tooltip: 'Réduire la fiche',
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+              ],
             ),
 
             if (capitalPrecisionLabel.isNotEmpty)
@@ -965,167 +1212,275 @@ class _ResultPanel extends StatelessWidget {
 
             const SizedBox(height: 9),
 
-            if (!isCapitalMode &&
-                !isCorrect &&
-                !isTimeUp)
-              ...<Widget>[
-                Text(
-                  'Tu as choisi :',
-                  textAlign:
-                      TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white
-                        .withValues(
-                      alpha: 0.70,
+            Flexible(
+              fit: FlexFit.loose,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize:
+                      MainAxisSize.min,
+                  children: <Widget>[
+                    if (!isCapitalMode &&
+                        !isCorrect &&
+                        !isTimeUp)
+                      ...<Widget>[
+                        Text(
+                          'Tu as choisi :',
+                          textAlign:
+                              TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white
+                                .withValues(
+                              alpha: 0.70,
+                            ),
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 2,
+                        ),
+                        Text(
+                          selectedCountryName,
+                          textAlign:
+                              TextAlign.center,
+                          style:
+                              const TextStyle(
+                            color: Color(
+                              0xFFFFD166,
+                            ),
+                            fontSize: 18,
+                            fontWeight:
+                                FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 9,
+                        ),
+                      ],
+
+                    Text(
+                      isCapitalMode
+                          ? isCorrect
+                              ? 'Tu as localisé :'
+                              : 'La capitale était :'
+                          : isFlagMode
+                              ? isCorrect
+                                  ? 'Ce drapeau appartient à :'
+                                  : 'Le drapeau appartenait à :'
+                              : isCorrect
+                                  ? 'Tu as trouvé :'
+                                  : 'La bonne réponse était :',
+                      textAlign:
+                          TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white
+                            .withValues(
+                          alpha: 0.70,
+                        ),
+                        fontSize: 14,
+                      ),
                     ),
-                    fontSize: 14,
-                  ),
+
+                    if (isCapitalMode &&
+                        capitalName.isNotEmpty)
+                      ...<Widget>[
+                        const SizedBox(
+                          height: 2,
+                        ),
+                        Text(
+                          capitalName,
+                          textAlign:
+                              TextAlign.center,
+                          style:
+                              const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight:
+                                FontWeight.w800,
+                          ),
+                        ),
+                      ],
+
+                    const SizedBox(height: 7),
+
+                    Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.center,
+                      children: <Widget>[
+                        if (flag.isNotEmpty)
+                          ...<Widget>[
+                            Text(
+                              flag,
+                              style:
+                                  const TextStyle(
+                                fontSize: 38,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 10,
+                            ),
+                          ],
+                        Flexible(
+                          child: Text(
+                            countryName,
+                            textAlign:
+                                TextAlign.center,
+                            style:
+                                const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight:
+                                  FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    if (usesReferenceOverride &&
+                        referencePointName
+                            .isNotEmpty)
+                      ...<Widget>[
+                        const SizedBox(height: 8),
+                        _ResultInformationRow(
+                          icon: Icons
+                              .location_on_outlined,
+                          label: referenceType,
+                          value:
+                              referencePointName,
+                        ),
+                      ],
+
+                    if (!isCapitalMode &&
+                        capitalName.isNotEmpty)
+                      ...<Widget>[
+                        const SizedBox(height: 7),
+                        _ResultInformationRow(
+                          icon:
+                              Icons.location_city,
+                          label:
+                              usesReferenceOverride
+                                  ? 'Capitale officielle'
+                                  : 'Capitale',
+                          value: capitalName,
+                        ),
+                      ],
+
+                    if (continentName.isNotEmpty)
+                      ...<Widget>[
+                        const SizedBox(height: 7),
+                        _ResultInformationRow(
+                          icon: Icons.public,
+                          label: 'Continent',
+                          value: continentName,
+                        ),
+                      ],
+
+                    if (distanceText.isNotEmpty &&
+                        !((isCountryMode ||
+                                isFlagMode) &&
+                            isCorrect))
+                      ...<Widget>[
+                        const SizedBox(height: 7),
+                        _ResultInformationRow(
+                          icon: Icons.straighten,
+                          label: 'Distance',
+                          value: distanceText,
+                        ),
+                      ],
+
+                    if (capitalToleranceText
+                        .isNotEmpty)
+                      ...<Widget>[
+                        const SizedBox(height: 7),
+                        _ResultInformationRow(
+                          icon:
+                              Icons.adjust_rounded,
+                          label: 'Niveau',
+                          value:
+                              capitalToleranceText,
+                        ),
+                      ],
+
+                    const SizedBox(height: 7),
+
+                    Container(
+                      width: double.infinity,
+                      padding:
+                          const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(
+                          0xFF53D8FF,
+                        ).withValues(
+                          alpha: 0.11,
+                        ),
+                        borderRadius:
+                            BorderRadius.circular(
+                          12,
+                        ),
+                        border: Border.all(
+                          color: const Color(
+                            0xFF53D8FF,
+                          ).withValues(
+                            alpha: 0.35,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: <Widget>[
+                          const Icon(
+                            Icons.lightbulb_outline,
+                            color: Color(
+                              0xFF53D8FF,
+                            ),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 9),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment
+                                      .start,
+                              children: <Widget>[
+                                Text(
+                                  savedFact.isNotEmpty
+                                      ? 'LE SAVAIS-TU ?'
+                                      : 'À RETENIR',
+                                  style:
+                                      const TextStyle(
+                                    color: Color(
+                                      0xFF53D8FF,
+                                    ),
+                                    fontSize: 11,
+                                    fontWeight:
+                                        FontWeight.w900,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 3,
+                                ),
+                                Text(
+                                  pedagogicalFact,
+                                  style:
+                                      const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight:
+                                        FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-
-                const SizedBox(height: 2),
-
-                Text(
-                  selectedCountryName,
-                  textAlign:
-                      TextAlign.center,
-                  style: const TextStyle(
-                    color:
-                        Color(0xFFFFD166),
-                    fontSize: 18,
-                    fontWeight:
-                        FontWeight.w800,
-                  ),
-                ),
-
-                const SizedBox(height: 9),
-              ],
-
-            Text(
-              isCapitalMode
-                  ? isCorrect
-                      ? 'Tu as localisé :'
-                      : 'La capitale était :'
-                  : isFlagMode
-                      ? isCorrect
-                          ? 'Ce drapeau appartient à :'
-                          : 'Le drapeau appartenait à :'
-                      : isCorrect
-                          ? 'Tu as trouvé :'
-                          : 'La bonne réponse était :',
-              textAlign:
-                  TextAlign.center,
-              style: TextStyle(
-                color: Colors.white
-                    .withValues(
-                  alpha: 0.70,
-                ),
-                fontSize: 14,
               ),
             ),
-
-            const SizedBox(height: 2),
-
-            if (isFlagMode)
-              ...<Widget>[
-                Text(
-                  FlagEmoji.fromIsoA2(
-                    answerCountry?.isoA2 ??
-                        '',
-                  ),
-                  style:
-                      const TextStyle(
-                    fontSize: 48,
-                  ),
-                ),
-                const SizedBox(height: 2),
-              ],
-
-            Text(
-              isCapitalMode &&
-                      capitalName.isNotEmpty
-                  ? capitalName
-                  : answerName,
-              textAlign:
-                  TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight:
-                    FontWeight.w800,
-              ),
-            ),
-
-            if (isCapitalMode)
-              ...<Widget>[
-                const SizedBox(height: 4),
-                Text(
-                  answerName,
-                  textAlign:
-                      TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white
-                        .withValues(
-                      alpha: 0.70,
-                    ),
-                    fontSize: 14,
-                    fontWeight:
-                        FontWeight.w700,
-                  ),
-                ),
-              ],
-
-            if (usesReferenceOverride &&
-                referencePointName.isNotEmpty)
-              ...<Widget>[
-                const SizedBox(height: 8),
-
-                _ResultInformationRow(
-                  icon:
-                      Icons.location_on_outlined,
-                  label: referenceType,
-                  value: referencePointName,
-                ),
-              ],
-
-            if (!isCapitalMode &&
-                capitalName.isNotEmpty)
-              ...<Widget>[
-                const SizedBox(height: 7),
-
-                _ResultInformationRow(
-                  icon:
-                      Icons.location_city,
-                  label: usesReferenceOverride
-                      ? 'Capitale officielle'
-                      : 'Capitale',
-                  value: capitalName,
-                ),
-              ],
-
-            if (distanceText.isNotEmpty &&
-                !((isCountryMode || isFlagMode) && isCorrect))
-              ...<Widget>[
-                const SizedBox(height: 7),
-
-                _ResultInformationRow(
-                  icon:
-                      Icons.straighten,
-                  label: 'Distance',
-                  value: distanceText,
-                ),
-              ],
-
-            if (capitalToleranceText.isNotEmpty)
-              ...<Widget>[
-                const SizedBox(height: 7),
-
-                _ResultInformationRow(
-                  icon:
-                      Icons.adjust_rounded,
-                  label: 'Niveau',
-                  value: capitalToleranceText,
-                ),
-              ],
 
             const SizedBox(height: 10),
 

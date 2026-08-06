@@ -70,7 +70,8 @@ class GameEngine {
     );
 
     return GameQuestion(
-      modeId: resolvedQuestionMode,
+      modeId:
+          resolvedQuestionMode,
       countryId:
           selectedCountry.id,
       countryName:
@@ -85,18 +86,17 @@ class GameEngine {
   String _nextMixedMode() {
     if (_mixedModeBag.isEmpty) {
       /*
-       * Sac équilibré de 9 questions :
-       * 3 pays, 3 capitales et 3 drapeaux.
+       * Chaque sac contient exactement :
+       * - une question Pays ;
+       * - une question Capitale ;
+       * - une question Drapeau.
        *
-       * Pour une partie de 10 questions, la
-       * dixième démarre simplement un nouveau sac.
+       * L’ordre est mélangé à chaque nouveau sac.
+       * Cela garantit une répartition équilibrée,
+       * quelle que soit la durée de la partie.
        */
       _mixedModeBag.addAll(
-        <String>[
-          ..._mixedModes,
-          ..._mixedModes,
-          ..._mixedModes,
-        ],
+        _mixedModes,
       );
 
       _mixedModeBag.shuffle(

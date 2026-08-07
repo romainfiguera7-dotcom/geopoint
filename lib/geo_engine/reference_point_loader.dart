@@ -8,8 +8,20 @@ class ReferencePointLoader {
   static const String _assetPath =
       'assets/data/reference_overrides.json';
 
+  static Future<Map<String, ReferencePoint>>?
+      _overridesFuture;
+
   static Future<Map<String, ReferencePoint>>
       loadOverrides() async {
+    final Map<String, ReferencePoint> overrides =
+        await (_overridesFuture ??=
+            _readOverrides());
+
+    return Map<String, ReferencePoint>.of(overrides);
+  }
+
+  static Future<Map<String, ReferencePoint>>
+      _readOverrides() async {
     final String source =
         await rootBundle.loadString(
       _assetPath,

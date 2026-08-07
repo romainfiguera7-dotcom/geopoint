@@ -9,7 +9,23 @@ class GeoJsonLoader {
   static const String _assetPath =
       'assets/maps/world_countries.geojson';
 
+  static Future<List<GeoCountry>>? _countriesFuture;
+
   static Future<List<GeoCountry>> loadCountries() async {
+    final List<GeoCountry> countries =
+        await (_countriesFuture ??= _readCountries());
+
+    /*
+     * Chaque appel reçoit sa propre liste afin qu'un écran puisse
+     * la trier ou la mélanger sans modifier le cache partagé.
+     */
+    return List<GeoCountry>.of(
+      countries,
+      growable: false,
+    );
+  }
+
+  static Future<List<GeoCountry>> _readCountries() async {
     final String source =
         await rootBundle.loadString(_assetPath);
 

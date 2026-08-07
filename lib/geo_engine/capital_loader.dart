@@ -8,8 +8,18 @@ class CapitalLoader {
   static const String _assetPath =
       'assets/data/capitals.json';
 
+  static Future<Map<String, Capital>>? _capitalsFuture;
+
   static Future<Map<String, Capital>>
       loadCapitals() async {
+    final Map<String, Capital> capitals =
+        await (_capitalsFuture ??= _readCapitals());
+
+    return Map<String, Capital>.of(capitals);
+  }
+
+  static Future<Map<String, Capital>>
+      _readCapitals() async {
     final String source =
         await rootBundle.loadString(
       _assetPath,

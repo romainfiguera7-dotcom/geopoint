@@ -8,8 +8,20 @@ class CountryInfoLoader {
   static const String _assetPath =
       'assets/data/country_infos.json';
 
+  static Future<Map<String, CountryInfo>>?
+      _countryInfosFuture;
+
   static Future<Map<String, CountryInfo>>
       loadCountryInfos() async {
+    final Map<String, CountryInfo> countryInfos =
+        await (_countryInfosFuture ??=
+            _readCountryInfos());
+
+    return Map<String, CountryInfo>.of(countryInfos);
+  }
+
+  static Future<Map<String, CountryInfo>>
+      _readCountryInfos() async {
     final String source =
         await rootBundle.loadString(
       _assetPath,

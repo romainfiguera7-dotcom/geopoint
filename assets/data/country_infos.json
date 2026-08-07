@@ -1,29 +1,1333 @@
 [
   {
+    "entityId": "AFG",
+    "title": "Afghanistan",
+    "continent": "Asie",
+    "population": 38041754,
+    "areaSquareKilometers": 652230,
+    "currency": "afghani afghan",
+    "languages": [
+      "dari",
+      "pachto",
+      "turkmène"
+    ],
+    "shortFact": "L'Hindou Kouch traverse une grande partie de l'Afghanistan.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Kaboul. Sa superficie est d'environ 652 230 km². Sa population est estimée à environ 38 millions d'habitants. Monnaie principale : afghani afghan. Langues principales : dari, pachto et turkmène. L'Hindou Kouch traverse une grande partie de l'Afghanistan."
+  },
+  {
+    "entityId": "ZAF",
+    "title": "Afrique du Sud",
+    "continent": "Afrique",
+    "population": 58558270,
+    "areaSquareKilometers": 1221037,
+    "currency": "rand sud-africain",
+    "languages": [
+      "afrikaans",
+      "anglais",
+      "ndébélé du Sud",
+      "sotho du Nord",
+      "sotho du Sud",
+      "swati",
+      "tswana",
+      "tsonga",
+      "venda",
+      "xhosa",
+      "zoulou"
+    ],
+    "shortFact": "L'Afrique du Sud possède trois capitales aux fonctions différentes.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Pretoria. Sa superficie est d'environ 1 221 037 km². Sa population est estimée à environ 58,6 millions d'habitants. Monnaie principale : rand sud-africain. Langues principales : afrikaans, anglais, ndébélé du Sud, sotho du Nord, sotho du Sud, swati, tswana, tsonga, venda, xhosa et zoulou. L'Afrique du Sud possède trois capitales aux fonctions différentes."
+  },
+  {
+    "entityId": "WSB",
+    "title": "Akrotiri",
+    "continent": "Asie",
+    "population": 7850,
+    "areaSquareKilometers": 123,
+    "currency": "euro",
+    "languages": [
+      "anglais",
+      "grec"
+    ],
+    "shortFact": "Akrotiri est l'une des deux zones de souveraineté britannique conservées à Chypre.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Episkopi. Sa superficie est d'environ 123 km². Sa population est estimée à environ 7 850 habitants. Monnaie principale : euro. Langues principales : anglais et grec. Akrotiri est l'une des deux zones de souveraineté britannique conservées à Chypre."
+  },
+  {
+    "entityId": "ALD",
+    "title": "Åland",
+    "continent": "Europe",
+    "population": 29884,
+    "areaSquareKilometers": 1580,
+    "currency": "euro",
+    "languages": [
+      "suédois"
+    ],
+    "shortFact": "Åland est un archipel autonome et démilitarisé rattaché à la Finlande.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Mariehamn. Sa superficie est d'environ 1 580 km². Sa population est estimée à environ 29 884 habitants. Monnaie principale : euro. Langues principales : suédois. Åland est un archipel autonome et démilitarisé rattaché à la Finlande."
+  },
+  {
+    "entityId": "ALB",
+    "title": "Albanie",
+    "continent": "Europe",
+    "population": 2854191,
+    "areaSquareKilometers": 28748,
+    "currency": "lek albanais",
+    "languages": [
+      "albanais"
+    ],
+    "shortFact": "L'Albanie possède des rivages sur l'Adriatique et la mer Ionienne.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Tirana. Sa superficie est d'environ 28 748 km². Sa population est estimée à environ 2,9 millions d'habitants. Monnaie principale : lek albanais. Langues principales : albanais. L'Albanie possède des rivages sur l'Adriatique et la mer Ionienne."
+  },
+  {
+    "entityId": "DZA",
+    "title": "Algérie",
+    "continent": "Afrique",
+    "population": 43053054,
+    "areaSquareKilometers": 2381741,
+    "currency": "dinar algérien",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "Le Sahara couvre l'immense majorité du territoire algérien.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Alger. Sa superficie est d'environ 2 381 741 km². Sa population est estimée à environ 43,1 millions d'habitants. Monnaie principale : dinar algérien. Langues principales : arabe. Le Sahara couvre l'immense majorité du territoire algérien."
+  },
+  {
+    "entityId": "DEU",
+    "title": "Allemagne",
+    "continent": "Europe",
+    "population": 83132799,
+    "areaSquareKilometers": 357114,
+    "currency": "euro",
+    "languages": [
+      "allemand"
+    ],
+    "shortFact": "L'Allemagne est organisée en seize Länder.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Berlin. Sa superficie est d'environ 357 114 km². Sa population est estimée à environ 83,1 millions d'habitants. Monnaie principale : euro. Langues principales : allemand. L'Allemagne est organisée en seize Länder."
+  },
+  {
+    "entityId": "AND",
+    "title": "Andorre",
+    "continent": "Europe",
+    "population": 77142,
+    "areaSquareKilometers": 468,
+    "currency": "euro",
+    "languages": [
+      "catalan"
+    ],
+    "shortFact": "Andorre est une coprincipauté nichée au cœur des Pyrénées.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Andorre-la-Vieille. Sa superficie est d'environ 468 km². Sa population est estimée à environ 77 142 habitants. Monnaie principale : euro. Langues principales : catalan. Andorre est une coprincipauté nichée au cœur des Pyrénées."
+  },
+  {
+    "entityId": "AGO",
+    "title": "Angola",
+    "continent": "Afrique",
+    "population": 31825295,
+    "areaSquareKilometers": 1246700,
+    "currency": "kwanza angolais",
+    "languages": [
+      "portugais"
+    ],
+    "shortFact": "L'enclave de Cabinda est séparée du reste de l'Angola.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Luanda. Sa superficie est d'environ 1 246 700 km². Sa population est estimée à environ 31,8 millions d'habitants. Monnaie principale : kwanza angolais. Langues principales : portugais. L'enclave de Cabinda est séparée du reste de l'Angola."
+  },
+  {
+    "entityId": "AIA",
+    "title": "Anguilla",
+    "continent": "Amérique du Nord",
+    "population": 14731,
+    "areaSquareKilometers": 91,
+    "currency": "dollar des Caraïbes orientales",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Anguilla est un territoire britannique des Petites Antilles.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est The Valley. Sa superficie est d'environ 91 km². Sa population est estimée à environ 14 731 habitants. Monnaie principale : dollar des Caraïbes orientales. Langues principales : anglais. Anguilla est un territoire britannique des Petites Antilles."
+  },
+  {
+    "entityId": "ATA",
+    "title": "Antarctique",
+    "continent": "Antarctique",
+    "population": 4490,
+    "areaSquareKilometers": 14000000,
+    "currency": null,
+    "languages": [],
+    "shortFact": "L'Antarctique est le continent le plus froid, le plus sec et le plus venteux de la planète.",
+    "history": "Ce territoire se situe en Antarctique. Son statut territorial présente une situation particulière ou contestée. Sa superficie est d'environ 14 000 000 km². Sa population est estimée à environ 4 490 habitants. L'Antarctique est le continent le plus froid, le plus sec et le plus venteux de la planète."
+  },
+  {
+    "entityId": "ATG",
+    "title": "Antigua-et-Barbuda",
+    "continent": "Amérique du Nord",
+    "population": 97118,
+    "areaSquareKilometers": 442,
+    "currency": "dollar des Caraïbes orientales",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Antigua-et-Barbuda réunit deux îles principales et plusieurs îlots.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Saint John’s. Sa superficie est d'environ 442 km². Sa population est estimée à environ 97 118 habitants. Monnaie principale : dollar des Caraïbes orientales. Langues principales : anglais. Antigua-et-Barbuda réunit deux îles principales et plusieurs îlots."
+  },
+  {
+    "entityId": "SAU",
+    "title": "Arabie saoudite",
+    "continent": "Asie",
+    "population": 34268528,
+    "areaSquareKilometers": 2149690,
+    "currency": "riyal saoudien",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "L'Arabie saoudite occupe la majeure partie de la péninsule Arabique.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Riyad. Sa superficie est d'environ 2 149 690 km². Sa population est estimée à environ 34,3 millions d'habitants. Monnaie principale : riyal saoudien. Langues principales : arabe. L'Arabie saoudite occupe la majeure partie de la péninsule Arabique."
+  },
+  {
+    "entityId": "ARG",
+    "title": "Argentine",
+    "continent": "Amérique du Sud",
+    "population": 44938712,
+    "areaSquareKilometers": 2780400,
+    "currency": "peso argentin",
+    "languages": [
+      "guarani",
+      "espagnol"
+    ],
+    "shortFact": "L'Argentine s'étire des Andes jusqu'aux paysages subantarctiques de Patagonie.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Buenos Aires. Sa superficie est d'environ 2 780 400 km². Sa population est estimée à environ 44,9 millions d'habitants. Monnaie principale : peso argentin. Langues principales : guarani et espagnol. L'Argentine s'étire des Andes jusqu'aux paysages subantarctiques de Patagonie."
+  },
+  {
+    "entityId": "ARM",
+    "title": "Arménie",
+    "continent": "Asie",
+    "population": 2957731,
+    "areaSquareKilometers": 29743,
+    "currency": "dram arménien",
+    "languages": [
+      "arménien"
+    ],
+    "shortFact": "L'Arménie fut le premier État à adopter officiellement le christianisme.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Erevan. Sa superficie est d'environ 29 743 km². Sa population est estimée à environ 3 millions d'habitants. Monnaie principale : dram arménien. Langues principales : arménien. L'Arménie fut le premier État à adopter officiellement le christianisme."
+  },
+  {
+    "entityId": "ABW",
+    "title": "Aruba",
+    "continent": "Amérique du Nord",
+    "population": 106314,
+    "areaSquareKilometers": 180,
+    "currency": "florin arubais",
+    "languages": [
+      "néerlandais",
+      "papiamento"
+    ],
+    "shortFact": "Aruba est une île autonome du royaume des Pays-Bas, au large du Venezuela.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Oranjestad. Sa superficie est d'environ 180 km². Sa population est estimée à environ 106 314 habitants. Monnaie principale : florin arubais. Langues principales : néerlandais et papiamento. Aruba est une île autonome du royaume des Pays-Bas, au large du Venezuela."
+  },
+  {
+    "entityId": "AUS",
+    "title": "Australie",
+    "continent": "Océanie",
+    "population": 25364307,
+    "areaSquareKilometers": 7692024,
+    "currency": "dollar australien",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "L'Australie est à la fois un pays et le cœur du plus petit continent habité.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Canberra. Sa superficie est d'environ 7 692 024 km². Sa population est estimée à environ 25,4 millions d'habitants. Monnaie principale : dollar australien. Langues principales : anglais. L'Australie est à la fois un pays et le cœur du plus petit continent habité."
+  },
+  {
+    "entityId": "AUT",
+    "title": "Autriche",
+    "continent": "Europe",
+    "population": 8877067,
+    "areaSquareKilometers": 83871,
+    "currency": "euro",
+    "languages": [
+      "bavarois"
+    ],
+    "shortFact": "Une grande partie de l'Autriche est occupée par les Alpes.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Vienne. Sa superficie est d'environ 83 871 km². Sa population est estimée à environ 8,9 millions d'habitants. Monnaie principale : euro. Langues principales : bavarois. Une grande partie de l'Autriche est occupée par les Alpes."
+  },
+  {
+    "entityId": "AZE",
+    "title": "Azerbaïdjan",
+    "continent": "Asie",
+    "population": 10023318,
+    "areaSquareKilometers": 86600,
+    "currency": "manat azéri",
+    "languages": [
+      "azerbaïdjanais",
+      "russe"
+    ],
+    "shortFact": "L'Azerbaïdjan borde la mer Caspienne et possède l'exclave du Nakhitchevan.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Bakou. Sa superficie est d'environ 86 600 km². Sa population est estimée à environ 10 millions d'habitants. Monnaie principale : manat azéri. Langues principales : azerbaïdjanais et russe. L'Azerbaïdjan borde la mer Caspienne et possède l'exclave du Nakhitchevan."
+  },
+  {
+    "entityId": "BHS",
+    "title": "Bahamas",
+    "continent": "Amérique du Nord",
+    "population": 389482,
+    "areaSquareKilometers": 13943,
+    "currency": "dollar bahaméen et dollar des États-Unis",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Les Bahamas forment un archipel de centaines d'îles et de cayes.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Nassau. Sa superficie est d'environ 13 943 km². Sa population est estimée à environ 389 482 habitants. Monnaie principale : dollar bahaméen et dollar des États-Unis. Langues principales : anglais. Les Bahamas forment un archipel de centaines d'îles et de cayes."
+  },
+  {
+    "entityId": "BHR",
+    "title": "Bahreïn",
+    "continent": "Asie",
+    "population": 1641172,
+    "areaSquareKilometers": 765,
+    "currency": "dinar bahreïni",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "Bahreïn est un petit archipel du golfe Persique.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Manama. Sa superficie est d'environ 765 km². Sa population est estimée à environ 1,6 million d'habitants. Monnaie principale : dinar bahreïni. Langues principales : arabe. Bahreïn est un petit archipel du golfe Persique."
+  },
+  {
+    "entityId": "KAB",
+    "title": "Baïkonour",
+    "continent": "Asie",
+    "population": 36175,
+    "areaSquareKilometers": 6717,
+    "currency": "tenge kazakh et rouble russe",
+    "languages": [
+      "kazakh",
+      "russe"
+    ],
+    "shortFact": "La Russie loue à long terme au Kazakhstan le complexe spatial de Baïkonour.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Baïkonour. Sa superficie est d'environ 6 717 km². Sa population est estimée à environ 36 175 habitants. Monnaie principale : tenge kazakh et rouble russe. Langues principales : kazakh et russe. La Russie loue à long terme au Kazakhstan le complexe spatial de Baïkonour."
+  },
+  {
+    "entityId": "BJN",
+    "title": "Banc de Bajo Nuevo",
+    "continent": "Amérique du Nord",
+    "population": 0,
+    "areaSquareKilometers": 0.02,
+    "currency": null,
+    "languages": [],
+    "shortFact": "Le banc de Bajo Nuevo est un récif inhabité de la mer des Caraïbes dont la souveraineté est contestée.",
+    "history": "Ce territoire se situe en Amérique du Nord. Son statut territorial présente une situation particulière ou contestée. Sa superficie est d'environ 0,02 km². Il ne compte aucun habitant permanent. Le banc de Bajo Nuevo est un récif inhabité de la mer des Caraïbes dont la souveraineté est contestée."
+  },
+  {
+    "entityId": "SER",
+    "title": "Banc de Serranilla",
+    "continent": "Amérique du Nord",
+    "population": 0,
+    "areaSquareKilometers": 0.02,
+    "currency": null,
+    "languages": [],
+    "shortFact": "Le banc de Serranilla est un récif inhabité de la mer des Caraïbes.",
+    "history": "Ce territoire se situe en Amérique du Nord. Son statut territorial présente une situation particulière ou contestée. Sa superficie est d'environ 0,02 km². Il ne compte aucun habitant permanent. Le banc de Serranilla est un récif inhabité de la mer des Caraïbes."
+  },
+  {
+    "entityId": "BGD",
+    "title": "Bangladesh",
+    "continent": "Asie",
+    "population": 163046161,
+    "areaSquareKilometers": 147570,
+    "currency": "taka bangladeshi",
+    "languages": [
+      "bengali"
+    ],
+    "shortFact": "Le Bangladesh s'étend sur l'immense delta du Gange et du Brahmapoutre.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Dacca. Sa superficie est d'environ 147 570 km². Sa population est estimée à environ 163 millions d'habitants. Monnaie principale : taka bangladeshi. Langues principales : bengali. Le Bangladesh s'étend sur l'immense delta du Gange et du Brahmapoutre."
+  },
+  {
+    "entityId": "BRB",
+    "title": "Barbade",
+    "continent": "Amérique du Nord",
+    "population": 287025,
+    "areaSquareKilometers": 430,
+    "currency": "dollar barbadien",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "La Barbade est l'île la plus orientale des Petites Antilles.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Bridgetown. Sa superficie est d'environ 430 km². Sa population est estimée à environ 287 025 habitants. Monnaie principale : dollar barbadien. Langues principales : anglais. La Barbade est l'île la plus orientale des Petites Antilles."
+  },
+  {
+    "entityId": "USG",
+    "title": "Base navale de la baie de Guantánamo",
+    "continent": "Amérique du Nord",
+    "population": 6000,
+    "areaSquareKilometers": 118,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "anglais",
+      "espagnol"
+    ],
+    "shortFact": "La base navale de Guantánamo est louée par les États-Unis sur le territoire cubain.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa superficie est d'environ 118 km². Sa population est estimée à environ 6 000 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais et espagnol. La base navale de Guantánamo est louée par les États-Unis sur le territoire cubain."
+  },
+  {
+    "entityId": "BEL",
+    "title": "Belgique",
+    "continent": "Europe",
+    "population": 11484055,
+    "areaSquareKilometers": 30528,
+    "currency": "euro",
+    "languages": [
+      "allemand",
+      "français",
+      "néerlandais"
+    ],
+    "shortFact": "Bruxelles accueille plusieurs institutions majeures de l'Union européenne.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Bruxelles. Sa superficie est d'environ 30 528 km². Sa population est estimée à environ 11,5 millions d'habitants. Monnaie principale : euro. Langues principales : allemand, français et néerlandais. Bruxelles accueille plusieurs institutions majeures de l'Union européenne."
+  },
+  {
+    "entityId": "BLZ",
+    "title": "Belize",
+    "continent": "Amérique du Nord",
+    "population": 390353,
+    "areaSquareKilometers": 22966,
+    "currency": "dollar bélizéen",
+    "languages": [
+      "créole bélizien",
+      "anglais",
+      "espagnol"
+    ],
+    "shortFact": "Le Belize est le seul pays d'Amérique centrale dont la langue officielle est l'anglais.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Belmopan. Sa superficie est d'environ 22 966 km². Sa population est estimée à environ 390 353 habitants. Monnaie principale : dollar bélizéen. Langues principales : créole bélizien, anglais et espagnol. Le Belize est le seul pays d'Amérique centrale dont la langue officielle est l'anglais."
+  },
+  {
+    "entityId": "BEN",
+    "title": "Bénin",
+    "continent": "Afrique",
+    "population": 11801151,
+    "areaSquareKilometers": 112622,
+    "currency": "franc CFA (BCEAO)",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Le Bénin est considéré comme l'un des berceaux historiques du vaudou.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Porto-Novo. Sa superficie est d'environ 112 622 km². Sa population est estimée à environ 11,8 millions d'habitants. Monnaie principale : franc CFA (BCEAO). Langues principales : français. Le Bénin est considéré comme l'un des berceaux historiques du vaudou."
+  },
+  {
+    "entityId": "BMU",
+    "title": "Bermudes",
+    "continent": "Amérique du Nord",
+    "population": 63918,
+    "areaSquareKilometers": 54,
+    "currency": "dollar bermudien",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Les Bermudes forment un territoire britannique de l'Atlantique Nord.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Hamilton. Sa superficie est d'environ 54 km². Sa population est estimée à environ 63 918 habitants. Monnaie principale : dollar bermudien. Langues principales : anglais. Les Bermudes forment un territoire britannique de l'Atlantique Nord."
+  },
+  {
+    "entityId": "BTN",
+    "title": "Bhoutan",
+    "continent": "Asie",
+    "population": 763092,
+    "areaSquareKilometers": 38394,
+    "currency": "ngultrum bouthanais et roupie indienne",
+    "languages": [
+      "dzongkha"
+    ],
+    "shortFact": "Le Bhoutan utilise le bonheur national brut comme indicateur de développement.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Thimphou. Sa superficie est d'environ 38 394 km². Sa population est estimée à environ 763 092 habitants. Monnaie principale : ngultrum bouthanais et roupie indienne. Langues principales : dzongkha. Le Bhoutan utilise le bonheur national brut comme indicateur de développement."
+  },
+  {
+    "entityId": "BLR",
+    "title": "Biélorussie",
+    "continent": "Europe",
+    "population": 9466856,
+    "areaSquareKilometers": 207600,
+    "currency": "rouble biélorusse",
+    "languages": [
+      "biélorusse",
+      "russe"
+    ],
+    "shortFact": "La Biélorussie ne possède aucun accès à la mer.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Minsk. Sa superficie est d'environ 207 600 km². Sa population est estimée à environ 9,5 millions d'habitants. Monnaie principale : rouble biélorusse. Langues principales : biélorusse et russe. La Biélorussie ne possède aucun accès à la mer."
+  },
+  {
+    "entityId": "BRT",
+    "title": "Bir Tawil",
+    "continent": "Afrique",
+    "population": 0,
+    "areaSquareKilometers": 2060,
+    "currency": null,
+    "languages": [],
+    "shortFact": "Bir Tawil est une zone désertique non revendiquée entre l'Égypte et le Soudan.",
+    "history": "Ce territoire se situe en Afrique. Son statut territorial présente une situation particulière ou contestée. Sa superficie est d'environ 2 060 km². Il ne compte aucun habitant permanent. Bir Tawil est une zone désertique non revendiquée entre l'Égypte et le Soudan."
+  },
+  {
+    "entityId": "MMR",
+    "title": "Birmanie",
+    "continent": "Asie",
+    "population": 54045420,
+    "areaSquareKilometers": 676578,
+    "currency": "kyat myanmarais",
+    "languages": [
+      "birman"
+    ],
+    "shortFact": "Le territoire birman s'organise autour du bassin de l'Irrawaddy.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Naypyidaw. Sa superficie est d'environ 676 578 km². Sa population est estimée à environ 54 millions d'habitants. Monnaie principale : kyat myanmarais. Langues principales : birman. Le territoire birman s'organise autour du bassin de l'Irrawaddy."
+  },
+  {
+    "entityId": "BOL",
+    "title": "Bolivie",
+    "continent": "Amérique du Sud",
+    "population": 11513100,
+    "areaSquareKilometers": 1098581,
+    "currency": "boliviano bolivien",
+    "languages": [
+      "aymara",
+      "guarani",
+      "quechua",
+      "espagnol"
+    ],
+    "shortFact": "La Bolivie possède deux capitales : Sucre est constitutionnelle et La Paz accueille le gouvernement.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Sucre. Sa superficie est d'environ 1 098 581 km². Sa population est estimée à environ 11,5 millions d'habitants. Monnaie principale : boliviano bolivien. Langues principales : aymara, guarani, quechua et espagnol. La Bolivie possède deux capitales : Sucre est constitutionnelle et La Paz accueille le gouvernement."
+  },
+  {
+    "entityId": "BIH",
+    "title": "Bosnie-Herzégovine",
+    "continent": "Europe",
+    "population": 3301000,
+    "areaSquareKilometers": 51209,
+    "currency": "mark convertible bosniaque",
+    "languages": [
+      "bosniaque",
+      "croate",
+      "serbe"
+    ],
+    "shortFact": "La Bosnie-Herzégovine dispose d'une très courte façade sur l'Adriatique à Neum.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Sarajevo. Sa superficie est d'environ 51 209 km². Sa population est estimée à environ 3,3 millions d'habitants. Monnaie principale : mark convertible bosniaque. Langues principales : bosniaque, croate et serbe. La Bosnie-Herzégovine dispose d'une très courte façade sur l'Adriatique à Neum."
+  },
+  {
+    "entityId": "BWA",
+    "title": "Botswana",
+    "continent": "Afrique",
+    "population": 2303697,
+    "areaSquareKilometers": 582000,
+    "currency": "pula botswanais",
+    "languages": [
+      "anglais",
+      "tswana"
+    ],
+    "shortFact": "Le delta de l'Okavango se déploie au cœur du désert du Kalahari.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Gaborone. Sa superficie est d'environ 582 000 km². Sa population est estimée à environ 2,3 millions d'habitants. Monnaie principale : pula botswanais. Langues principales : anglais et tswana. Le delta de l'Okavango se déploie au cœur du désert du Kalahari."
+  },
+  {
+    "entityId": "BRA",
+    "title": "Brésil",
+    "continent": "Amérique du Sud",
+    "population": 211049527,
+    "areaSquareKilometers": 8515767,
+    "currency": "réal brésilien",
+    "languages": [
+      "portugais"
+    ],
+    "shortFact": "Le Brésil abrite la plus grande partie de la forêt amazonienne.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Brasília. Sa superficie est d'environ 8 515 767 km². Sa population est estimée à environ 211 millions d'habitants. Monnaie principale : réal brésilien. Langues principales : portugais. Le Brésil abrite la plus grande partie de la forêt amazonienne."
+  },
+  {
+    "entityId": "BRN",
+    "title": "Brunei",
+    "continent": "Asie",
+    "population": 433285,
+    "areaSquareKilometers": 5765,
+    "currency": "dollar brunéien et dollar de Singapour",
+    "languages": [
+      "malais"
+    ],
+    "shortFact": "Le territoire de Brunei est divisé en deux parties par la Malaisie.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Bandar Seri Begawan. Sa superficie est d'environ 5 765 km². Sa population est estimée à environ 433 285 habitants. Monnaie principale : dollar brunéien et dollar de Singapour. Langues principales : malais. Le territoire de Brunei est divisé en deux parties par la Malaisie."
+  },
+  {
+    "entityId": "BGR",
+    "title": "Bulgarie",
+    "continent": "Europe",
+    "population": 6975761,
+    "areaSquareKilometers": 110879,
+    "currency": "lev bulgare",
+    "languages": [
+      "bulgare"
+    ],
+    "shortFact": "La Bulgarie utilise l'alphabet cyrillique, né dans l'espace culturel médiéval bulgare.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Sofia. Sa superficie est d'environ 110 879 km². Sa population est estimée à environ 7 millions d'habitants. Monnaie principale : lev bulgare. Langues principales : bulgare. La Bulgarie utilise l'alphabet cyrillique, né dans l'espace culturel médiéval bulgare."
+  },
+  {
+    "entityId": "BFA",
+    "title": "Burkina Faso",
+    "continent": "Afrique",
+    "population": 20321378,
+    "areaSquareKilometers": 272967,
+    "currency": "franc CFA (BCEAO)",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Le nom Burkina Faso signifie souvent « pays des hommes intègres ».",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Ouagadougou. Sa superficie est d'environ 272 967 km². Sa population est estimée à environ 20,3 millions d'habitants. Monnaie principale : franc CFA (BCEAO). Langues principales : français. Le nom Burkina Faso signifie souvent « pays des hommes intègres »."
+  },
+  {
+    "entityId": "BDI",
+    "title": "Burundi",
+    "continent": "Afrique",
+    "population": 11530580,
+    "areaSquareKilometers": 27834,
+    "currency": "franc burundais",
+    "languages": [
+      "français",
+      "roundi"
+    ],
+    "shortFact": "Le Burundi se situe dans la région africaine des Grands Lacs.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Gitega. Sa superficie est d'environ 27 834 km². Sa population est estimée à environ 11,5 millions d'habitants. Monnaie principale : franc burundais. Langues principales : français et roundi. Le Burundi se situe dans la région africaine des Grands Lacs."
+  },
+  {
+    "entityId": "KHM",
+    "title": "Cambodge",
+    "continent": "Asie",
+    "population": 16486542,
+    "areaSquareKilometers": 181035,
+    "currency": "riel cambodgien et dollar des États-Unis",
+    "languages": [
+      "khmer"
+    ],
+    "shortFact": "Le complexe d'Angkor fut le centre monumental de l'Empire khmer.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Phnom Penh. Sa superficie est d'environ 181 035 km². Sa population est estimée à environ 16,5 millions d'habitants. Monnaie principale : riel cambodgien et dollar des États-Unis. Langues principales : khmer. Le complexe d'Angkor fut le centre monumental de l'Empire khmer."
+  },
+  {
+    "entityId": "CMR",
+    "title": "Cameroun",
+    "continent": "Afrique",
+    "population": 25876380,
+    "areaSquareKilometers": 475442,
+    "currency": "franc CFA (BEAC)",
+    "languages": [
+      "anglais",
+      "français"
+    ],
+    "shortFact": "Le Cameroun est parfois surnommé « l'Afrique en miniature » pour la variété de ses paysages.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Yaoundé. Sa superficie est d'environ 475 442 km². Sa population est estimée à environ 25,9 millions d'habitants. Monnaie principale : franc CFA (BEAC). Langues principales : anglais et français. Le Cameroun est parfois surnommé « l'Afrique en miniature » pour la variété de ses paysages."
+  },
+  {
+    "entityId": "CAN",
+    "title": "Canada",
+    "continent": "Amérique du Nord",
+    "population": 37589262,
+    "areaSquareKilometers": 9984670,
+    "currency": "dollar canadien",
+    "languages": [
+      "anglais",
+      "français"
+    ],
+    "shortFact": "Le Canada possède le plus long littoral national du monde.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Ottawa. Sa superficie est d'environ 9 984 670 km². Sa population est estimée à environ 37,6 millions d'habitants. Monnaie principale : dollar canadien. Langues principales : anglais et français. Le Canada possède le plus long littoral national du monde."
+  },
+  {
+    "entityId": "CPV",
+    "title": "Cap-Vert",
+    "continent": "Afrique",
+    "population": 549935,
+    "areaSquareKilometers": 4033,
+    "currency": "escudo capverdien",
+    "languages": [
+      "portugais"
+    ],
+    "shortFact": "Le Cap-Vert est un archipel volcanique de l'océan Atlantique.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Praia. Sa superficie est d'environ 4 033 km². Sa population est estimée à environ 549 935 habitants. Monnaie principale : escudo capverdien. Langues principales : portugais. Le Cap-Vert est un archipel volcanique de l'océan Atlantique."
+  },
+  {
+    "entityId": "SPI",
+    "title": "Champ de glace Sud de Patagonie",
+    "continent": "Amérique du Sud",
+    "population": 0,
+    "areaSquareKilometers": 12363,
+    "currency": null,
+    "languages": [],
+    "shortFact": "Le champ de glace Sud de Patagonie s'étend entre le Chili et l'Argentine.",
+    "history": "Ce territoire se situe en Amérique du Sud. Son statut territorial présente une situation particulière ou contestée. Sa superficie est d'environ 12 363 km². Il ne compte aucun habitant permanent. Le champ de glace Sud de Patagonie s'étend entre le Chili et l'Argentine."
+  },
+  {
+    "entityId": "CHL",
+    "title": "Chili",
+    "continent": "Amérique du Sud",
+    "population": 18952038,
+    "areaSquareKilometers": 756102,
+    "currency": "peso chilien",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "Le Chili forme une bande de terre longue et étroite entre les Andes et le Pacifique.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Santiago. Sa superficie est d'environ 756 102 km². Sa population est estimée à environ 19 millions d'habitants. Monnaie principale : peso chilien. Langues principales : espagnol. Le Chili forme une bande de terre longue et étroite entre les Andes et le Pacifique."
+  },
+  {
+    "entityId": "CYP",
+    "title": "Chypre",
+    "continent": "Asie",
+    "population": 1198575,
+    "areaSquareKilometers": 9251,
+    "currency": "euro",
+    "languages": [
+      "grec",
+      "turc"
+    ],
+    "shortFact": "Chypre se situe en Méditerranée orientale, au carrefour de l'Europe et de l'Asie.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Nicosie. Sa superficie est d'environ 9 251 km². Sa population est estimée à environ 1,2 million d'habitants. Monnaie principale : euro. Langues principales : grec et turc. Chypre se situe en Méditerranée orientale, au carrefour de l'Europe et de l'Asie."
+  },
+  {
+    "entityId": "CYN",
+    "title": "Chypre du Nord",
+    "continent": "Asie",
+    "population": 326000,
+    "areaSquareKilometers": 3355,
+    "currency": "livre turque",
+    "languages": [
+      "turc"
+    ],
+    "shortFact": "Chypre du Nord est une entité reconnue uniquement par la Turquie.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Nicosie-Nord. Sa superficie est d'environ 3 355 km². Sa population est estimée à environ 326 000 habitants. Monnaie principale : livre turque. Langues principales : turc. Chypre du Nord est une entité reconnue uniquement par la Turquie."
+  },
+  {
+    "entityId": "VAT",
+    "title": "Cité du Vatican",
+    "continent": "Europe",
+    "population": 825,
+    "areaSquareKilometers": 0.44,
+    "currency": "euro",
+    "languages": [
+      "italien",
+      "latin"
+    ],
+    "shortFact": "La Cité du Vatican est le plus petit État souverain du monde.",
+    "history": "Ce territoire se situe en Europe. Sa capitale est la Cité du Vatican. Sa superficie est d'environ 0,44 km². Sa population est estimée à environ 825 habitants. Monnaie principale : euro. Langues principales : italien et latin. La Cité du Vatican est le plus petit État souverain du monde."
+  },
+  {
+    "entityId": "COL",
+    "title": "Colombie",
+    "continent": "Amérique du Sud",
+    "population": 50339443,
+    "areaSquareKilometers": 1141748,
+    "currency": "peso colombien",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "La Colombie possède des côtes à la fois sur la mer des Caraïbes et l'océan Pacifique.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Bogotá. Sa superficie est d'environ 1 141 748 km². Sa population est estimée à environ 50,3 millions d'habitants. Monnaie principale : peso colombien. Langues principales : espagnol. La Colombie possède des côtes à la fois sur la mer des Caraïbes et l'océan Pacifique."
+  },
+  {
+    "entityId": "COM",
+    "title": "Comores",
+    "continent": "Afrique",
+    "population": 850886,
+    "areaSquareKilometers": 1862,
+    "currency": "franc comorien",
+    "languages": [
+      "arabe",
+      "français",
+      "comorien"
+    ],
+    "shortFact": "Les Comores sont un archipel volcanique du canal du Mozambique.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Moroni. Sa superficie est d'environ 1 862 km². Sa population est estimée à environ 850 886 habitants. Monnaie principale : franc comorien. Langues principales : arabe, français et comorien. Les Comores sont un archipel volcanique du canal du Mozambique."
+  },
+  {
+    "entityId": "PRK",
+    "title": "Corée du Nord",
+    "continent": "Asie",
+    "population": 25666161,
+    "areaSquareKilometers": 120538,
+    "currency": "won nord-coréen",
+    "languages": [
+      "coréen"
+    ],
+    "shortFact": "La péninsule coréenne est divisée depuis le milieu du XXe siècle.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Pyongyang. Sa superficie est d'environ 120 538 km². Sa population est estimée à environ 25,7 millions d'habitants. Monnaie principale : won nord-coréen. Langues principales : coréen. La péninsule coréenne est divisée depuis le milieu du XXe siècle."
+  },
+  {
+    "entityId": "KOR",
+    "title": "Corée du Sud",
+    "continent": "Asie",
+    "population": 51709098,
+    "areaSquareKilometers": 100210,
+    "currency": "won sud-coréen",
+    "languages": [
+      "coréen"
+    ],
+    "shortFact": "La Corée du Sud occupe la moitié méridionale de la péninsule coréenne.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Séoul. Sa superficie est d'environ 100 210 km². Sa population est estimée à environ 51,7 millions d'habitants. Monnaie principale : won sud-coréen. Langues principales : coréen. La Corée du Sud occupe la moitié méridionale de la péninsule coréenne."
+  },
+  {
+    "entityId": "CRI",
+    "title": "Costa Rica",
+    "continent": "Amérique du Nord",
+    "population": 5047561,
+    "areaSquareKilometers": 51100,
+    "currency": "colón costaricain",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "Le Costa Rica a supprimé son armée permanente en 1948.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est San José. Sa superficie est d'environ 51 100 km². Sa population est estimée à environ 5 millions d'habitants. Monnaie principale : colón costaricain. Langues principales : espagnol. Le Costa Rica a supprimé son armée permanente en 1948."
+  },
+  {
+    "entityId": "CIV",
+    "title": "Côte d'Ivoire",
+    "continent": "Afrique",
+    "population": 25716544,
+    "areaSquareKilometers": 322463,
+    "currency": "franc CFA (BCEAO)",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Yamoussoukro est la capitale politique, tandis qu'Abidjan reste la principale métropole.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Yamoussoukro. Sa superficie est d'environ 322 463 km². Sa population est estimée à environ 25,7 millions d'habitants. Monnaie principale : franc CFA (BCEAO). Langues principales : français. Yamoussoukro est la capitale politique, tandis qu'Abidjan reste la principale métropole."
+  },
+  {
+    "entityId": "HRV",
+    "title": "Croatie",
+    "continent": "Europe",
+    "population": 4067500,
+    "areaSquareKilometers": 56594,
+    "currency": "euro",
+    "languages": [
+      "croate"
+    ],
+    "shortFact": "Le littoral croate borde l'Adriatique et compte plus d'un millier d'îles et d'îlots.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Zagreb. Sa superficie est d'environ 56 594 km². Sa population est estimée à environ 4,1 millions d'habitants. Monnaie principale : euro. Langues principales : croate. Le littoral croate borde l'Adriatique et compte plus d'un millier d'îles et d'îlots."
+  },
+  {
+    "entityId": "CUB",
+    "title": "Cuba",
+    "continent": "Amérique du Nord",
+    "population": 11333483,
+    "areaSquareKilometers": 109884,
+    "currency": "peso cubain convertible et peso cubain",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "Cuba est la plus grande île des Caraïbes.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est La Havane. Sa superficie est d'environ 109 884 km². Sa population est estimée à environ 11,3 millions d'habitants. Monnaie principale : peso cubain convertible et peso cubain. Langues principales : espagnol. Cuba est la plus grande île des Caraïbes."
+  },
+  {
+    "entityId": "CUW",
+    "title": "Curaçao",
+    "continent": "Amérique du Nord",
+    "population": 157538,
+    "areaSquareKilometers": 444,
+    "currency": "florin antillais",
+    "languages": [
+      "anglais",
+      "néerlandais",
+      "papiamento"
+    ],
+    "shortFact": "Curaçao est un pays autonome du royaume des Pays-Bas.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Willemstad. Sa superficie est d'environ 444 km². Sa population est estimée à environ 157 538 habitants. Monnaie principale : florin antillais. Langues principales : anglais, néerlandais et papiamento. Curaçao est un pays autonome du royaume des Pays-Bas."
+  },
+  {
+    "entityId": "DNK",
+    "title": "Danemark",
+    "continent": "Europe",
+    "population": 5818553,
+    "areaSquareKilometers": 43094,
+    "currency": "couronne danoise",
+    "languages": [
+      "danois"
+    ],
+    "shortFact": "Le royaume du Danemark comprend aussi le Groenland et les îles Féroé.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Copenhague. Sa superficie est d'environ 43 094 km². Sa population est estimée à environ 5,8 millions d'habitants. Monnaie principale : couronne danoise. Langues principales : danois. Le royaume du Danemark comprend aussi le Groenland et les îles Féroé."
+  },
+  {
+    "entityId": "ESB",
+    "title": "Dhekelia",
+    "continent": "Asie",
+    "population": 7850,
+    "areaSquareKilometers": 131,
+    "currency": "euro",
+    "languages": [
+      "anglais",
+      "grec"
+    ],
+    "shortFact": "Dhekelia est l'une des deux zones de souveraineté britannique situées à Chypre.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Episkopi. Sa superficie est d'environ 131 km². Sa population est estimée à environ 7 850 habitants. Monnaie principale : euro. Langues principales : anglais et grec. Dhekelia est l'une des deux zones de souveraineté britannique situées à Chypre."
+  },
+  {
+    "entityId": "DJI",
+    "title": "Djibouti",
+    "continent": "Afrique",
+    "population": 973560,
+    "areaSquareKilometers": 23200,
+    "currency": "franc djiboutien",
+    "languages": [
+      "arabe",
+      "français"
+    ],
+    "shortFact": "Djibouti occupe une position stratégique près du détroit de Bab-el-Mandeb.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Djibouti. Sa superficie est d'environ 23 200 km². Sa population est estimée à environ 973 560 habitants. Monnaie principale : franc djiboutien. Langues principales : arabe et français. Djibouti occupe une position stratégique près du détroit de Bab-el-Mandeb."
+  },
+  {
+    "entityId": "DMA",
+    "title": "Dominique",
+    "continent": "Amérique du Nord",
+    "population": 71808,
+    "areaSquareKilometers": 751,
+    "currency": "dollar des Caraïbes orientales",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "La Dominique est surnommée « l'île nature » des Caraïbes.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Roseau. Sa superficie est d'environ 751 km². Sa population est estimée à environ 71 808 habitants. Monnaie principale : dollar des Caraïbes orientales. Langues principales : anglais. La Dominique est surnommée « l'île nature » des Caraïbes."
+  },
+  {
+    "entityId": "EGY",
+    "title": "Égypte",
+    "continent": "Afrique",
+    "population": 100388073,
+    "areaSquareKilometers": 1002450,
+    "currency": "livre égyptienne",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "La vallée du Nil concentre l'essentiel de la population égyptienne.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Le Caire. Sa superficie est d'environ 1 002 450 km². Sa population est estimée à environ 100,4 millions d'habitants. Monnaie principale : livre égyptienne. Langues principales : arabe. La vallée du Nil concentre l'essentiel de la population égyptienne."
+  },
+  {
+    "entityId": "ARE",
+    "title": "Émirats arabes unis",
+    "continent": "Asie",
+    "population": 9770529,
+    "areaSquareKilometers": 83600,
+    "currency": "dirham des Émirats arabes unis",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "Les Émirats arabes unis forment une fédération de sept émirats.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Abou Dabi. Sa superficie est d'environ 83 600 km². Sa population est estimée à environ 9,8 millions d'habitants. Monnaie principale : dirham des Émirats arabes unis. Langues principales : arabe. Les Émirats arabes unis forment une fédération de sept émirats."
+  },
+  {
+    "entityId": "ECU",
+    "title": "Équateur",
+    "continent": "Amérique du Sud",
+    "population": 17373662,
+    "areaSquareKilometers": 276841,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "L'Équateur doit son nom à la ligne équatoriale qui traverse son territoire.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Quito. Sa superficie est d'environ 276 841 km². Sa population est estimée à environ 17,4 millions d'habitants. Monnaie principale : dollar des États-Unis. Langues principales : espagnol. L'Équateur doit son nom à la ligne équatoriale qui traverse son territoire."
+  },
+  {
+    "entityId": "ERI",
+    "title": "Érythrée",
+    "continent": "Afrique",
+    "population": 6081196,
+    "areaSquareKilometers": 117600,
+    "currency": "nafka érythréen",
+    "languages": [
+      "arabe",
+      "anglais",
+      "tigrigna"
+    ],
+    "shortFact": "L'Érythrée possède un long littoral sur la mer Rouge.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Asmara. Sa superficie est d'environ 117 600 km². Sa population est estimée à environ 6,1 millions d'habitants. Monnaie principale : nafka érythréen. Langues principales : arabe, anglais et tigrigna. L'Érythrée possède un long littoral sur la mer Rouge."
+  },
+  {
+    "entityId": "ESP",
+    "title": "Espagne",
+    "continent": "Europe",
+    "population": 47076781,
+    "areaSquareKilometers": 505992,
+    "currency": "euro",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "L'Espagne comprend les archipels des Baléares et des Canaries ainsi que deux villes en Afrique du Nord.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Madrid. Sa superficie est d'environ 505 992 km². Sa population est estimée à environ 47,1 millions d'habitants. Monnaie principale : euro. Langues principales : espagnol. L'Espagne comprend les archipels des Baléares et des Canaries ainsi que deux villes en Afrique du Nord."
+  },
+  {
+    "entityId": "EST",
+    "title": "Estonie",
+    "continent": "Europe",
+    "population": 1326590,
+    "areaSquareKilometers": 45227,
+    "currency": "euro",
+    "languages": [
+      "estonien"
+    ],
+    "shortFact": "L'Estonie compte des milliers d'îles dans la mer Baltique.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Tallinn. Sa superficie est d'environ 45 227 km². Sa population est estimée à environ 1,3 million d'habitants. Monnaie principale : euro. Langues principales : estonien. L'Estonie compte des milliers d'îles dans la mer Baltique."
+  },
+  {
+    "entityId": "SWZ",
+    "title": "Eswatini",
+    "continent": "Afrique",
+    "population": 1148130,
+    "areaSquareKilometers": 17364,
+    "currency": "lilangeni swazi et rand sud-africain",
+    "languages": [
+      "anglais",
+      "swati"
+    ],
+    "shortFact": "L'Eswatini est l'une des dernières monarchies absolues du monde.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Mbabane. Sa superficie est d'environ 17 364 km². Sa population est estimée à environ 1,1 million d'habitants. Monnaie principale : lilangeni swazi et rand sud-africain. Langues principales : anglais et swati. L'Eswatini est l'une des dernières monarchies absolues du monde."
+  },
+  {
+    "entityId": "FSM",
+    "title": "États fédérés de Micronésie",
+    "continent": "Océanie",
+    "population": 113815,
+    "areaSquareKilometers": 702,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Les États fédérés de Micronésie rassemblent plus de 600 îles.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Palikir. Sa superficie est d'environ 702 km². Sa population est estimée à environ 113 815 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. Les États fédérés de Micronésie rassemblent plus de 600 îles."
+  },
+  {
+    "entityId": "USA",
+    "title": "États-Unis",
+    "continent": "Amérique du Nord",
+    "population": 328239523,
+    "areaSquareKilometers": 9372610,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Les États-Unis regroupent cinquante États entre l'Amérique du Nord, l'Alaska et le Pacifique.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Washington. Sa superficie est d'environ 9 372 610 km². Sa population est estimée à environ 328,2 millions d'habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. Les États-Unis regroupent cinquante États entre l'Amérique du Nord, l'Alaska et le Pacifique."
+  },
+  {
+    "entityId": "ETH",
+    "title": "Éthiopie",
+    "continent": "Afrique",
+    "population": 112078730,
+    "areaSquareKilometers": 1104300,
+    "currency": "birr éthiopien",
+    "languages": [
+      "amharique"
+    ],
+    "shortFact": "L'Éthiopie utilise un calendrier comptant environ sept à huit ans de moins que le calendrier grégorien.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Addis-Abeba. Sa superficie est d'environ 1 104 300 km². Sa population est estimée à environ 112,1 millions d'habitants. Monnaie principale : birr éthiopien. Langues principales : amharique. L'Éthiopie utilise un calendrier comptant environ sept à huit ans de moins que le calendrier grégorien."
+  },
+  {
+    "entityId": "FJI",
+    "title": "Fidji",
+    "continent": "Océanie",
+    "population": 889953,
+    "areaSquareKilometers": 18272,
+    "currency": "dollar fidjien",
+    "languages": [
+      "anglais",
+      "fidjien",
+      "hindi fidjien"
+    ],
+    "shortFact": "Les Fidji comptent plus de 300 îles dans le Pacifique Sud.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Suva. Sa superficie est d'environ 18 272 km². Sa population est estimée à environ 889 953 habitants. Monnaie principale : dollar fidjien. Langues principales : anglais, fidjien et hindi fidjien. Les Fidji comptent plus de 300 îles dans le Pacifique Sud."
+  },
+  {
+    "entityId": "FIN",
+    "title": "Finlande",
+    "continent": "Europe",
+    "population": 5520314,
+    "areaSquareKilometers": 338424,
+    "currency": "euro",
+    "languages": [
+      "finnois",
+      "suédois"
+    ],
+    "shortFact": "La Finlande est souvent appelée « le pays des mille lacs », bien qu'elle en compte bien davantage.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Helsinki. Sa superficie est d'environ 338 424 km². Sa population est estimée à environ 5,5 millions d'habitants. Monnaie principale : euro. Langues principales : finnois et suédois. La Finlande est souvent appelée « le pays des mille lacs », bien qu'elle en compte bien davantage."
+  },
+  {
     "entityId": "FRA",
     "title": "France",
     "continent": "Europe",
-    "population": 68600000,
+    "population": 67059887,
     "areaSquareKilometers": 551695,
-    "currency": "Euro",
+    "currency": "euro",
     "languages": [
-      "Français"
+      "français"
     ],
-    "shortFact": "La France possède des territoires répartis sur plusieurs océans.",
-    "history": "La France est un pays d'Europe occidentale dont le territoire comprend aussi plusieurs collectivités et territoires ultramarins. Cette présence mondiale lui donne l'une des plus vastes zones maritimes de la planète."
+    "shortFact": "La France possède des territoires dans plusieurs océans et sur plusieurs continents.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Paris. Sa superficie est d'environ 551 695 km². Sa population est estimée à environ 67,1 millions d'habitants. Monnaie principale : euro. Langues principales : français. La France possède des territoires dans plusieurs océans et sur plusieurs continents."
   },
   {
-    "entityId": "PRT",
-    "title": "Portugal",
-    "continent": "Europe",
-    "population": 10400000,
-    "areaSquareKilometers": 92212,
-    "currency": "Euro",
+    "entityId": "GAB",
+    "title": "Gabon",
+    "continent": "Afrique",
+    "population": 2172579,
+    "areaSquareKilometers": 267668,
+    "currency": "franc CFA (BEAC)",
     "languages": [
-      "Portugais"
+      "français"
     ],
-    "shortFact": "Le Portugal comprend aussi les archipels des Açores et de Madère.",
-    "history": "Situé à l'extrémité occidentale de l'Europe, le Portugal possède une longue façade sur l'océan Atlantique. Lisbonne est sa capitale et sa plus grande ville."
+    "shortFact": "Une grande partie du Gabon est couverte par la forêt équatoriale.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Libreville. Sa superficie est d'environ 267 668 km². Sa population est estimée à environ 2,2 millions d'habitants. Monnaie principale : franc CFA (BEAC). Langues principales : français. Une grande partie du Gabon est couverte par la forêt équatoriale."
+  },
+  {
+    "entityId": "GMB",
+    "title": "Gambie",
+    "continent": "Afrique",
+    "population": 2347706,
+    "areaSquareKilometers": 10689,
+    "currency": "dalasi gambien",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "La Gambie forme une étroite bande de terre autour du fleuve Gambie.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Banjul. Sa superficie est d'environ 10 689 km². Sa population est estimée à environ 2,3 millions d'habitants. Monnaie principale : dalasi gambien. Langues principales : anglais. La Gambie forme une étroite bande de terre autour du fleuve Gambie."
+  },
+  {
+    "entityId": "GEO",
+    "title": "Géorgie",
+    "continent": "Asie",
+    "population": 3720382,
+    "areaSquareKilometers": 69700,
+    "currency": "lari géorgien",
+    "languages": [
+      "géorgien"
+    ],
+    "shortFact": "La Géorgie se trouve à la rencontre du Caucase, de l'Europe orientale et de l'Asie occidentale.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Tbilissi. Sa superficie est d'environ 69 700 km². Sa population est estimée à environ 3,7 millions d'habitants. Monnaie principale : lari géorgien. Langues principales : géorgien. La Géorgie se trouve à la rencontre du Caucase, de l'Europe orientale et de l'Asie occidentale."
+  },
+  {
+    "entityId": "SGS",
+    "title": "Géorgie du Sud-et-les Îles Sandwich du Sud",
+    "continent": "Amérique du Sud",
+    "population": 30,
+    "areaSquareKilometers": 3903,
+    "currency": "livre de Sainte-Hélène",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "La Géorgie du Sud-et-les Îles Sandwich du Sud ne possède pas de population permanente.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Grytviken. Sa superficie est d'environ 3 903 km². Sa population est estimée à environ 30 habitants. Monnaie principale : livre de Sainte-Hélène. Langues principales : anglais. La Géorgie du Sud-et-les Îles Sandwich du Sud ne possède pas de population permanente."
+  },
+  {
+    "entityId": "GHA",
+    "title": "Ghana",
+    "continent": "Afrique",
+    "population": 30417856,
+    "areaSquareKilometers": 238533,
+    "currency": "cédi ghanéen",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Le Ghana tire son nom d'un ancien empire ouest-africain situé plus au nord.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Accra. Sa superficie est d'environ 238 533 km². Sa population est estimée à environ 30,4 millions d'habitants. Monnaie principale : cédi ghanéen. Langues principales : anglais. Le Ghana tire son nom d'un ancien empire ouest-africain situé plus au nord."
+  },
+  {
+    "entityId": "GIB",
+    "title": "Gibraltar",
+    "continent": "Europe",
+    "population": 33701,
+    "areaSquareKilometers": 6,
+    "currency": "livre de Gibraltar",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Gibraltar est un territoire britannique situé à l'entrée de la Méditerranée.",
+    "history": "Ce territoire se situe en Europe. Son statut territorial présente une situation particulière ou contestée. Sa capitale ou son centre administratif principal est Gibraltar. Sa superficie est d'environ 6 km². Sa population est estimée à environ 33 701 habitants. Monnaie principale : livre de Gibraltar. Langues principales : anglais. Gibraltar est un territoire britannique situé à l'entrée de la Méditerranée."
+  },
+  {
+    "entityId": "KAS",
+    "title": "Glacier de Siachen",
+    "continent": "Asie",
+    "population": 0,
+    "areaSquareKilometers": 700,
+    "currency": null,
+    "languages": [],
+    "shortFact": "Le glacier de Siachen se trouve dans le Karakoram, sur une zone disputée entre l'Inde et le Pakistan.",
+    "history": "Ce territoire se situe en Asie. Son statut territorial présente une situation particulière ou contestée. Sa superficie est d'environ 700 km². Il ne compte aucun habitant permanent. Le glacier de Siachen se trouve dans le Karakoram, sur une zone disputée entre l'Inde et le Pakistan."
+  },
+  {
+    "entityId": "GRC",
+    "title": "Grèce",
+    "continent": "Europe",
+    "population": 10716322,
+    "areaSquareKilometers": 131990,
+    "currency": "euro",
+    "languages": [
+      "grec"
+    ],
+    "shortFact": "La Grèce compte des milliers d'îles et d'îlots en mer Égée et Ionienne.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Athènes. Sa superficie est d'environ 131 990 km². Sa population est estimée à environ 10,7 millions d'habitants. Monnaie principale : euro. Langues principales : grec. La Grèce compte des milliers d'îles et d'îlots en mer Égée et Ionienne."
+  },
+  {
+    "entityId": "GRD",
+    "title": "Grenade",
+    "continent": "Amérique du Nord",
+    "population": 112003,
+    "areaSquareKilometers": 344,
+    "currency": "dollar des Caraïbes orientales",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "La Grenade est surnommée « l'île aux épices », notamment pour sa muscade.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Saint George's. Sa superficie est d'environ 344 km². Sa population est estimée à environ 112 003 habitants. Monnaie principale : dollar des Caraïbes orientales. Langues principales : anglais. La Grenade est surnommée « l'île aux épices », notamment pour sa muscade."
+  },
+  {
+    "entityId": "GRL",
+    "title": "Groenland",
+    "continent": "Amérique du Nord",
+    "population": 56225,
+    "areaSquareKilometers": 2166086,
+    "currency": "couronne danoise",
+    "languages": [
+      "groenlandais"
+    ],
+    "shortFact": "Groenland est un territoire insulaire situé en Amérique du Nord.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Nuuk. Sa superficie est d'environ 2 166 086 km². Sa population est estimée à environ 56 225 habitants. Monnaie principale : couronne danoise. Langues principales : groenlandais. Groenland est un territoire insulaire situé en Amérique du Nord."
+  },
+  {
+    "entityId": "GUM",
+    "title": "Guam",
+    "continent": "Océanie",
+    "population": 167294,
+    "areaSquareKilometers": 549,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "chamorro",
+      "anglais",
+      "espagnol"
+    ],
+    "shortFact": "Guam est un territoire rattaché à les États-Unis, situé en Océanie.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Hagåtña. Sa superficie est d'environ 549 km². Sa population est estimée à environ 167 294 habitants. Monnaie principale : dollar des États-Unis. Langues principales : chamorro, anglais et espagnol. Guam est un territoire rattaché à les États-Unis, situé en Océanie."
+  },
+  {
+    "entityId": "GTM",
+    "title": "Guatemala",
+    "continent": "Amérique du Nord",
+    "population": 16604026,
+    "areaSquareKilometers": 108889,
+    "currency": "quetzal guatémaltèque",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "Le Guatemala abrite de nombreux sites majeurs de la civilisation maya.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Guatemala. Sa superficie est d'environ 108 889 km². Sa population est estimée à environ 16,6 millions d'habitants. Monnaie principale : quetzal guatémaltèque. Langues principales : espagnol. Le Guatemala abrite de nombreux sites majeurs de la civilisation maya."
+  },
+  {
+    "entityId": "GGY",
+    "title": "Guernesey",
+    "continent": "Europe",
+    "population": 62792,
+    "areaSquareKilometers": 78,
+    "currency": "livre sterling et GGP",
+    "languages": [
+      "anglais",
+      "français",
+      "guernesiais"
+    ],
+    "shortFact": "Guernesey est une dépendance de la Couronne britannique dans la Manche.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Saint-Pierre-Port. Sa superficie est d'environ 78 km². Sa population est estimée à environ 62 792 habitants. Monnaie principale : livre sterling et livre de Guernesey. Langues principales : anglais, français et guernesiais. Guernesey est une dépendance de la Couronne britannique dans la Manche."
+  },
+  {
+    "entityId": "GIN",
+    "title": "Guinée",
+    "continent": "Afrique",
+    "population": 12771246,
+    "areaSquareKilometers": 245857,
+    "currency": "franc guinéen",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Plusieurs grands fleuves ouest-africains, dont le Niger et le Sénégal, prennent leur source en Guinée.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Conakry. Sa superficie est d'environ 245 857 km². Sa population est estimée à environ 12,8 millions d'habitants. Monnaie principale : franc guinéen. Langues principales : français. Plusieurs grands fleuves ouest-africains, dont le Niger et le Sénégal, prennent leur source en Guinée."
+  },
+  {
+    "entityId": "GNQ",
+    "title": "Guinée équatoriale",
+    "continent": "Afrique",
+    "population": 1355986,
+    "areaSquareKilometers": 28051,
+    "currency": "franc CFA (BEAC)",
+    "languages": [
+      "français",
+      "portugais",
+      "espagnol"
+    ],
+    "shortFact": "La Guinée équatoriale associe un territoire continental à plusieurs îles du golfe de Guinée.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Ciudad de la Paz. Sa superficie est d'environ 28 051 km². Sa population est estimée à environ 1,4 million d'habitants. Monnaie principale : franc CFA (BEAC). Langues principales : français, portugais et espagnol. La Guinée équatoriale associe un territoire continental à plusieurs îles du golfe de Guinée."
+  },
+  {
+    "entityId": "GNB",
+    "title": "Guinée-Bissau",
+    "continent": "Afrique",
+    "population": 1920922,
+    "areaSquareKilometers": 36125,
+    "currency": "franc CFA (BCEAO)",
+    "languages": [
+      "portugais",
+      "créole de Guinée-Bissau"
+    ],
+    "shortFact": "L'archipel des Bijagos est l'un des grands ensembles insulaires de Guinée-Bissau.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Bissau. Sa superficie est d'environ 36 125 km². Sa population est estimée à environ 1,9 million d'habitants. Monnaie principale : franc CFA (BCEAO). Langues principales : portugais et créole de Guinée-Bissau. L'archipel des Bijagos est l'un des grands ensembles insulaires de Guinée-Bissau."
+  },
+  {
+    "entityId": "GUY",
+    "title": "Guyana",
+    "continent": "Amérique du Sud",
+    "population": 782766,
+    "areaSquareKilometers": 214969,
+    "currency": "dollar du Guyana",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Le Guyana est le seul pays anglophone d'Amérique du Sud.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Georgetown. Sa superficie est d'environ 214 969 km². Sa population est estimée à environ 782 766 habitants. Monnaie principale : dollar du Guyana. Langues principales : anglais. Le Guyana est le seul pays anglophone d'Amérique du Sud."
+  },
+  {
+    "entityId": "HTI",
+    "title": "Haïti",
+    "continent": "Amérique du Nord",
+    "population": 11263077,
+    "areaSquareKilometers": 27750,
+    "currency": "gourde haïtienne",
+    "languages": [
+      "français",
+      "créole haïtien"
+    ],
+    "shortFact": "Haïti est née en 1804 de la première révolution d'esclaves victorieuse de l'époque moderne.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Port-au-Prince. Sa superficie est d'environ 27 750 km². Sa population est estimée à environ 11,3 millions d'habitants. Monnaie principale : gourde haïtienne. Langues principales : français et créole haïtien. Haïti est née en 1804 de la première révolution d'esclaves victorieuse de l'époque moderne."
+  },
+  {
+    "entityId": "HND",
+    "title": "Honduras",
+    "continent": "Amérique du Nord",
+    "population": 9746117,
+    "areaSquareKilometers": 112492,
+    "currency": "lempira hondurien",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "Le Honduras possède une côte caraïbe et une petite ouverture sur le Pacifique.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Tegucigalpa. Sa superficie est d'environ 112 492 km². Sa population est estimée à environ 9,7 millions d'habitants. Monnaie principale : lempira hondurien. Langues principales : espagnol. Le Honduras possède une côte caraïbe et une petite ouverture sur le Pacifique."
+  },
+  {
+    "entityId": "HKG",
+    "title": "Hong Kong",
+    "continent": "Asie",
+    "population": 7507400,
+    "areaSquareKilometers": 1104,
+    "currency": "dollar de Hong Kong",
+    "languages": [
+      "anglais",
+      "chinois"
+    ],
+    "shortFact": "Hong Kong est une région administrative spéciale de la Chine.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Hong Kong. Sa superficie est d'environ 1 104 km². Sa population est estimée à environ 7,5 millions d'habitants. Monnaie principale : dollar de Hong Kong. Langues principales : anglais et chinois. Hong Kong est une région administrative spéciale de la Chine."
+  },
+  {
+    "entityId": "HUN",
+    "title": "Hongrie",
+    "continent": "Europe",
+    "population": 9769949,
+    "areaSquareKilometers": 93028,
+    "currency": "forint hongrois",
+    "languages": [
+      "hongrois"
+    ],
+    "shortFact": "Le Danube traverse Budapest et sépare historiquement Buda de Pest.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Budapest. Sa superficie est d'environ 93 028 km². Sa population est estimée à environ 9,8 millions d'habitants. Monnaie principale : forint hongrois. Langues principales : hongrois. Le Danube traverse Budapest et sépare historiquement Buda de Pest."
   },
   {
     "entityId": "CLP",
@@ -34,7 +1338,35 @@
     "currency": null,
     "languages": [],
     "shortFact": "Clipperton est un atoll français inhabité situé dans le Pacifique oriental.",
-    "history": "L'île Clipperton est un petit atoll corallien administré par la France. Elle se situe à plus de 1 000 kilomètres des côtes du Mexique et est principalement utilisée pour des missions scientifiques."
+    "history": "Ce territoire se situe en Amérique du Nord. Sa superficie est d'environ 6 km². Il ne compte aucun habitant permanent. Clipperton est un atoll français inhabité situé dans le Pacifique oriental."
+  },
+  {
+    "entityId": "IMN",
+    "title": "île de Man",
+    "continent": "Europe",
+    "population": 84584,
+    "areaSquareKilometers": 572,
+    "currency": "livre sterling et IMP",
+    "languages": [
+      "anglais",
+      "mannois"
+    ],
+    "shortFact": "L'île de Man est une dépendance autonome de la Couronne britannique en mer d'Irlande.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Douglas. Sa superficie est d'environ 572 km². Sa population est estimée à environ 84 584 habitants. Monnaie principale : livre sterling et IMP. Langues principales : anglais et mannois. L'île de Man est une dépendance autonome de la Couronne britannique en mer d'Irlande."
+  },
+  {
+    "entityId": "NFK",
+    "title": "Île Norfolk",
+    "continent": "Océanie",
+    "population": 2169,
+    "areaSquareKilometers": 36,
+    "currency": "dollar australien",
+    "languages": [
+      "anglais",
+      "pitkern-norf'k"
+    ],
+    "shortFact": "Île Norfolk est un territoire rattaché à l’Australie, situé en Océanie.",
+    "history": "Ce territoire se situe en Océanie. Son centre administratif principal est Kingston. Sa superficie est d'environ 36 km². Sa population est estimée à environ 2 169 habitants. Monnaie principale : dollar australien. Langues principales : anglais et pitkern-norf'k. L'île Norfolk est un territoire rattaché à l'Australie."
   },
   {
     "entityId": "ATC",
@@ -45,6 +1377,2116 @@
     "currency": null,
     "languages": [],
     "shortFact": "Ashmore-et-Cartier est un territoire extérieur australien inhabité.",
-    "history": "Les îles Ashmore-et-Cartier se trouvent dans la mer de Timor, au nord-ouest de l'Australie. Elles sont inhabitées et protégées en grande partie pour leur biodiversité marine."
+    "history": "Ce territoire se situe en Océanie. Sa superficie est d'environ 5 km². Il ne compte aucun habitant permanent. Ashmore-et-Cartier est un territoire extérieur australien inhabité."
+  },
+  {
+    "entityId": "CYM",
+    "title": "îles Caïmans",
+    "continent": "Amérique du Nord",
+    "population": 64948,
+    "areaSquareKilometers": 264,
+    "currency": "dollar des îles Caïmans",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "îles Caïmans est un territoire rattaché à le Royaume-Uni, situé en Amérique du Nord.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est George Town. Sa superficie est d'environ 264 km². Sa population est estimée à environ 64 948 habitants. Monnaie principale : dollar des îles Caïmans. Langues principales : anglais. îles Caïmans est un territoire rattaché à le Royaume-Uni, situé en Amérique du Nord."
+  },
+  {
+    "entityId": "COK",
+    "title": "Îles Cook",
+    "continent": "Océanie",
+    "population": 17459,
+    "areaSquareKilometers": 236,
+    "currency": "CKD et dollar néo-zélandais",
+    "languages": [
+      "anglais",
+      "rarotongien"
+    ],
+    "shortFact": "Îles Cook est un territoire rattaché à la Nouvelle-Zélande, situé en Océanie.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Avarua. Sa superficie est d'environ 236 km². Sa population est estimée à environ 17 459 habitants. Monnaie principale : CKD et dollar néo-zélandais. Langues principales : anglais et rarotongien. Îles Cook est un territoire rattaché à la Nouvelle-Zélande, situé en Océanie."
+  },
+  {
+    "entityId": "CSI",
+    "title": "Îles de la mer de Corail",
+    "continent": "Océanie",
+    "population": 0,
+    "areaSquareKilometers": 3,
+    "currency": null,
+    "languages": [],
+    "shortFact": "Les îles de la mer de Corail forment un territoire extérieur australien presque entièrement inhabité.",
+    "history": "Ce territoire se situe en Océanie. Sa superficie est d'environ 3 km². Il ne compte aucun habitant permanent. Les îles de la mer de Corail forment un territoire extérieur australien presque entièrement inhabité."
+  },
+  {
+    "entityId": "FRO",
+    "title": "îles Féroé",
+    "continent": "Europe",
+    "population": 48678,
+    "areaSquareKilometers": 1393,
+    "currency": "couronne danoise et FOK",
+    "languages": [
+      "danois",
+      "féroïen"
+    ],
+    "shortFact": "Les îles Féroé sont un territoire autonome du royaume du Danemark.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Tórshavn. Sa superficie est d'environ 1 393 km². Sa population est estimée à environ 48 678 habitants. Monnaie principale : couronne danoise et FOK. Langues principales : danois et féroïen. Les îles Féroé sont un territoire autonome du royaume du Danemark."
+  },
+  {
+    "entityId": "HMD",
+    "title": "Îles Heard-et-MacDonald",
+    "continent": "Antarctique",
+    "population": 0,
+    "areaSquareKilometers": 412,
+    "currency": null,
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Les îles Heard-et-MacDonald sont un territoire australien inhabité de l'océan Austral.",
+    "history": "Ce territoire se situe en Antarctique. Sa superficie est d'environ 412 km². Il ne compte aucun habitant permanent. Langues principales : anglais. Les îles Heard-et-MacDonald sont un territoire australien inhabité de l'océan Austral."
+  },
+  {
+    "entityId": "FLK",
+    "title": "îles Malouines",
+    "continent": "Amérique du Sud",
+    "population": 3398,
+    "areaSquareKilometers": 12173,
+    "currency": "livre des îles Malouines",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Les îles Malouines sont un archipel de l'Atlantique Sud administré par le Royaume-Uni et revendiqué par l'Argentine.",
+    "history": "Ce territoire se situe en Amérique du Sud. Son statut territorial présente une situation particulière ou contestée. Sa capitale ou son centre administratif principal est Stanley. Sa superficie est d'environ 12 173 km². Sa population est estimée à environ 3 398 habitants. Monnaie principale : livre des îles Malouines. Langues principales : anglais. Les îles Malouines sont un archipel de l'Atlantique Sud administré par le Royaume-Uni et revendiqué par l'Argentine."
+  },
+  {
+    "entityId": "MNP",
+    "title": "îles Mariannes du Nord",
+    "continent": "Océanie",
+    "population": 57216,
+    "areaSquareKilometers": 464,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "carolinien",
+      "chamorro",
+      "anglais"
+    ],
+    "shortFact": "Les îles Mariannes du Nord sont un territoire américain situé en Micronésie.",
+    "history": "Ce territoire se situe en Océanie. Son centre administratif principal est Saipan. Sa superficie est d'environ 464 km². Sa population est estimée à environ 57 216 habitants. Monnaie principale : dollar des États-Unis. Langues principales : carolinien, chamorro et anglais. Les îles Mariannes du Nord sont un territoire américain situé en Micronésie."
+  },
+  {
+    "entityId": "MHL",
+    "title": "Îles Marshall",
+    "continent": "Océanie",
+    "population": 58791,
+    "areaSquareKilometers": 181,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "anglais",
+      "marshallais"
+    ],
+    "shortFact": "Les Îles Marshall regroupent des atolls dispersés sur une immense zone du Pacifique.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Majuro. Sa superficie est d'environ 181 km². Sa population est estimée à environ 58 791 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais et marshallais. Les Îles Marshall regroupent des atolls dispersés sur une immense zone du Pacifique."
+  },
+  {
+    "entityId": "UMI",
+    "title": "Îles mineures éloignées des États-Unis",
+    "continent": "Amérique du Nord",
+    "population": 300,
+    "areaSquareKilometers": 34.2,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Les Îles mineures éloignées des États-Unis sont de petits territoires dispersés dans le Pacifique et les Caraïbes.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa superficie est d'environ 34 km². Sa population est estimée à environ 300 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. Les Îles mineures éloignées des États-Unis sont de petits territoires dispersés dans le Pacifique et les Caraïbes."
+  },
+  {
+    "entityId": "PCN",
+    "title": "Îles Pitcairn",
+    "continent": "Océanie",
+    "population": 54,
+    "areaSquareKilometers": 47,
+    "currency": "dollar néo-zélandais",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Les îles Pitcairn constituent le territoire britannique d'outre-mer le moins peuplé.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Adamstown. Sa superficie est d'environ 47 km². Sa population est estimée à environ 54 habitants. Monnaie principale : dollar néo-zélandais. Langues principales : anglais. Les îles Pitcairn constituent le territoire britannique d'outre-mer le moins peuplé."
+  },
+  {
+    "entityId": "SLB",
+    "title": "Îles Salomon",
+    "continent": "Océanie",
+    "population": 669823,
+    "areaSquareKilometers": 28896,
+    "currency": "dollar des îles Salomon",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Les Îles Salomon forment un vaste archipel de Mélanésie.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Honiara. Sa superficie est d'environ 28 896 km². Sa population est estimée à environ 669 823 habitants. Monnaie principale : dollar des îles Salomon. Langues principales : anglais. Les Îles Salomon forment un vaste archipel de Mélanésie."
+  },
+  {
+    "entityId": "TCA",
+    "title": "îles Turques-et-Caïques",
+    "continent": "Amérique du Nord",
+    "population": 38191,
+    "areaSquareKilometers": 948,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "îles Turques-et-Caïques est un territoire rattaché à le Royaume-Uni, situé en Amérique du Nord.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Cockburn Town. Sa superficie est d'environ 948 km². Sa population est estimée à environ 38 191 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. îles Turques-et-Caïques est un territoire rattaché à le Royaume-Uni, situé en Amérique du Nord."
+  },
+  {
+    "entityId": "VGB",
+    "title": "îles Vierges britanniques",
+    "continent": "Amérique du Nord",
+    "population": 30030,
+    "areaSquareKilometers": 151,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "îles Vierges britanniques est un territoire rattaché à le Royaume-Uni, situé en Amérique du Nord.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Road Town. Sa superficie est d'environ 151 km². Sa population est estimée à environ 30 030 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. îles Vierges britanniques est un territoire rattaché à le Royaume-Uni, situé en Amérique du Nord."
+  },
+  {
+    "entityId": "VIR",
+    "title": "îles Vierges des États-Unis",
+    "continent": "Amérique du Nord",
+    "population": 106631,
+    "areaSquareKilometers": 347,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "îles Vierges des États-Unis est un territoire rattaché à les États-Unis, situé en Amérique du Nord.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Charlotte Amalie. Sa superficie est d'environ 347 km². Sa population est estimée à environ 106 631 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. îles Vierges des États-Unis est un territoire rattaché à les États-Unis, situé en Amérique du Nord."
+  },
+  {
+    "entityId": "BRI",
+    "title": "Ilha Brasileira",
+    "continent": "Amérique du Sud",
+    "population": 0,
+    "areaSquareKilometers": 1,
+    "currency": null,
+    "languages": [],
+    "shortFact": "Ilha Brasileira est un petit îlot fluvial dont l'attribution entre le Brésil et l'Uruguay demeure discutée.",
+    "history": "Ce territoire se situe en Amérique du Sud. Son statut territorial présente une situation particulière ou contestée. Sa superficie est d'environ 1 km². Il ne compte aucun habitant permanent. Ilha Brasileira est un petit îlot fluvial dont l'attribution entre le Brésil et l'Uruguay demeure discutée."
+  },
+  {
+    "entityId": "IND",
+    "title": "Inde",
+    "continent": "Asie",
+    "population": 1366417754,
+    "areaSquareKilometers": 3287590,
+    "currency": "roupie indienne",
+    "languages": [
+      "anglais",
+      "hindi",
+      "tamoul"
+    ],
+    "shortFact": "L'Inde est une fédération d'États et de territoires d'une très grande diversité linguistique.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est New Delhi. Sa superficie est d'environ 3 287 590 km². Sa population est estimée à environ 1 366,4 millions d'habitants. Monnaie principale : roupie indienne. Langues principales : anglais, hindi et tamoul. L'Inde est une fédération d'États et de territoires d'une très grande diversité linguistique."
+  },
+  {
+    "entityId": "IDN",
+    "title": "Indonésie",
+    "continent": "Asie",
+    "population": 270625568,
+    "areaSquareKilometers": 1904569,
+    "currency": "roupie indonésienne",
+    "languages": [
+      "indonésien"
+    ],
+    "shortFact": "L'Indonésie est le plus vaste archipel du monde.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Jakarta. Sa superficie est d'environ 1 904 569 km². Sa population est estimée à environ 270,6 millions d'habitants. Monnaie principale : roupie indonésienne. Langues principales : indonésien. L'Indonésie est le plus vaste archipel du monde."
+  },
+  {
+    "entityId": "IRQ",
+    "title": "Irak",
+    "continent": "Asie",
+    "population": 39309783,
+    "areaSquareKilometers": 438317,
+    "currency": "dinar irakien",
+    "languages": [
+      "arabe",
+      "araméen",
+      "sorani"
+    ],
+    "shortFact": "La Mésopotamie, entre le Tigre et l'Euphrate, occupait une grande partie de l'Irak actuel.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Bagdad. Sa superficie est d'environ 438 317 km². Sa population est estimée à environ 39,3 millions d'habitants. Monnaie principale : dinar irakien. Langues principales : arabe, araméen et sorani. La Mésopotamie, entre le Tigre et l'Euphrate, occupait une grande partie de l'Irak actuel."
+  },
+  {
+    "entityId": "IRN",
+    "title": "Iran",
+    "continent": "Asie",
+    "population": 82913906,
+    "areaSquareKilometers": 1648195,
+    "currency": "riyal iranien",
+    "languages": [
+      "persan"
+    ],
+    "shortFact": "L'Iran correspond au cœur historique de l'ancienne Perse.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Téhéran. Sa superficie est d'environ 1 648 195 km². Sa population est estimée à environ 82,9 millions d'habitants. Monnaie principale : riyal iranien. Langues principales : persan. L'Iran correspond au cœur historique de l'ancienne Perse."
+  },
+  {
+    "entityId": "IRL",
+    "title": "Irlande",
+    "continent": "Europe",
+    "population": 4941444,
+    "areaSquareKilometers": 70273,
+    "currency": "euro",
+    "languages": [
+      "anglais",
+      "irlandais"
+    ],
+    "shortFact": "L'Irlande est parfois surnommée « l'île d'Émeraude » pour ses paysages verdoyants.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Dublin. Sa superficie est d'environ 70 273 km². Sa population est estimée à environ 4,9 millions d'habitants. Monnaie principale : euro. Langues principales : anglais et irlandais. L'Irlande est parfois surnommée « l'île d'Émeraude » pour ses paysages verdoyants."
+  },
+  {
+    "entityId": "ISL",
+    "title": "Islande",
+    "continent": "Europe",
+    "population": 361313,
+    "areaSquareKilometers": 103000,
+    "currency": "couronne islandaise",
+    "languages": [
+      "islandais"
+    ],
+    "shortFact": "L'Islande se situe sur la dorsale médio-atlantique et connaît une forte activité volcanique.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Reykjavík. Sa superficie est d'environ 103 000 km². Sa population est estimée à environ 361 313 habitants. Monnaie principale : couronne islandaise. Langues principales : islandais. L'Islande se situe sur la dorsale médio-atlantique et connaît une forte activité volcanique."
+  },
+  {
+    "entityId": "ISR",
+    "title": "Israël",
+    "continent": "Asie",
+    "population": 9053300,
+    "areaSquareKilometers": 20770,
+    "currency": "nouveau shekel israélien",
+    "languages": [
+      "arabe",
+      "hébreu"
+    ],
+    "shortFact": "Israël a établi ses principales institutions à Jérusalem, dont le statut international reste disputé.",
+    "history": "Israël se situe en Asie, sur la rive orientale de la mer Méditerranée. L'État d'Israël considère Jérusalem comme sa capitale et y a établi ses principales institutions ; le statut international de la ville demeure contesté. Sa superficie est d'environ 20 770 km². Sa population est estimée à environ 9,1 millions d'habitants. Monnaie principale : nouveau shekel israélien. Langues principales : arabe et hébreu."
+  },
+  {
+    "entityId": "ITA",
+    "title": "Italie",
+    "continent": "Europe",
+    "population": 60297396,
+    "areaSquareKilometers": 301336,
+    "currency": "euro",
+    "languages": [
+      "italien"
+    ],
+    "shortFact": "L'Italie entoure deux micro-États : Saint-Marin et la Cité du Vatican.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Rome. Sa superficie est d'environ 301 336 km². Sa population est estimée à environ 60,3 millions d'habitants. Monnaie principale : euro. Langues principales : italien. L'Italie entoure deux micro-États : Saint-Marin et la Cité du Vatican."
+  },
+  {
+    "entityId": "JAM",
+    "title": "Jamaïque",
+    "continent": "Amérique du Nord",
+    "population": 2948279,
+    "areaSquareKilometers": 10991,
+    "currency": "dollar jamaïcain",
+    "languages": [
+      "anglais",
+      "créole jamaïcain"
+    ],
+    "shortFact": "La Jamaïque est le berceau du reggae.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Kingston. Sa superficie est d'environ 10 991 km². Sa population est estimée à environ 2,9 millions d'habitants. Monnaie principale : dollar jamaïcain. Langues principales : anglais et créole jamaïcain. La Jamaïque est le berceau du reggae."
+  },
+  {
+    "entityId": "JPN",
+    "title": "Japon",
+    "continent": "Asie",
+    "population": 126264931,
+    "areaSquareKilometers": 377930,
+    "currency": "yen japonais",
+    "languages": [
+      "japonais"
+    ],
+    "shortFact": "Le Japon est un archipel installé sur une zone tectonique très active.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Tokyo. Sa superficie est d'environ 377 930 km². Sa population est estimée à environ 126,3 millions d'habitants. Monnaie principale : yen japonais. Langues principales : japonais. Le Japon est un archipel installé sur une zone tectonique très active."
+  },
+  {
+    "entityId": "JEY",
+    "title": "Jersey",
+    "continent": "Europe",
+    "population": 107800,
+    "areaSquareKilometers": 116,
+    "currency": "livre sterling et JEP",
+    "languages": [
+      "anglais",
+      "français",
+      "jèrriais"
+    ],
+    "shortFact": "Jersey est une dépendance de la Couronne britannique proche des côtes françaises.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Saint-Hélier. Sa superficie est d'environ 116 km². Sa population est estimée à environ 107 800 habitants. Monnaie principale : livre sterling et livre de Jersey. Langues principales : anglais, français et jèrriais. Jersey est une dépendance de la Couronne britannique proche des côtes françaises."
+  },
+  {
+    "entityId": "JOR",
+    "title": "Jordanie",
+    "continent": "Asie",
+    "population": 10101694,
+    "areaSquareKilometers": 89342,
+    "currency": "dinar jordanien",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "La cité antique de Pétra est l'un des sites emblématiques de la Jordanie.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Amman. Sa superficie est d'environ 89 342 km². Sa population est estimée à environ 10,1 millions d'habitants. Monnaie principale : dinar jordanien. Langues principales : arabe. La cité antique de Pétra est l'un des sites emblématiques de la Jordanie."
+  },
+  {
+    "entityId": "KAZ",
+    "title": "Kazakhstan",
+    "continent": "Asie",
+    "population": 18513930,
+    "areaSquareKilometers": 2724900,
+    "currency": "tenge kazakh",
+    "languages": [
+      "kazakh",
+      "russe"
+    ],
+    "shortFact": "Le Kazakhstan est le plus grand pays enclavé du monde.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Astana. Sa superficie est d'environ 2 724 900 km². Sa population est estimée à environ 18,5 millions d'habitants. Monnaie principale : tenge kazakh. Langues principales : kazakh et russe. Le Kazakhstan est le plus grand pays enclavé du monde."
+  },
+  {
+    "entityId": "KEN",
+    "title": "Kenya",
+    "continent": "Afrique",
+    "population": 52573973,
+    "areaSquareKilometers": 580367,
+    "currency": "shilling kényan",
+    "languages": [
+      "anglais",
+      "swahili"
+    ],
+    "shortFact": "La vallée du Grand Rift traverse le Kenya du nord au sud.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Nairobi. Sa superficie est d'environ 580 367 km². Sa population est estimée à environ 52,6 millions d'habitants. Monnaie principale : shilling kényan. Langues principales : anglais et swahili. La vallée du Grand Rift traverse le Kenya du nord au sud."
+  },
+  {
+    "entityId": "KGZ",
+    "title": "Kirghizistan",
+    "continent": "Asie",
+    "population": 6456900,
+    "areaSquareKilometers": 199951,
+    "currency": "som kirghize",
+    "languages": [
+      "kirghize",
+      "russe"
+    ],
+    "shortFact": "Le Kirghizistan est dominé par les hautes montagnes du Tian Shan.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Bichkek. Sa superficie est d'environ 199 951 km². Sa population est estimée à environ 6,5 millions d'habitants. Monnaie principale : som kirghize. Langues principales : kirghize et russe. Le Kirghizistan est dominé par les hautes montagnes du Tian Shan."
+  },
+  {
+    "entityId": "KIR",
+    "title": "Kiribati",
+    "continent": "Océanie",
+    "population": 117606,
+    "areaSquareKilometers": 811,
+    "currency": "dollar australien et KID",
+    "languages": [
+      "anglais",
+      "gilbertin"
+    ],
+    "shortFact": "Kiribati s'étend de part et d'autre de l'équateur et de la ligne de changement de date.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Tarawa. Sa superficie est d'environ 811 km². Sa population est estimée à environ 117 606 habitants. Monnaie principale : dollar australien et KID. Langues principales : anglais et gilbertin. Kiribati s'étend de part et d'autre de l'équateur et de la ligne de changement de date."
+  },
+  {
+    "entityId": "KOS",
+    "title": "Kosovo",
+    "continent": "Europe",
+    "population": 1794248,
+    "areaSquareKilometers": 10887,
+    "currency": "euro",
+    "languages": [
+      "albanais",
+      "serbe"
+    ],
+    "shortFact": "Le Kosovo a déclaré son indépendance en 2008 et sa reconnaissance internationale reste partielle.",
+    "history": "Ce territoire se situe en Europe. Son statut territorial présente une situation particulière ou contestée. Sa capitale ou son centre administratif principal est Pristina. Sa superficie est d'environ 10 887 km². Sa population est estimée à environ 1,8 million d'habitants. Monnaie principale : euro. Langues principales : albanais et serbe. Le Kosovo a déclaré son indépendance en 2008 et sa reconnaissance internationale reste partielle."
+  },
+  {
+    "entityId": "KWT",
+    "title": "Koweït",
+    "continent": "Asie",
+    "population": 4207083,
+    "areaSquareKilometers": 17818,
+    "currency": "dinar koweïtien",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "Le Koweït occupe une petite façade au nord-ouest du golfe Persique.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Koweït. Sa superficie est d'environ 17 818 km². Sa population est estimée à environ 4,2 millions d'habitants. Monnaie principale : dinar koweïtien. Langues principales : arabe. Le Koweït occupe une petite façade au nord-ouest du golfe Persique."
+  },
+  {
+    "entityId": "LAO",
+    "title": "Laos",
+    "continent": "Asie",
+    "population": 7169455,
+    "areaSquareKilometers": 236800,
+    "currency": "kip laotien",
+    "languages": [
+      "lao"
+    ],
+    "shortFact": "Le Laos est le seul pays d'Asie du Sud-Est sans accès à la mer.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Vientiane. Sa superficie est d'environ 236 800 km². Sa population est estimée à environ 7,2 millions d'habitants. Monnaie principale : kip laotien. Langues principales : lao. Le Laos est le seul pays d'Asie du Sud-Est sans accès à la mer."
+  },
+  {
+    "entityId": "LSO",
+    "title": "Lesotho",
+    "continent": "Afrique",
+    "population": 2125268,
+    "areaSquareKilometers": 30355,
+    "currency": "loti lesothan et rand sud-africain",
+    "languages": [
+      "anglais",
+      "sotho du Sud"
+    ],
+    "shortFact": "Le Lesotho est entièrement enclavé à l'intérieur de l'Afrique du Sud.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Maseru. Sa superficie est d'environ 30 355 km². Sa population est estimée à environ 2,1 millions d'habitants. Monnaie principale : loti lesothan et rand sud-africain. Langues principales : anglais et sotho du Sud. Le Lesotho est entièrement enclavé à l'intérieur de l'Afrique du Sud."
+  },
+  {
+    "entityId": "LVA",
+    "title": "Lettonie",
+    "continent": "Europe",
+    "population": 1912789,
+    "areaSquareKilometers": 64559,
+    "currency": "euro",
+    "languages": [
+      "letton"
+    ],
+    "shortFact": "La Lettonie possède un vaste littoral sur la mer Baltique.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Riga. Sa superficie est d'environ 64 559 km². Sa population est estimée à environ 1,9 million d'habitants. Monnaie principale : euro. Langues principales : letton. La Lettonie possède un vaste littoral sur la mer Baltique."
+  },
+  {
+    "entityId": "LBN",
+    "title": "Liban",
+    "continent": "Asie",
+    "population": 6855713,
+    "areaSquareKilometers": 10452,
+    "currency": "livre libanaise",
+    "languages": [
+      "arabe",
+      "français"
+    ],
+    "shortFact": "Le Liban a donné son nom au cèdre représenté sur son drapeau.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Beyrouth. Sa superficie est d'environ 10 452 km². Sa population est estimée à environ 6,9 millions d'habitants. Monnaie principale : livre libanaise. Langues principales : arabe et français. Le Liban a donné son nom au cèdre représenté sur son drapeau."
+  },
+  {
+    "entityId": "LBR",
+    "title": "Liberia",
+    "continent": "Afrique",
+    "population": 4937374,
+    "areaSquareKilometers": 111369,
+    "currency": "dollar libérien",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Le Liberia fut fondé au XIXe siècle pour accueillir des Afro-Américains affranchis.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Monrovia. Sa superficie est d'environ 111 369 km². Sa population est estimée à environ 4,9 millions d'habitants. Monnaie principale : dollar libérien. Langues principales : anglais. Le Liberia fut fondé au XIXe siècle pour accueillir des Afro-Américains affranchis."
+  },
+  {
+    "entityId": "LBY",
+    "title": "Libye",
+    "continent": "Afrique",
+    "population": 6777452,
+    "areaSquareKilometers": 1759540,
+    "currency": "dinar libyen",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "Le désert du Sahara couvre la majeure partie de la Libye.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Tripoli. Sa superficie est d'environ 1 759 540 km². Sa population est estimée à environ 6,8 millions d'habitants. Monnaie principale : dinar libyen. Langues principales : arabe. Le désert du Sahara couvre la majeure partie de la Libye."
+  },
+  {
+    "entityId": "LIE",
+    "title": "Liechtenstein",
+    "continent": "Europe",
+    "population": 38019,
+    "areaSquareKilometers": 160,
+    "currency": "franc suisse",
+    "languages": [
+      "allemand"
+    ],
+    "shortFact": "Le Liechtenstein est l'un des deux seuls pays doublement enclavés au monde.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Vaduz. Sa superficie est d'environ 160 km². Sa population est estimée à environ 38 019 habitants. Monnaie principale : franc suisse. Langues principales : allemand. Le Liechtenstein est l'un des deux seuls pays doublement enclavés au monde."
+  },
+  {
+    "entityId": "LTU",
+    "title": "Lituanie",
+    "continent": "Europe",
+    "population": 2786844,
+    "areaSquareKilometers": 65300,
+    "currency": "euro",
+    "languages": [
+      "lituanien"
+    ],
+    "shortFact": "La Lituanie fut autrefois au cœur d'un grand-duché s'étendant loin vers l'est.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Vilnius. Sa superficie est d'environ 65 300 km². Sa population est estimée à environ 2,8 millions d'habitants. Monnaie principale : euro. Langues principales : lituanien. La Lituanie fut autrefois au cœur d'un grand-duché s'étendant loin vers l'est."
+  },
+  {
+    "entityId": "LUX",
+    "title": "Luxembourg",
+    "continent": "Europe",
+    "population": 619896,
+    "areaSquareKilometers": 2586,
+    "currency": "euro",
+    "languages": [
+      "allemand",
+      "français",
+      "luxembourgeois"
+    ],
+    "shortFact": "Le Luxembourg est le seul grand-duché souverain au monde.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Luxembourg. Sa superficie est d'environ 2 586 km². Sa population est estimée à environ 619 896 habitants. Monnaie principale : euro. Langues principales : allemand, français et luxembourgeois. Le Luxembourg est le seul grand-duché souverain au monde."
+  },
+  {
+    "entityId": "MAC",
+    "title": "Macao",
+    "continent": "Asie",
+    "population": 640445,
+    "areaSquareKilometers": 30,
+    "currency": "pataca macanaise",
+    "languages": [
+      "portugais",
+      "chinois"
+    ],
+    "shortFact": "Macao est une région administrative spéciale de la Chine depuis 1999.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Macao. Sa superficie est d'environ 30 km². Sa population est estimée à environ 640 445 habitants. Monnaie principale : pataca macanaise. Langues principales : portugais et chinois. Macao est une région administrative spéciale de la Chine depuis 1999."
+  },
+  {
+    "entityId": "MKD",
+    "title": "Macédoine du Nord",
+    "continent": "Europe",
+    "population": 2083459,
+    "areaSquareKilometers": 25713,
+    "currency": "denar macédonien",
+    "languages": [
+      "macédonien"
+    ],
+    "shortFact": "Le lac d'Ohrid, partagé avec l'Albanie, compte parmi les plus anciens lacs d'Europe.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Skopje. Sa superficie est d'environ 25 713 km². Sa population est estimée à environ 2,1 millions d'habitants. Monnaie principale : denar macédonien. Langues principales : macédonien. Le lac d'Ohrid, partagé avec l'Albanie, compte parmi les plus anciens lacs d'Europe."
+  },
+  {
+    "entityId": "MDG",
+    "title": "Madagascar",
+    "continent": "Afrique",
+    "population": 26969307,
+    "areaSquareKilometers": 587041,
+    "currency": "ariary malgache",
+    "languages": [
+      "français",
+      "malgache"
+    ],
+    "shortFact": "L'isolement ancien de Madagascar explique la présence de nombreuses espèces endémiques.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Antananarivo. Sa superficie est d'environ 587 041 km². Sa population est estimée à environ 27 millions d'habitants. Monnaie principale : ariary malgache. Langues principales : français et malgache. L'isolement ancien de Madagascar explique la présence de nombreuses espèces endémiques."
+  },
+  {
+    "entityId": "MYS",
+    "title": "Malaisie",
+    "continent": "Asie",
+    "population": 31949777,
+    "areaSquareKilometers": 330803,
+    "currency": "ringgit malais",
+    "languages": [
+      "anglais",
+      "malais"
+    ],
+    "shortFact": "La Malaisie est partagée entre la péninsule Malaise et le nord de l'île de Bornéo.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Kuala Lumpur. Sa superficie est d'environ 330 803 km². Sa population est estimée à environ 31,9 millions d'habitants. Monnaie principale : ringgit malais. Langues principales : anglais et malais. La Malaisie est partagée entre la péninsule Malaise et le nord de l'île de Bornéo."
+  },
+  {
+    "entityId": "MWI",
+    "title": "Malawi",
+    "continent": "Afrique",
+    "population": 18628747,
+    "areaSquareKilometers": 118484,
+    "currency": "kwacha malawite",
+    "languages": [
+      "anglais",
+      "chewa"
+    ],
+    "shortFact": "Le lac Malawi occupe une part importante de l'est du pays.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Lilongwe. Sa superficie est d'environ 118 484 km². Sa population est estimée à environ 18,6 millions d'habitants. Monnaie principale : kwacha malawite. Langues principales : anglais et chewa. Le lac Malawi occupe une part importante de l'est du pays."
+  },
+  {
+    "entityId": "MDV",
+    "title": "Maldives",
+    "continent": "Asie",
+    "population": 530953,
+    "areaSquareKilometers": 300,
+    "currency": "rufiyaa maldivienne",
+    "languages": [
+      "maldivien"
+    ],
+    "shortFact": "Les Maldives sont l'un des pays les plus bas du monde en altitude moyenne.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Malé. Sa superficie est d'environ 300 km². Sa population est estimée à environ 530 953 habitants. Monnaie principale : rufiyaa maldivienne. Langues principales : maldivien. Les Maldives sont l'un des pays les plus bas du monde en altitude moyenne."
+  },
+  {
+    "entityId": "MLI",
+    "title": "Mali",
+    "continent": "Afrique",
+    "population": 19658031,
+    "areaSquareKilometers": 1240192,
+    "currency": "franc CFA (BCEAO)",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Tombouctou fut un grand centre intellectuel et commercial du Sahel.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Bamako. Sa superficie est d'environ 1 240 192 km². Sa population est estimée à environ 19,7 millions d'habitants. Monnaie principale : franc CFA (BCEAO). Langues principales : français. Tombouctou fut un grand centre intellectuel et commercial du Sahel."
+  },
+  {
+    "entityId": "MLT",
+    "title": "Malte",
+    "continent": "Europe",
+    "population": 502653,
+    "areaSquareKilometers": 316,
+    "currency": "euro",
+    "languages": [
+      "anglais",
+      "maltais"
+    ],
+    "shortFact": "Malte occupe une position stratégique au centre de la Méditerranée.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est La Valette. Sa superficie est d'environ 316 km². Sa population est estimée à environ 502 653 habitants. Monnaie principale : euro. Langues principales : anglais et maltais. Malte occupe une position stratégique au centre de la Méditerranée."
+  },
+  {
+    "entityId": "MAR",
+    "title": "Maroc",
+    "continent": "Afrique",
+    "population": 36471769,
+    "areaSquareKilometers": 446550,
+    "currency": "dirham marocain",
+    "languages": [
+      "arabe",
+      "amazighe"
+    ],
+    "shortFact": "Le Maroc possède des façades sur l'Atlantique et la Méditerranée.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale est Rabat. Sa superficie est d'environ 446 550 km². Sa population est estimée à environ 36,5 millions d'habitants. Monnaie principale : dirham marocain. Langues principales : arabe et amazighe. Le Maroc possède des façades sur l'Atlantique et la Méditerranée."
+  },
+  {
+    "entityId": "MUS",
+    "title": "Maurice",
+    "continent": "Afrique",
+    "population": 1265711,
+    "areaSquareKilometers": 2040,
+    "currency": "roupie mauricienne",
+    "languages": [
+      "anglais",
+      "français",
+      "créole mauricien"
+    ],
+    "shortFact": "Maurice est une île volcanique connue comme l'ancien habitat du dodo.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Port-Louis. Sa superficie est d'environ 2 040 km². Sa population est estimée à environ 1,3 million d'habitants. Monnaie principale : roupie mauricienne. Langues principales : anglais, français et créole mauricien. Maurice est une île volcanique connue comme l'ancien habitat du dodo."
+  },
+  {
+    "entityId": "MRT",
+    "title": "Mauritanie",
+    "continent": "Afrique",
+    "population": 4525696,
+    "areaSquareKilometers": 1030700,
+    "currency": "ouguiya mauritanien",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "Le train minéralier de Mauritanie compte parmi les convois les plus longs du monde.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Nouakchott. Sa superficie est d'environ 1 030 700 km². Sa population est estimée à environ 4,5 millions d'habitants. Monnaie principale : ouguiya mauritanien. Langues principales : arabe. Le train minéralier de Mauritanie compte parmi les convois les plus longs du monde."
+  },
+  {
+    "entityId": "MEX",
+    "title": "Mexique",
+    "continent": "Amérique du Nord",
+    "population": 127575529,
+    "areaSquareKilometers": 1964375,
+    "currency": "peso mexicain",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "Le Mexique fut le cœur de grandes civilisations comme les Mayas et les Aztèques.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Mexico. Sa superficie est d'environ 1 964 375 km². Sa population est estimée à environ 127,6 millions d'habitants. Monnaie principale : peso mexicain. Langues principales : espagnol. Le Mexique fut le cœur de grandes civilisations comme les Mayas et les Aztèques."
+  },
+  {
+    "entityId": "MDA",
+    "title": "Moldavie",
+    "continent": "Europe",
+    "population": 2657637,
+    "areaSquareKilometers": 33846,
+    "currency": "leu moldave",
+    "languages": [
+      "roumain"
+    ],
+    "shortFact": "La Moldavie se trouve entre la Roumanie et l'Ukraine.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Chisinau. Sa superficie est d'environ 33 846 km². Sa population est estimée à environ 2,7 millions d'habitants. Monnaie principale : leu moldave. Langues principales : roumain. La Moldavie se trouve entre la Roumanie et l'Ukraine."
+  },
+  {
+    "entityId": "MCO",
+    "title": "Monaco",
+    "continent": "Europe",
+    "population": 38964,
+    "areaSquareKilometers": 2.02,
+    "currency": "euro",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Monaco est le deuxième plus petit État souverain du monde.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Monaco. Sa superficie est d'environ 2 km². Sa population est estimée à environ 38 964 habitants. Monnaie principale : euro. Langues principales : français. Monaco est le deuxième plus petit État souverain du monde."
+  },
+  {
+    "entityId": "MNG",
+    "title": "Mongolie",
+    "continent": "Asie",
+    "population": 3225167,
+    "areaSquareKilometers": 1564110,
+    "currency": "tugrik mongol",
+    "languages": [
+      "mongol"
+    ],
+    "shortFact": "La Mongolie est le pays souverain le moins densément peuplé du monde.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Oulan-Bator. Sa superficie est d'environ 1 564 110 km². Sa population est estimée à environ 3,2 millions d'habitants. Monnaie principale : tugrik mongol. Langues principales : mongol. La Mongolie est le pays souverain le moins densément peuplé du monde."
+  },
+  {
+    "entityId": "MNE",
+    "title": "Monténégro",
+    "continent": "Europe",
+    "population": 622137,
+    "areaSquareKilometers": 13812,
+    "currency": "euro",
+    "languages": [
+      "serbe (Monténégro)"
+    ],
+    "shortFact": "Le nom Monténégro signifie « montagne noire ».",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Podgorica. Sa superficie est d'environ 13 812 km². Sa population est estimée à environ 622 137 habitants. Monnaie principale : euro. Langues principales : serbe (Monténégro). Le nom Monténégro signifie « montagne noire »."
+  },
+  {
+    "entityId": "MSR",
+    "title": "Montserrat",
+    "continent": "Amérique du Nord",
+    "population": 4649,
+    "areaSquareKilometers": 102,
+    "currency": "dollar des Caraïbes orientales",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Une éruption volcanique a enseveli Plymouth, ancienne capitale de Montserrat, dans les années 1990.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Plymouth. Sa superficie est d'environ 102 km². Sa population est estimée à environ 4 649 habitants. Monnaie principale : dollar des Caraïbes orientales. Langues principales : anglais. Une éruption volcanique a enseveli Plymouth, ancienne capitale de Montserrat, dans les années 1990."
+  },
+  {
+    "entityId": "MOZ",
+    "title": "Mozambique",
+    "continent": "Afrique",
+    "population": 30366036,
+    "areaSquareKilometers": 801590,
+    "currency": "metical mozambicain",
+    "languages": [
+      "portugais"
+    ],
+    "shortFact": "Le Mozambique possède un très long littoral sur l'océan Indien.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Maputo. Sa superficie est d'environ 801 590 km². Sa population est estimée à environ 30,4 millions d'habitants. Monnaie principale : metical mozambicain. Langues principales : portugais. Le Mozambique possède un très long littoral sur l'océan Indien."
+  },
+  {
+    "entityId": "NAM",
+    "title": "Namibie",
+    "continent": "Afrique",
+    "population": 2494530,
+    "areaSquareKilometers": 825615,
+    "currency": "dollar namibien et rand sud-africain",
+    "languages": [
+      "afrikaans",
+      "allemand",
+      "anglais",
+      "héréro",
+      "haiǁom",
+      "kwangali",
+      "lozi",
+      "ndonga",
+      "tswana"
+    ],
+    "shortFact": "Le désert du Namib, l'un des plus anciens du monde, longe la côte atlantique.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale est Windhoek. Sa superficie est d'environ 825 615 km². Sa population est estimée à environ 2,5 millions d'habitants. Monnaie principale : dollar namibien et rand sud-africain. Langues principales : afrikaans, allemand, anglais, héréro, haiǁom, kwangali, lozi, ndonga et tswana. Le désert du Namib, l'un des plus anciens du monde, longe la côte atlantique."
+  },
+  {
+    "entityId": "NRU",
+    "title": "Nauru",
+    "continent": "Océanie",
+    "population": 12581,
+    "areaSquareKilometers": 21,
+    "currency": "dollar australien",
+    "languages": [
+      "anglais",
+      "nauruan"
+    ],
+    "shortFact": "Nauru est la plus petite république insulaire du monde.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Yaren. Sa superficie est d'environ 21 km². Sa population est estimée à environ 12 581 habitants. Monnaie principale : dollar australien. Langues principales : anglais et nauruan. Nauru est la plus petite république insulaire du monde."
+  },
+  {
+    "entityId": "NPL",
+    "title": "Népal",
+    "continent": "Asie",
+    "population": 28608710,
+    "areaSquareKilometers": 147181,
+    "currency": "roupie népalaise",
+    "languages": [
+      "népalais"
+    ],
+    "shortFact": "Le Népal abrite huit des quatorze sommets de plus de 8 000 mètres, dont l'Everest.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Katmandou. Sa superficie est d'environ 147 181 km². Sa population est estimée à environ 28,6 millions d'habitants. Monnaie principale : roupie népalaise. Langues principales : népalais. Le Népal abrite huit des quatorze sommets de plus de 8 000 mètres, dont l'Everest."
+  },
+  {
+    "entityId": "NIC",
+    "title": "Nicaragua",
+    "continent": "Amérique du Nord",
+    "population": 6545502,
+    "areaSquareKilometers": 130373,
+    "currency": "córdoba oro nicaraguayen",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "Le Nicaragua abrite le plus grand lac d'Amérique centrale.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Managua. Sa superficie est d'environ 130 373 km². Sa population est estimée à environ 6,5 millions d'habitants. Monnaie principale : córdoba oro nicaraguayen. Langues principales : espagnol. Le Nicaragua abrite le plus grand lac d'Amérique centrale."
+  },
+  {
+    "entityId": "NER",
+    "title": "Niger",
+    "continent": "Afrique",
+    "population": 23310715,
+    "areaSquareKilometers": 1267000,
+    "currency": "franc CFA (BCEAO)",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Le Niger doit son nom au fleuve qui traverse le sud-ouest du pays.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Niamey. Sa superficie est d'environ 1 267 000 km². Sa population est estimée à environ 23,3 millions d'habitants. Monnaie principale : franc CFA (BCEAO). Langues principales : français. Le Niger doit son nom au fleuve qui traverse le sud-ouest du pays."
+  },
+  {
+    "entityId": "NGA",
+    "title": "Nigeria",
+    "continent": "Afrique",
+    "population": 200963599,
+    "areaSquareKilometers": 923768,
+    "currency": "naira nigérian",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Le Nigeria est le pays le plus peuplé d'Afrique.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Abuja. Sa superficie est d'environ 923 768 km². Sa population est estimée à environ 201 millions d'habitants. Monnaie principale : naira nigérian. Langues principales : anglais. Le Nigeria est le pays le plus peuplé d'Afrique."
+  },
+  {
+    "entityId": "NIU",
+    "title": "Niue",
+    "continent": "Océanie",
+    "population": 1620,
+    "areaSquareKilometers": 260,
+    "currency": "dollar néo-zélandais",
+    "languages": [
+      "anglais",
+      "niuéen"
+    ],
+    "shortFact": "Niue est un territoire rattaché à la Nouvelle-Zélande, situé en Océanie.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Alofi. Sa superficie est d'environ 260 km². Sa population est estimée à environ 1 620 habitants. Monnaie principale : dollar néo-zélandais. Langues principales : anglais et niuéen. Niue est un territoire rattaché à la Nouvelle-Zélande, situé en Océanie."
+  },
+  {
+    "entityId": "NOR",
+    "title": "Norvège",
+    "continent": "Europe",
+    "population": 5347896,
+    "areaSquareKilometers": 323802,
+    "currency": "couronne norvégienne",
+    "languages": [
+      "norvégien nynorsk",
+      "norvégien bokmål",
+      "same"
+    ],
+    "shortFact": "Le littoral norvégien est profondément découpé par des fjords.",
+    "history": "Ce territoire se situe en Europe. Sa capitale est Oslo. Sa superficie est d'environ 323 802 km². Sa population est estimée à environ 5,3 millions d'habitants. Monnaie principale : couronne norvégienne. Langues principales : norvégien nynorsk, norvégien bokmål et same. Le littoral norvégien est profondément découpé par des fjords."
+  },
+  {
+    "entityId": "NCL",
+    "title": "Nouvelle-Calédonie",
+    "continent": "Océanie",
+    "population": 287800,
+    "areaSquareKilometers": 18575,
+    "currency": "franc CFP",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "La Nouvelle-Calédonie est un territoire français du Pacifique doté d'un statut particulier.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Nouméa. Sa superficie est d'environ 18 575 km². Sa population est estimée à environ 287 800 habitants. Monnaie principale : franc CFP. Langues principales : français. La Nouvelle-Calédonie est un territoire français du Pacifique doté d'un statut particulier."
+  },
+  {
+    "entityId": "NZL",
+    "title": "Nouvelle-Zélande",
+    "continent": "Océanie",
+    "population": 4917000,
+    "areaSquareKilometers": 270467,
+    "currency": "dollar néo-zélandais",
+    "languages": [
+      "anglais",
+      "maori",
+      "langue des signes néo-zélandaise"
+    ],
+    "shortFact": "La Nouvelle-Zélande comprend deux grandes îles et de nombreuses îles plus petites.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale est Wellington. Sa superficie est d'environ 270 467 km². Sa population est estimée à environ 4,9 millions d'habitants. Monnaie principale : dollar néo-zélandais. Langues principales : anglais, maori et langue des signes néo-zélandaise. La Nouvelle-Zélande comprend deux grandes îles et de nombreuses îles plus petites."
+  },
+  {
+    "entityId": "OMN",
+    "title": "Oman",
+    "continent": "Asie",
+    "population": 4974986,
+    "areaSquareKilometers": 309500,
+    "currency": "riyal omanais",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "Oman contrôle une partie du détroit d'Ormuz grâce à la péninsule de Musandam.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Mascate. Sa superficie est d'environ 309 500 km². Sa population est estimée à environ 5 millions d'habitants. Monnaie principale : riyal omanais. Langues principales : arabe. Oman contrôle une partie du détroit d'Ormuz grâce à la péninsule de Musandam."
+  },
+  {
+    "entityId": "UGA",
+    "title": "Ouganda",
+    "continent": "Afrique",
+    "population": 44269594,
+    "areaSquareKilometers": 241550,
+    "currency": "shilling ougandais",
+    "languages": [
+      "anglais",
+      "swahili"
+    ],
+    "shortFact": "Le lac Victoria borde une grande partie du sud de l'Ouganda.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Kampala. Sa superficie est d'environ 241 550 km². Sa population est estimée à environ 44,3 millions d'habitants. Monnaie principale : shilling ougandais. Langues principales : anglais et swahili. Le lac Victoria borde une grande partie du sud de l'Ouganda."
+  },
+  {
+    "entityId": "UZB",
+    "title": "Ouzbékistan",
+    "continent": "Asie",
+    "population": 33580650,
+    "areaSquareKilometers": 447400,
+    "currency": "sum ouzbek",
+    "languages": [
+      "russe",
+      "ouzbek"
+    ],
+    "shortFact": "L'Ouzbékistan est l'un des deux seuls pays doublement enclavés du monde.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Tachkent. Sa superficie est d'environ 447 400 km². Sa population est estimée à environ 33,6 millions d'habitants. Monnaie principale : sum ouzbek. Langues principales : russe et ouzbek. L'Ouzbékistan est l'un des deux seuls pays doublement enclavés du monde."
+  },
+  {
+    "entityId": "PAK",
+    "title": "Pakistan",
+    "continent": "Asie",
+    "population": 216565318,
+    "areaSquareKilometers": 881912,
+    "currency": "roupie pakistanaise",
+    "languages": [
+      "anglais",
+      "ourdou"
+    ],
+    "shortFact": "Le K2, deuxième plus haut sommet du monde, se trouve à la frontière du Pakistan et de la Chine.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Islamabad. Sa superficie est d'environ 881 912 km². Sa population est estimée à environ 216,6 millions d'habitants. Monnaie principale : roupie pakistanaise. Langues principales : anglais et ourdou. Le K2, deuxième plus haut sommet du monde, se trouve à la frontière du Pakistan et de la Chine."
+  },
+  {
+    "entityId": "PLW",
+    "title": "Palaos",
+    "continent": "Océanie",
+    "population": 18008,
+    "areaSquareKilometers": 459,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "anglais",
+      "palau"
+    ],
+    "shortFact": "Les Palaos sont célèbres pour leurs îles calcaires des Rock Islands.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Ngerulmud. Sa superficie est d'environ 459 km². Sa population est estimée à environ 18 008 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais et palau. Les Palaos sont célèbres pour leurs îles calcaires des Rock Islands."
+  },
+  {
+    "entityId": "PSX",
+    "title": "Palestine",
+    "continent": "Asie",
+    "population": 4685306,
+    "areaSquareKilometers": 6220,
+    "currency": "livre égyptienne, nouveau shekel israélien et dinar jordanien",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "La Palestine comprend principalement la Cisjordanie et la bande de Gaza.",
+    "history": "Ce territoire se situe en Asie. Son statut territorial présente une situation particulière ou contestée. Sa capitale ou son centre administratif principal est Ramallah. Sa superficie est d'environ 6 220 km². Sa population est estimée à environ 4,7 millions d'habitants. Monnaie principale : livre égyptienne, nouveau shekel israélien et dinar jordanien. Langues principales : arabe. La Palestine comprend principalement la Cisjordanie et la bande de Gaza."
+  },
+  {
+    "entityId": "PAN",
+    "title": "Panama",
+    "continent": "Amérique du Nord",
+    "population": 4246439,
+    "areaSquareKilometers": 75417,
+    "currency": "balboa panaméen et dollar des États-Unis",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "Le canal de Panama relie les océans Atlantique et Pacifique.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Panama. Sa superficie est d'environ 75 417 km². Sa population est estimée à environ 4,2 millions d'habitants. Monnaie principale : balboa panaméen et dollar des États-Unis. Langues principales : espagnol. Le canal de Panama relie les océans Atlantique et Pacifique."
+  },
+  {
+    "entityId": "PNG",
+    "title": "Papouasie-Nouvelle-Guinée",
+    "continent": "Océanie",
+    "population": 8776109,
+    "areaSquareKilometers": 462840,
+    "currency": "kina papouan-néo-guinéen",
+    "languages": [
+      "anglais",
+      "hiri motu",
+      "tok pisin"
+    ],
+    "shortFact": "La Papouasie-Nouvelle-Guinée compte plusieurs centaines de langues.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Port-Moresby. Sa superficie est d'environ 462 840 km². Sa population est estimée à environ 8,8 millions d'habitants. Monnaie principale : kina papouan-néo-guinéen. Langues principales : anglais, hiri motu et tok pisin. La Papouasie-Nouvelle-Guinée compte plusieurs centaines de langues."
+  },
+  {
+    "entityId": "PRY",
+    "title": "Paraguay",
+    "continent": "Amérique du Sud",
+    "population": 7044636,
+    "areaSquareKilometers": 406752,
+    "currency": "guaraní paraguayen",
+    "languages": [
+      "guarani",
+      "espagnol"
+    ],
+    "shortFact": "Le Paraguay est l'un des deux pays enclavés d'Amérique du Sud.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Asunción. Sa superficie est d'environ 406 752 km². Sa population est estimée à environ 7 millions d'habitants. Monnaie principale : guaraní paraguayen. Langues principales : guarani et espagnol. Le Paraguay est l'un des deux pays enclavés d'Amérique du Sud."
+  },
+  {
+    "entityId": "NLD",
+    "title": "Pays-Bas",
+    "continent": "Europe",
+    "population": 17332850,
+    "areaSquareKilometers": 41850,
+    "currency": "euro",
+    "languages": [
+      "néerlandais"
+    ],
+    "shortFact": "Une part importante des Pays-Bas se situe au-dessous du niveau de la mer.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Amsterdam. Sa superficie est d'environ 41 850 km². Sa population est estimée à environ 17,3 millions d'habitants. Monnaie principale : euro. Langues principales : néerlandais. Une part importante des Pays-Bas se situe au-dessous du niveau de la mer."
+  },
+  {
+    "entityId": "PER",
+    "title": "Pérou",
+    "continent": "Amérique du Sud",
+    "population": 32510453,
+    "areaSquareKilometers": 1285216,
+    "currency": "sol péruvien",
+    "languages": [
+      "aymara",
+      "quechua",
+      "espagnol"
+    ],
+    "shortFact": "Le Pérou abrite le Machu Picchu et une grande partie des Andes centrales.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Lima. Sa superficie est d'environ 1 285 216 km². Sa population est estimée à environ 32,5 millions d'habitants. Monnaie principale : sol péruvien. Langues principales : aymara, quechua et espagnol. Le Pérou abrite le Machu Picchu et une grande partie des Andes centrales."
+  },
+  {
+    "entityId": "PHL",
+    "title": "Philippines",
+    "continent": "Asie",
+    "population": 108116615,
+    "areaSquareKilometers": 342353,
+    "currency": "peso philippin",
+    "languages": [
+      "anglais",
+      "filipino"
+    ],
+    "shortFact": "Les Philippines forment un archipel de plus de 7 000 îles.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Manila. Sa superficie est d'environ 342 353 km². Sa population est estimée à environ 108,1 millions d'habitants. Monnaie principale : peso philippin. Langues principales : anglais et filipino. Les Philippines forment un archipel de plus de 7 000 îles."
+  },
+  {
+    "entityId": "POL",
+    "title": "Pologne",
+    "continent": "Europe",
+    "population": 37970874,
+    "areaSquareKilometers": 312679,
+    "currency": "zloty polonais",
+    "languages": [
+      "polonais"
+    ],
+    "shortFact": "La Pologne possède une façade sur la mer Baltique.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Varsovie. Sa superficie est d'environ 312 679 km². Sa population est estimée à environ 38 millions d'habitants. Monnaie principale : zloty polonais. Langues principales : polonais. La Pologne possède une façade sur la mer Baltique."
+  },
+  {
+    "entityId": "PYF",
+    "title": "Polynésie française",
+    "continent": "Océanie",
+    "population": 279287,
+    "areaSquareKilometers": 4167,
+    "currency": "franc CFP",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "La Polynésie française rassemble 118 îles et atolls dispersés dans le Pacifique.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Papeete. Sa superficie est d'environ 4 167 km². Sa population est estimée à environ 279 287 habitants. Monnaie principale : franc CFP. Langues principales : français. La Polynésie française rassemble 118 îles et atolls dispersés dans le Pacifique."
+  },
+  {
+    "entityId": "PRI",
+    "title": "Porto Rico",
+    "continent": "Amérique du Nord",
+    "population": 3193694,
+    "areaSquareKilometers": 8870,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "anglais",
+      "espagnol"
+    ],
+    "shortFact": "Porto Rico est un territoire non incorporé des États-Unis dans les Caraïbes.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est San Juan. Sa superficie est d'environ 8 870 km². Sa population est estimée à environ 3,2 millions d'habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais et espagnol. Porto Rico est un territoire non incorporé des États-Unis dans les Caraïbes."
+  },
+  {
+    "entityId": "PRT",
+    "title": "Portugal",
+    "continent": "Europe",
+    "population": 10269417,
+    "areaSquareKilometers": 92090,
+    "currency": "euro",
+    "languages": [
+      "portugais"
+    ],
+    "shortFact": "Le Portugal comprend aussi les archipels des Açores et de Madère.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Lisbonnene. Sa superficie est d'environ 92 090 km². Sa population est estimée à environ 10,3 millions d'habitants. Monnaie principale : euro. Langues principales : portugais. Le Portugal comprend aussi les archipels des Açores et de Madère."
+  },
+  {
+    "entityId": "QAT",
+    "title": "Qatar",
+    "continent": "Asie",
+    "population": 2832067,
+    "areaSquareKilometers": 11586,
+    "currency": "riyal qatari",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "Le Qatar occupe une péninsule avançant dans le golfe Persique.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Doha. Sa superficie est d'environ 11 586 km². Sa population est estimée à environ 2,8 millions d'habitants. Monnaie principale : riyal qatari. Langues principales : arabe. Le Qatar occupe une péninsule avançant dans le golfe Persique."
+  },
+  {
+    "entityId": "SCR",
+    "title": "Récif de Scarborough",
+    "continent": "Asie",
+    "population": 0,
+    "areaSquareKilometers": 0.02,
+    "currency": null,
+    "languages": [],
+    "shortFact": "Le récif de Scarborough est une zone maritime disputée en mer de Chine méridionale.",
+    "history": "Ce territoire se situe en Asie. Son statut territorial présente une situation particulière ou contestée. Sa superficie est d'environ 0,02 km². Il ne compte aucun habitant permanent. Le récif de Scarborough est une zone maritime disputée en mer de Chine méridionale."
+  },
+  {
+    "entityId": "CAF",
+    "title": "République centrafricaine",
+    "continent": "Afrique",
+    "population": 4745185,
+    "areaSquareKilometers": 622984,
+    "currency": "franc CFA (BEAC)",
+    "languages": [
+      "français",
+      "sango"
+    ],
+    "shortFact": "La République centrafricaine se trouve près du centre géographique de l'Afrique.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Bangui. Sa superficie est d'environ 622 984 km². Sa population est estimée à environ 4,7 millions d'habitants. Monnaie principale : franc CFA (BEAC). Langues principales : français et sango. La République centrafricaine se trouve près du centre géographique de l'Afrique."
+  },
+  {
+    "entityId": "COD",
+    "title": "République démocratique du Congo",
+    "continent": "Afrique",
+    "population": 86790567,
+    "areaSquareKilometers": 2344858,
+    "currency": "franc congolais",
+    "languages": [
+      "français",
+      "kikongo",
+      "lingala",
+      "luba-kasaï (ciluba)",
+      "swahili"
+    ],
+    "shortFact": "La République démocratique du Congo abrite une grande partie du bassin forestier du Congo.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Kinshasa. Sa superficie est d'environ 2 344 858 km². Sa population est estimée à environ 86,8 millions d'habitants. Monnaie principale : franc congolais. Langues principales : français, kikongo, lingala, luba-kasaï (ciluba) et swahili. La République démocratique du Congo abrite une grande partie du bassin forestier du Congo."
+  },
+  {
+    "entityId": "DOM",
+    "title": "République dominicaine",
+    "continent": "Amérique du Nord",
+    "population": 10738958,
+    "areaSquareKilometers": 48671,
+    "currency": "peso dominicain",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "La République dominicaine partage l'île d'Hispaniola avec Haïti.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Santo Domingo. Sa superficie est d'environ 48 671 km². Sa population est estimée à environ 10,7 millions d'habitants. Monnaie principale : peso dominicain. Langues principales : espagnol. La République dominicaine partage l'île d'Hispaniola avec Haïti."
+  },
+  {
+    "entityId": "COG",
+    "title": "République du Congo",
+    "continent": "Afrique",
+    "population": 5380508,
+    "areaSquareKilometers": 342000,
+    "currency": "franc CFA (BEAC)",
+    "languages": [
+      "français",
+      "kikongo",
+      "lingala"
+    ],
+    "shortFact": "Brazzaville fait face à Kinshasa de l'autre côté du fleuve Congo.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Brazzaville. Sa superficie est d'environ 342 000 km². Sa population est estimée à environ 5,4 millions d'habitants. Monnaie principale : franc CFA (BEAC). Langues principales : français, kikongo et lingala. Brazzaville fait face à Kinshasa de l'autre côté du fleuve Congo."
+  },
+  {
+    "entityId": "CHN",
+    "title": "République populaire de Chine",
+    "continent": "Asie",
+    "population": 1397715000,
+    "areaSquareKilometers": 9706961,
+    "currency": "yuan renminbi chinois",
+    "languages": [
+      "chinois"
+    ],
+    "shortFact": "La Chine compte parmi les plus anciens foyers continus de civilisation.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Pékin. Sa superficie est d'environ 9 706 961 km². Sa population est estimée à environ 1 397,7 millions d'habitants. Monnaie principale : yuan renminbi chinois. Langues principales : chinois. La Chine compte parmi les plus anciens foyers continus de civilisation."
+  },
+  {
+    "entityId": "ROU",
+    "title": "Roumanie",
+    "continent": "Europe",
+    "population": 19356544,
+    "areaSquareKilometers": 238391,
+    "currency": "leu roumain",
+    "languages": [
+      "roumain"
+    ],
+    "shortFact": "Le delta du Danube s'étend en grande partie en Roumanie.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Bucarest. Sa superficie est d'environ 238 391 km². Sa population est estimée à environ 19,4 millions d'habitants. Monnaie principale : leu roumain. Langues principales : roumain. Le delta du Danube s'étend en grande partie en Roumanie."
+  },
+  {
+    "entityId": "GBR",
+    "title": "Royaume-Uni",
+    "continent": "Europe",
+    "population": 66834405,
+    "areaSquareKilometers": 242900,
+    "currency": "livre sterling",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Le Royaume-Uni réunit l'Angleterre, l'Écosse, le pays de Galles et l'Irlande du Nord.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Londres. Sa superficie est d'environ 242 900 km². Sa population est estimée à environ 66,8 millions d'habitants. Monnaie principale : livre sterling. Langues principales : anglais. Le Royaume-Uni réunit l'Angleterre, l'Écosse, le pays de Galles et l'Irlande du Nord."
+  },
+  {
+    "entityId": "RUS",
+    "title": "Russie",
+    "continent": "Europe",
+    "population": 144373535,
+    "areaSquareKilometers": 17098242,
+    "currency": "rouble russe",
+    "languages": [
+      "russe"
+    ],
+    "shortFact": "La Russie est le plus vaste pays du monde et s'étend sur l'Europe et l'Asie.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Moscou. Sa superficie est d'environ 17 098 242 km². Sa population est estimée à environ 144,4 millions d'habitants. Monnaie principale : rouble russe. Langues principales : russe. La Russie est le plus vaste pays du monde et s'étend sur l'Europe et l'Asie."
+  },
+  {
+    "entityId": "RWA",
+    "title": "Rwanda",
+    "continent": "Afrique",
+    "population": 12626950,
+    "areaSquareKilometers": 26338,
+    "currency": "franc rwandais",
+    "languages": [
+      "anglais",
+      "français",
+      "kinyarwanda"
+    ],
+    "shortFact": "Le Rwanda est surnommé « le pays des mille collines ».",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Kigali. Sa superficie est d'environ 26 338 km². Sa population est estimée à environ 12,6 millions d'habitants. Monnaie principale : franc rwandais. Langues principales : anglais, français et kinyarwanda. Le Rwanda est surnommé « le pays des mille collines »."
+  },
+  {
+    "entityId": "SAH",
+    "title": "Sahara occidental",
+    "continent": "Afrique",
+    "population": 603253,
+    "areaSquareKilometers": 266000,
+    "currency": "dirham marocain",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "Le Sahara occidental est un territoire dont le statut reste disputé.",
+    "history": "Ce territoire se situe en Afrique. Son statut territorial présente une situation particulière ou contestée. Sa capitale ou son centre administratif principal est Laâyoune. Sa superficie est d'environ 266 000 km². Sa population est estimée à environ 603 253 habitants. Monnaie principale : dirham marocain. Langues principales : arabe. Le Sahara occidental est un territoire dont le statut reste disputé."
+  },
+  {
+    "entityId": "BLM",
+    "title": "Saint-Barthélemy",
+    "continent": "Amérique du Nord",
+    "population": 9961,
+    "areaSquareKilometers": 21,
+    "currency": "euro",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Saint-Barthélemy est un territoire rattaché à la France, situé en Amérique du Nord.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Gustavia. Sa superficie est d'environ 21 km². Sa population est estimée à environ 9 961 habitants. Monnaie principale : euro. Langues principales : français. Saint-Barthélemy est un territoire rattaché à la France, situé en Amérique du Nord."
+  },
+  {
+    "entityId": "KNA",
+    "title": "Saint-Christophe-et-Niévès",
+    "continent": "Amérique du Nord",
+    "population": 52834,
+    "areaSquareKilometers": 261,
+    "currency": "dollar des Caraïbes orientales",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Saint-Christophe-et-Niévès est le plus petit État souverain des Amériques.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Basseterre. Sa superficie est d'environ 261 km². Sa population est estimée à environ 52 834 habitants. Monnaie principale : dollar des Caraïbes orientales. Langues principales : anglais. Saint-Christophe-et-Niévès est le plus petit État souverain des Amériques."
+  },
+  {
+    "entityId": "SMR",
+    "title": "Saint-Marin",
+    "continent": "Europe",
+    "population": 33860,
+    "areaSquareKilometers": 61,
+    "currency": "euro",
+    "languages": [
+      "italien"
+    ],
+    "shortFact": "Saint-Marin revendique être la plus ancienne république encore existante.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Saint-Marin. Sa superficie est d'environ 61 km². Sa population est estimée à environ 33 860 habitants. Monnaie principale : euro. Langues principales : italien. Saint-Marin revendique être la plus ancienne république encore existante."
+  },
+  {
+    "entityId": "MAF",
+    "title": "Saint-Martin",
+    "continent": "Amérique du Nord",
+    "population": 38002,
+    "areaSquareKilometers": 53,
+    "currency": "euro",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Saint-Martin est un territoire rattaché à la France, situé en Amérique du Nord.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Marigot. Sa superficie est d'environ 53 km². Sa population est estimée à environ 38 002 habitants. Monnaie principale : euro. Langues principales : français. Saint-Martin est un territoire rattaché à la France, situé en Amérique du Nord."
+  },
+  {
+    "entityId": "SXM",
+    "title": "Sint Maarten",
+    "continent": "Amérique du Nord",
+    "population": 40733,
+    "areaSquareKilometers": 34,
+    "currency": "florin antillais",
+    "languages": [
+      "anglais",
+      "français",
+      "néerlandais"
+    ],
+    "shortFact": "Sint Maarten est la partie néerlandaise de l'île partagée avec la collectivité française de Saint-Martin.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale est Philipsburg. Sa superficie est d'environ 34 km². Sa population est estimée à environ 40 733 habitants. Monnaie principale : florin antillais. Langues principales : anglais, français et néerlandais. Sint Maarten est un pays constitutif du Royaume des Pays-Bas."
+  },
+  {
+    "entityId": "SPM",
+    "title": "Saint-Pierre-et-Miquelon",
+    "continent": "Amérique du Nord",
+    "population": 5997,
+    "areaSquareKilometers": 242,
+    "currency": "euro",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Saint-Pierre-et-Miquelon est un archipel français situé au sud de Terre-Neuve.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Saint-Pierre. Sa superficie est d'environ 242 km². Sa population est estimée à environ 5 997 habitants. Monnaie principale : euro. Langues principales : français. Saint-Pierre-et-Miquelon est un archipel français situé au sud de Terre-Neuve."
+  },
+  {
+    "entityId": "VCT",
+    "title": "Saint-Vincent-et-les-Grenadines",
+    "continent": "Amérique du Nord",
+    "population": 110589,
+    "areaSquareKilometers": 389,
+    "currency": "dollar des Caraïbes orientales",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Saint-Vincent-et-les-Grenadines forme une chaîne d'îles des Petites Antilles.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Kingstown. Sa superficie est d'environ 389 km². Sa population est estimée à environ 110 589 habitants. Monnaie principale : dollar des Caraïbes orientales. Langues principales : anglais. Saint-Vincent-et-les-Grenadines forme une chaîne d'îles des Petites Antilles."
+  },
+  {
+    "entityId": "SHN",
+    "title": "Sainte-Hélène",
+    "continent": "Afrique",
+    "population": 4534,
+    "areaSquareKilometers": 394,
+    "currency": "livre sterling et livre de Sainte-Hélène",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Sainte-Hélène est connue comme le lieu du dernier exil de Napoléon Bonaparte.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Jamestown. Sa superficie est d'environ 394 km². Sa population est estimée à environ 4 534 habitants. Monnaie principale : livre sterling et livre de Sainte-Hélène. Langues principales : anglais. Sainte-Hélène est connue comme le lieu du dernier exil de Napoléon Bonaparte."
+  },
+  {
+    "entityId": "LCA",
+    "title": "Sainte-Lucie",
+    "continent": "Amérique du Nord",
+    "population": 182790,
+    "areaSquareKilometers": 616,
+    "currency": "dollar des Caraïbes orientales",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Les deux Pitons volcaniques sont les reliefs emblématiques de Sainte-Lucie.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Castries. Sa superficie est d'environ 616 km². Sa population est estimée à environ 182 790 habitants. Monnaie principale : dollar des Caraïbes orientales. Langues principales : anglais. Les deux Pitons volcaniques sont les reliefs emblématiques de Sainte-Lucie."
+  },
+  {
+    "entityId": "SLV",
+    "title": "Salvador",
+    "continent": "Amérique du Nord",
+    "population": 6453553,
+    "areaSquareKilometers": 21041,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "Le Salvador est le plus petit pays d'Amérique centrale continentale.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est San Salvador. Sa superficie est d'environ 21 041 km². Sa population est estimée à environ 6,5 millions d'habitants. Monnaie principale : dollar des États-Unis. Langues principales : espagnol. Le Salvador est le plus petit pays d'Amérique centrale continentale."
+  },
+  {
+    "entityId": "WSM",
+    "title": "Samoa",
+    "continent": "Océanie",
+    "population": 197097,
+    "areaSquareKilometers": 2842,
+    "currency": "tala samoan",
+    "languages": [
+      "anglais",
+      "samoan"
+    ],
+    "shortFact": "Les Samoa se situent au cœur de la Polynésie.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Apia. Sa superficie est d'environ 2 842 km². Sa population est estimée à environ 197 097 habitants. Monnaie principale : tala samoan. Langues principales : anglais et samoan. Les Samoa se situent au cœur de la Polynésie."
+  },
+  {
+    "entityId": "ASM",
+    "title": "Samoa américaines",
+    "continent": "Océanie",
+    "population": 55312,
+    "areaSquareKilometers": 199,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "anglais",
+      "samoan"
+    ],
+    "shortFact": "Samoa américaines est un territoire rattaché à les États-Unis, situé en Océanie.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Pago Pago. Sa superficie est d'environ 199 km². Sa population est estimée à environ 55 312 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais et samoan. Samoa américaines est un territoire rattaché à les États-Unis, situé en Océanie."
+  },
+  {
+    "entityId": "STP",
+    "title": "Sao Tomé-et-Principe",
+    "continent": "Afrique",
+    "population": 215056,
+    "areaSquareKilometers": 964,
+    "currency": "dobra santoméen",
+    "languages": [
+      "portugais"
+    ],
+    "shortFact": "L'équateur traverse l'îlot de Rolas, au sud de Sao Tomé.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est São Tomé. Sa superficie est d'environ 964 km². Sa population est estimée à environ 215 056 habitants. Monnaie principale : dobra santoméen. Langues principales : portugais. L'équateur traverse l'îlot de Rolas, au sud de Sao Tomé."
+  },
+  {
+    "entityId": "SEN",
+    "title": "Sénégal",
+    "continent": "Afrique",
+    "population": 16296364,
+    "areaSquareKilometers": 196722,
+    "currency": "franc CFA (BCEAO)",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Le Sénégal entoure presque entièrement la Gambie.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Dakar. Sa superficie est d'environ 196 722 km². Sa population est estimée à environ 16,3 millions d'habitants. Monnaie principale : franc CFA (BCEAO). Langues principales : français. Le Sénégal entoure presque entièrement la Gambie."
+  },
+  {
+    "entityId": "SRB",
+    "title": "Serbie",
+    "continent": "Europe",
+    "population": 6944975,
+    "areaSquareKilometers": 88361,
+    "currency": "dinar serbe",
+    "languages": [
+      "serbe"
+    ],
+    "shortFact": "La Serbie se situe au carrefour de l'Europe centrale et des Balkans.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Belgrade. Sa superficie est d'environ 88 361 km². Sa population est estimée à environ 6,9 millions d'habitants. Monnaie principale : dinar serbe. Langues principales : serbe. La Serbie se situe au carrefour de l'Europe centrale et des Balkans."
+  },
+  {
+    "entityId": "SYC",
+    "title": "Seychelles",
+    "continent": "Afrique",
+    "population": 97625,
+    "areaSquareKilometers": 452,
+    "currency": "roupie des Seychelles",
+    "languages": [
+      "créole seychellois",
+      "anglais",
+      "français"
+    ],
+    "shortFact": "Les Seychelles regroupent des îles granitiques et coralliennes dans l'océan Indien.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Victoria. Sa superficie est d'environ 452 km². Sa population est estimée à environ 97 625 habitants. Monnaie principale : roupie des Seychelles. Langues principales : créole seychellois, anglais et français. Les Seychelles regroupent des îles granitiques et coralliennes dans l'océan Indien."
+  },
+  {
+    "entityId": "SLE",
+    "title": "Sierra Leone",
+    "continent": "Afrique",
+    "population": 7813215,
+    "areaSquareKilometers": 71740,
+    "currency": "leone sierra-léonais (1964—2022)",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Le nom Sierra Leone vient de l'expression portugaise « montagnes du lion ».",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Freetown. Sa superficie est d'environ 71 740 km². Sa population est estimée à environ 7,8 millions d'habitants. Monnaie principale : leone sierra-léonais (1964—2022). Langues principales : anglais. Le nom Sierra Leone vient de l'expression portugaise « montagnes du lion »."
+  },
+  {
+    "entityId": "SGP",
+    "title": "Singapour",
+    "continent": "Asie",
+    "population": 5703569,
+    "areaSquareKilometers": 710,
+    "currency": "dollar de Singapour",
+    "languages": [
+      "anglais",
+      "malais",
+      "tamoul",
+      "chinois"
+    ],
+    "shortFact": "Singapour est une cité-État insulaire située à l'extrémité de la péninsule Malaise.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Singapour. Sa superficie est d'environ 710 km². Sa population est estimée à environ 5,7 millions d'habitants. Monnaie principale : dollar de Singapour. Langues principales : anglais, malais, tamoul et chinois. Singapour est une cité-État insulaire située à l'extrémité de la péninsule Malaise."
+  },
+  {
+    "entityId": "SVK",
+    "title": "Slovaquie",
+    "continent": "Europe",
+    "population": 5454073,
+    "areaSquareKilometers": 49037,
+    "currency": "euro",
+    "languages": [
+      "slovaque"
+    ],
+    "shortFact": "La Slovaquie est traversée par l'arc montagneux des Carpates.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Bratislava. Sa superficie est d'environ 49 037 km². Sa population est estimée à environ 5,5 millions d'habitants. Monnaie principale : euro. Langues principales : slovaque. La Slovaquie est traversée par l'arc montagneux des Carpates."
+  },
+  {
+    "entityId": "SVN",
+    "title": "Slovénie",
+    "continent": "Europe",
+    "population": 2087946,
+    "areaSquareKilometers": 20273,
+    "currency": "euro",
+    "languages": [
+      "slovène"
+    ],
+    "shortFact": "La Slovénie réunit les Alpes, le Karst et une courte façade adriatique.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Ljubljana. Sa superficie est d'environ 20 273 km². Sa population est estimée à environ 2,1 millions d'habitants. Monnaie principale : euro. Langues principales : slovène. La Slovénie réunit les Alpes, le Karst et une courte façade adriatique."
+  },
+  {
+    "entityId": "SOM",
+    "title": "Somalie",
+    "continent": "Afrique",
+    "population": 10192317,
+    "areaSquareKilometers": 637657,
+    "currency": "shilling somalien",
+    "languages": [
+      "arabe",
+      "somali"
+    ],
+    "shortFact": "La Somalie possède le plus long littoral d'Afrique continentale.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Mogadiscio. Sa superficie est d'environ 637 657 km². Sa population est estimée à environ 10,2 millions d'habitants. Monnaie principale : shilling somalien. Langues principales : arabe et somali. La Somalie possède le plus long littoral d'Afrique continentale."
+  },
+  {
+    "entityId": "SOL",
+    "title": "Somaliland",
+    "continent": "Afrique",
+    "population": 5096159,
+    "areaSquareKilometers": 176120,
+    "currency": "Shilling du Somaliland",
+    "languages": [
+      "somali",
+      "arabe"
+    ],
+    "shortFact": "Le Somaliland administre de fait le nord-ouest de la Somalie depuis 1991 sans large reconnaissance internationale.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Hargeisa. Sa superficie est d'environ 176 120 km². Sa population est estimée à environ 5,1 millions d'habitants. Monnaie principale : Shilling du Somaliland. Langues principales : somali et arabe. Le Somaliland administre de fait le nord-ouest de la Somalie depuis 1991 sans large reconnaissance internationale."
+  },
+  {
+    "entityId": "SDN",
+    "title": "Soudan",
+    "continent": "Afrique",
+    "population": 42813238,
+    "areaSquareKilometers": 1886068,
+    "currency": "livre soudanaise",
+    "languages": [
+      "arabe",
+      "anglais"
+    ],
+    "shortFact": "Le Nil Bleu et le Nil Blanc se rejoignent à Khartoum.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Khartoum. Sa superficie est d'environ 1 886 068 km². Sa population est estimée à environ 42,8 millions d'habitants. Monnaie principale : livre soudanaise. Langues principales : arabe et anglais. Le Nil Bleu et le Nil Blanc se rejoignent à Khartoum."
+  },
+  {
+    "entityId": "SDS",
+    "title": "Soudan du Sud",
+    "continent": "Afrique",
+    "population": 11062113,
+    "areaSquareKilometers": 619745,
+    "currency": "livre sud-soudanaise",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Le Soudan du Sud est devenu indépendant en 2011.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Juba. Sa superficie est d'environ 619 745 km². Sa population est estimée à environ 11,1 millions d'habitants. Monnaie principale : livre sud-soudanaise. Langues principales : anglais. Le Soudan du Sud est devenu indépendant en 2011."
+  },
+  {
+    "entityId": "LKA",
+    "title": "Sri Lanka",
+    "continent": "Asie",
+    "population": 21803000,
+    "areaSquareKilometers": 65610,
+    "currency": "roupie srilankaise",
+    "languages": [
+      "cingalais",
+      "tamoul"
+    ],
+    "shortFact": "Sri Jayawardenepura Kotte est la capitale législative, tandis que Colombo reste le principal centre économique.",
+    "history": "Ce territoire se situe en Asie. Sa capitale législative est Sri Jayawardenepura Kotte. Sa superficie est d'environ 65 610 km². Sa population est estimée à environ 21,8 millions d'habitants. Monnaie principale : roupie srilankaise. Langues principales : cingalais et tamoul. Colombo demeure la plus grande ville et le principal centre économique du pays."
+  },
+  {
+    "entityId": "SWE",
+    "title": "Suède",
+    "continent": "Europe",
+    "population": 10285453,
+    "areaSquareKilometers": 450295,
+    "currency": "couronne suédoise",
+    "languages": [
+      "suédois"
+    ],
+    "shortFact": "La Suède s'étire sur une grande partie orientale de la péninsule Scandinave.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Stockholm. Sa superficie est d'environ 450 295 km². Sa population est estimée à environ 10,3 millions d'habitants. Monnaie principale : couronne suédoise. Langues principales : suédois. La Suède s'étire sur une grande partie orientale de la péninsule Scandinave."
+  },
+  {
+    "entityId": "CHE",
+    "title": "Suisse",
+    "continent": "Europe",
+    "population": 8574832,
+    "areaSquareKilometers": 41284,
+    "currency": "franc suisse",
+    "languages": [
+      "français",
+      "suisse allemand",
+      "italien",
+      "romanche"
+    ],
+    "shortFact": "La Suisse possède quatre langues nationales.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Bern. Sa superficie est d'environ 41 284 km². Sa population est estimée à environ 8,6 millions d'habitants. Monnaie principale : franc suisse. Langues principales : français, suisse allemand, italien et romanche. La Suisse possède quatre langues nationales."
+  },
+  {
+    "entityId": "SUR",
+    "title": "Suriname",
+    "continent": "Amérique du Sud",
+    "population": 581363,
+    "areaSquareKilometers": 163820,
+    "currency": "dollar surinamais",
+    "languages": [
+      "néerlandais"
+    ],
+    "shortFact": "Le Suriname est le plus petit État souverain d'Amérique du Sud.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Paramaribo. Sa superficie est d'environ 163 820 km². Sa population est estimée à environ 581 363 habitants. Monnaie principale : dollar surinamais. Langues principales : néerlandais. Le Suriname est le plus petit État souverain d'Amérique du Sud."
+  },
+  {
+    "entityId": "SYR",
+    "title": "Syrie",
+    "continent": "Asie",
+    "population": 17070135,
+    "areaSquareKilometers": 185180,
+    "currency": "livre syrienne",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "La Syrie appartient au Croissant fertile, une région habitée depuis l'Antiquité.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Damas. Sa superficie est d'environ 185 180 km². Sa population est estimée à environ 17,1 millions d'habitants. Monnaie principale : livre syrienne. Langues principales : arabe. La Syrie appartient au Croissant fertile, une région habitée depuis l'Antiquité."
+  },
+  {
+    "entityId": "TJK",
+    "title": "Tadjikistan",
+    "continent": "Asie",
+    "population": 9321018,
+    "areaSquareKilometers": 143100,
+    "currency": "somoni tadjik",
+    "languages": [
+      "russe",
+      "tadjik"
+    ],
+    "shortFact": "Plus de 90 % du Tadjikistan est occupé par des montagnes.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Douchanbé. Sa superficie est d'environ 143 100 km². Sa population est estimée à environ 9,3 millions d'habitants. Monnaie principale : somoni tadjik. Langues principales : russe et tadjik. Plus de 90 % du Tadjikistan est occupé par des montagnes."
+  },
+  {
+    "entityId": "TWN",
+    "title": "Taïwan",
+    "continent": "Asie",
+    "population": 23568378,
+    "areaSquareKilometers": 36193,
+    "currency": "nouveau dollar taïwanais",
+    "languages": [
+      "chinois"
+    ],
+    "shortFact": "Taïwan est une île montagneuse située au large de la Chine continentale.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Taipei. Sa superficie est d'environ 36 193 km². Sa population est estimée à environ 23,6 millions d'habitants. Monnaie principale : nouveau dollar taïwanais. Langues principales : chinois. Taïwan est une île montagneuse située au large de la Chine continentale."
+  },
+  {
+    "entityId": "TZA",
+    "title": "Tanzanie",
+    "continent": "Afrique",
+    "population": 58005463,
+    "areaSquareKilometers": 945087,
+    "currency": "shilling tanzanien",
+    "languages": [
+      "anglais",
+      "swahili"
+    ],
+    "shortFact": "Le Kilimandjaro, point culminant de l'Afrique, se trouve en Tanzanie.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Dodoma. Sa superficie est d'environ 945 087 km². Sa population est estimée à environ 58 millions d'habitants. Monnaie principale : shilling tanzanien. Langues principales : anglais et swahili. Le Kilimandjaro, point culminant de l'Afrique, se trouve en Tanzanie."
+  },
+  {
+    "entityId": "TCD",
+    "title": "Tchad",
+    "continent": "Afrique",
+    "population": 15946876,
+    "areaSquareKilometers": 1284000,
+    "currency": "franc CFA (BEAC)",
+    "languages": [
+      "arabe",
+      "français"
+    ],
+    "shortFact": "Le lac Tchad a donné son nom au pays.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est N'Djamena. Sa superficie est d'environ 1 284 000 km². Sa population est estimée à environ 15,9 millions d'habitants. Monnaie principale : franc CFA (BEAC). Langues principales : arabe et français. Le lac Tchad a donné son nom au pays."
+  },
+  {
+    "entityId": "CZE",
+    "title": "Tchéquie",
+    "continent": "Europe",
+    "population": 10669709,
+    "areaSquareKilometers": 78865,
+    "currency": "couronne tchèque",
+    "languages": [
+      "tchèque",
+      "slovaque"
+    ],
+    "shortFact": "La Tchéquie réunit les régions historiques de Bohême, de Moravie et d'une partie de la Silésie.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Prague. Sa superficie est d'environ 78 865 km². Sa population est estimée à environ 10,7 millions d'habitants. Monnaie principale : couronne tchèque. Langues principales : tchèque et slovaque. La Tchéquie réunit les régions historiques de Bohême, de Moravie et d'une partie de la Silésie."
+  },
+  {
+    "entityId": "ATF",
+    "title": "Terres australes et antarctiques françaises",
+    "continent": "Antarctique",
+    "population": 140,
+    "areaSquareKilometers": 7747,
+    "currency": "euro",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Les Terres australes et antarctiques françaises regroupent des îles subantarctiques et la Terre Adélie.",
+    "history": "Ce territoire se situe en Antarctique. Sa capitale ou son centre administratif principal est Port-aux-Français. Sa superficie est d'environ 7 747 km². Sa population est estimée à environ 140 habitants. Monnaie principale : euro. Langues principales : français. Les Terres australes et antarctiques françaises regroupent des îles subantarctiques et la Terre Adélie."
+  },
+  {
+    "entityId": "IOT",
+    "title": "Territoire britannique de l’océan Indien",
+    "continent": "Asie",
+    "population": 3000,
+    "areaSquareKilometers": 60,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Le Territoire britannique de l'océan Indien comprend notamment l'archipel des Chagos.",
+    "history": "Ce territoire se situe en Asie. Son statut territorial présente une situation particulière ou contestée. Sa capitale ou son centre administratif principal est Diego Garcia. Sa superficie est d'environ 60 km². Sa population est estimée à environ 3 000 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. Le Territoire britannique de l'océan Indien comprend notamment l'archipel des Chagos."
+  },
+  {
+    "entityId": "IOA",
+    "title": "Territoires extérieurs australiens de l'Océan Indien",
+    "continent": "Asie",
+    "population": 2387,
+    "areaSquareKilometers": 149,
+    "currency": "dollar australien",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Les territoires extérieurs australiens de l'océan Indien regroupent ici Christmas et les îles Cocos.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est West Island. Sa superficie est d'environ 149 km². Sa population est estimée à environ 2 387 habitants. Monnaie principale : dollar australien. Langues principales : anglais. Les territoires extérieurs australiens de l'océan Indien regroupent ici Christmas et les îles Cocos."
+  },
+  {
+    "entityId": "THA",
+    "title": "Thaïlande",
+    "continent": "Asie",
+    "population": 69625582,
+    "areaSquareKilometers": 513120,
+    "currency": "baht thaïlandais",
+    "languages": [
+      "thaï"
+    ],
+    "shortFact": "La Thaïlande est le seul pays d'Asie du Sud-Est à ne pas avoir été colonisé par une puissance européenne.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Bangkok. Sa superficie est d'environ 513 120 km². Sa population est estimée à environ 69,6 millions d'habitants. Monnaie principale : baht thaïlandais. Langues principales : thaï. La Thaïlande est le seul pays d'Asie du Sud-Est à ne pas avoir été colonisé par une puissance européenne."
+  },
+  {
+    "entityId": "TLS",
+    "title": "Timor oriental",
+    "continent": "Asie",
+    "population": 1293119,
+    "areaSquareKilometers": 14874,
+    "currency": "dollar des États-Unis",
+    "languages": [
+      "portugais",
+      "tétoum"
+    ],
+    "shortFact": "Le Timor oriental occupe la partie orientale de l'île de Timor.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Dili. Sa superficie est d'environ 14 874 km². Sa population est estimée à environ 1,3 million d'habitants. Monnaie principale : dollar des États-Unis. Langues principales : portugais et tétoum. Le Timor oriental occupe la partie orientale de l'île de Timor."
+  },
+  {
+    "entityId": "TGO",
+    "title": "Togo",
+    "continent": "Afrique",
+    "population": 8082366,
+    "areaSquareKilometers": 56785,
+    "currency": "franc CFA (BCEAO)",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Le Togo forme une étroite bande de terre entre le Ghana et le Bénin.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Lomé. Sa superficie est d'environ 56 785 km². Sa population est estimée à environ 8,1 millions d'habitants. Monnaie principale : franc CFA (BCEAO). Langues principales : français. Le Togo forme une étroite bande de terre entre le Ghana et le Bénin."
+  },
+  {
+    "entityId": "TON",
+    "title": "Tonga",
+    "continent": "Océanie",
+    "population": 104494,
+    "areaSquareKilometers": 747,
+    "currency": "pa’anga tongan",
+    "languages": [
+      "anglais",
+      "tongien"
+    ],
+    "shortFact": "Les Tonga sont le seul royaume polynésien contemporain.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Nuku‘alofa. Sa superficie est d'environ 747 km². Sa population est estimée à environ 104 494 habitants. Monnaie principale : pa’anga tongan. Langues principales : anglais et tongien. Les Tonga sont le seul royaume polynésien contemporain."
+  },
+  {
+    "entityId": "TTO",
+    "title": "Trinité-et-Tobago",
+    "continent": "Amérique du Nord",
+    "population": 1394973,
+    "areaSquareKilometers": 5130,
+    "currency": "dollar de Trinité-et-Tobago",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "Trinité-et-Tobago se trouve au large du Venezuela.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Port-d'Espagne. Sa superficie est d'environ 5 130 km². Sa population est estimée à environ 1,4 million d'habitants. Monnaie principale : dollar de Trinité-et-Tobago. Langues principales : anglais. Trinité-et-Tobago se trouve au large du Venezuela."
+  },
+  {
+    "entityId": "TUN",
+    "title": "Tunisie",
+    "continent": "Afrique",
+    "population": 11694719,
+    "areaSquareKilometers": 163610,
+    "currency": "dinar tunisien",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "Le territoire de l'ancienne Carthage se trouve près de Tunis.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Tunis. Sa superficie est d'environ 163 610 km². Sa population est estimée à environ 11,7 millions d'habitants. Monnaie principale : dinar tunisien. Langues principales : arabe. Le territoire de l'ancienne Carthage se trouve près de Tunis."
+  },
+  {
+    "entityId": "TKM",
+    "title": "Turkménistan",
+    "continent": "Asie",
+    "population": 5942089,
+    "areaSquareKilometers": 488100,
+    "currency": "nouveau manat turkmène",
+    "languages": [
+      "russe",
+      "turkmène"
+    ],
+    "shortFact": "Le désert du Karakoum couvre une grande partie du Turkménistan.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Achgabat. Sa superficie est d'environ 488 100 km². Sa population est estimée à environ 5,9 millions d'habitants. Monnaie principale : nouveau manat turkmène. Langues principales : russe et turkmène. Le désert du Karakoum couvre une grande partie du Turkménistan."
+  },
+  {
+    "entityId": "TUR",
+    "title": "Turquie",
+    "continent": "Asie",
+    "population": 83429615,
+    "areaSquareKilometers": 783562,
+    "currency": "livre turque",
+    "languages": [
+      "turc"
+    ],
+    "shortFact": "La Turquie s'étend de part et d'autre du Bosphore, entre Europe et Asie.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Ankara. Sa superficie est d'environ 783 562 km². Sa population est estimée à environ 83,4 millions d'habitants. Monnaie principale : livre turque. Langues principales : turc. La Turquie s'étend de part et d'autre du Bosphore, entre Europe et Asie."
+  },
+  {
+    "entityId": "TUV",
+    "title": "Tuvalu",
+    "continent": "Océanie",
+    "population": 11646,
+    "areaSquareKilometers": 26,
+    "currency": "dollar australien et TVD",
+    "languages": [
+      "anglais",
+      "tuvalu"
+    ],
+    "shortFact": "Tuvalu est composé de neuf atolls et îles de faible altitude.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Funafuti. Sa superficie est d'environ 26 km². Sa population est estimée à environ 11 646 habitants. Monnaie principale : dollar australien et TVD. Langues principales : anglais et tuvalu. Tuvalu est composé de neuf atolls et îles de faible altitude."
+  },
+  {
+    "entityId": "UKR",
+    "title": "Ukraine",
+    "continent": "Europe",
+    "population": 44385155,
+    "areaSquareKilometers": 603500,
+    "currency": "hryvnia ukrainienne",
+    "languages": [
+      "ukrainien"
+    ],
+    "shortFact": "L'Ukraine est le plus vaste pays entièrement situé en Europe.",
+    "history": "Ce territoire se situe en Europe. Sa capitale ou son centre administratif principal est Kyiv. Sa superficie est d'environ 603 500 km². Sa population est estimée à environ 44,4 millions d'habitants. Monnaie principale : hryvnia ukrainienne. Langues principales : ukrainien. L'Ukraine est le plus vaste pays entièrement situé en Europe."
+  },
+  {
+    "entityId": "URY",
+    "title": "Uruguay",
+    "continent": "Amérique du Sud",
+    "population": 3461734,
+    "areaSquareKilometers": 181034,
+    "currency": "peso uruguayen",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "L'Uruguay est l'un des plus petits États d'Amérique du Sud.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Montevideo. Sa superficie est d'environ 181 034 km². Sa population est estimée à environ 3,5 millions d'habitants. Monnaie principale : peso uruguayen. Langues principales : espagnol. L'Uruguay est l'un des plus petits États d'Amérique du Sud."
+  },
+  {
+    "entityId": "VUT",
+    "title": "Vanuatu",
+    "continent": "Océanie",
+    "population": 299882,
+    "areaSquareKilometers": 12189,
+    "currency": "vatu vanuatuan",
+    "languages": [
+      "bichelamar",
+      "anglais",
+      "français"
+    ],
+    "shortFact": "Le Vanuatu est un archipel volcanique et sismique de Mélanésie.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Port-Vila. Sa superficie est d'environ 12 189 km². Sa population est estimée à environ 299 882 habitants. Monnaie principale : vatu vanuatuan. Langues principales : bichelamar, anglais et français. Le Vanuatu est un archipel volcanique et sismique de Mélanésie."
+  },
+  {
+    "entityId": "VEN",
+    "title": "Venezuela",
+    "continent": "Amérique du Sud",
+    "population": 28515829,
+    "areaSquareKilometers": 916445,
+    "currency": "bolivar vénézuélien",
+    "languages": [
+      "espagnol"
+    ],
+    "shortFact": "La chute d'Angel, au Venezuela, est la plus haute chute d'eau ininterrompue du monde.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Caracas. Sa superficie est d'environ 916 445 km². Sa population est estimée à environ 28,5 millions d'habitants. Monnaie principale : bolivar vénézuélien. Langues principales : espagnol. La chute d'Angel, au Venezuela, est la plus haute chute d'eau ininterrompue du monde."
+  },
+  {
+    "entityId": "VNM",
+    "title": "Viêt Nam",
+    "continent": "Asie",
+    "population": 96462106,
+    "areaSquareKilometers": 331212,
+    "currency": "dông vietnamien",
+    "languages": [
+      "vietnamien"
+    ],
+    "shortFact": "Le Viêt Nam s'étire en forme de S le long de la mer de Chine méridionale.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Hanoi. Sa superficie est d'environ 331 212 km². Sa population est estimée à environ 96,5 millions d'habitants. Monnaie principale : dông vietnamien. Langues principales : vietnamien. Le Viêt Nam s'étire en forme de S le long de la mer de Chine méridionale."
+  },
+  {
+    "entityId": "PGA",
+    "title": "Îles Spratleys",
+    "continent": "Asie",
+    "population": 0,
+    "areaSquareKilometers": 7,
+    "currency": null,
+    "languages": [],
+    "shortFact": "Les îles Spratleys forment un archipel disputé de la mer de Chine méridionale.",
+    "history": "Cet archipel se situe en Asie, dans la mer de Chine méridionale. Sa souveraineté est revendiquée en totalité ou en partie par plusieurs États. Sa surface émergée est très faible et il ne possède ni capitale ni population civile permanente stable."
+  },
+  {
+    "entityId": "WLF",
+    "title": "Wallis-et-Futuna",
+    "continent": "Océanie",
+    "population": 11558,
+    "areaSquareKilometers": 142,
+    "currency": "franc CFP",
+    "languages": [
+      "français"
+    ],
+    "shortFact": "Wallis-et-Futuna est un territoire rattaché à la France, situé en Océanie.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Mata-Utu. Sa superficie est d'environ 142 km². Sa population est estimée à environ 11 558 habitants. Monnaie principale : franc CFP. Langues principales : français. Wallis-et-Futuna est un territoire rattaché à la France, situé en Océanie."
+  },
+  {
+    "entityId": "YEM",
+    "title": "Yémen",
+    "continent": "Asie",
+    "population": 29161922,
+    "areaSquareKilometers": 527968,
+    "currency": "riyal yéménite",
+    "languages": [
+      "arabe"
+    ],
+    "shortFact": "L'île yéménite de Socotra abrite une flore très particulière, dont le dragonnier.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Sanaa. Sa superficie est d'environ 527 968 km². Sa population est estimée à environ 29,2 millions d'habitants. Monnaie principale : riyal yéménite. Langues principales : arabe. L'île yéménite de Socotra abrite une flore très particulière, dont le dragonnier."
+  },
+  {
+    "entityId": "ZMB",
+    "title": "Zambie",
+    "continent": "Afrique",
+    "population": 17861030,
+    "areaSquareKilometers": 752612,
+    "currency": "kwacha zambien",
+    "languages": [
+      "anglais"
+    ],
+    "shortFact": "La Zambie partage les chutes Victoria avec le Zimbabwe.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Lusaka. Sa superficie est d'environ 752 612 km². Sa population est estimée à environ 17,9 millions d'habitants. Monnaie principale : kwacha zambien. Langues principales : anglais. La Zambie partage les chutes Victoria avec le Zimbabwe."
+  },
+  {
+    "entityId": "ZWE",
+    "title": "Zimbabwe",
+    "continent": "Afrique",
+    "population": 14645468,
+    "areaSquareKilometers": 390757,
+    "currency": "Zimbabwe Gold (ZiG, code ZWG) et devises étrangères",
+    "languages": [
+      "chibarwe",
+      "anglais",
+      "kalanga",
+      "langues khoïsanes",
+      "ndau",
+      "ndébélé du Nord",
+      "chewa",
+      "shona",
+      "sotho du Sud",
+      "tonga",
+      "tswana",
+      "tsonga",
+      "venda",
+      "xhosa",
+      "langue des signes zimbabwéenne"
+    ],
+    "shortFact": "Le Grand Zimbabwe a donné son nom au pays moderne.",
+    "history": "Ce territoire se situe en Afrique. Sa capitale est Harare. Sa superficie est d'environ 390 757 km². Sa population est estimée à environ 14,6 millions d'habitants. Plusieurs monnaies y circulent. Langues principales : chibarwe, anglais, kalanga, langues khoïsanes, ndau, ndébélé du Nord, chewa, shona, sotho du Sud, tonga, tswana, tsonga, venda, xhosa et langue des signes zimbabwéenne. Le Grand Zimbabwe a donné son nom au pays moderne."
+  },
+  {
+    "entityId": "CNM",
+    "title": "Zone tampon des Nations unies à Chypre",
+    "continent": "Asie",
+    "population": 0,
+    "areaSquareKilometers": 346,
+    "currency": null,
+    "languages": [],
+    "shortFact": "La zone tampon de l'ONU sépare les secteurs grec et turc de Chypre.",
+    "history": "Ce territoire se situe en Asie. Son statut territorial présente une situation particulière ou contestée. Sa superficie est d'environ 346 km². Il ne compte aucun habitant permanent. La zone tampon de l'ONU sépare les secteurs grec et turc de Chypre."
   }
 ]

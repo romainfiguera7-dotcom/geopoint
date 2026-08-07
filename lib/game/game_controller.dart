@@ -29,13 +29,24 @@ import 'passport/player_passport.dart';
 import 'score_system.dart';
 
 class GameController extends ChangeNotifier {
+  static const Set<String>
+      _excludedQuestionEntityIds =
+      <String>{
+    'CYN',
+    'PSX',
+    'SAH',
+    'SOL',
+  };
+
   GameController({
     GameEngine? gameEngine,
     ScoreSystem? scoreSystem,
     XpSystem? xpSystem,
-  }) : _gameEngine = gameEngine ?? GameEngine(),
-       _scoreSystem = scoreSystem ?? const ScoreSystem(),
-       _xpSystem = xpSystem ?? const XpSystem();
+  })  : _gameEngine = gameEngine ?? GameEngine(),
+        _scoreSystem =
+            scoreSystem ?? const ScoreSystem(),
+        _xpSystem =
+            xpSystem ?? const XpSystem();
 
   final GameEngine _gameEngine;
   final ScoreSystem _scoreSystem;
@@ -50,26 +61,36 @@ class GameController extends ChangeNotifier {
   PassportResult? _lastPassportResult;
   LevelResult? _lastLevelResult;
 
-  bool _passportResultRegisteredForCurrentGame = false;
+  bool _passportResultRegisteredForCurrentGame =
+      false;
 
-  List<GeoCountry> _countries = const <GeoCountry>[];
+  List<GeoCountry> _countries =
+      const <GeoCountry>[];
 
-  Map<String, Capital> _capitals = const <String, Capital>{};
+  Map<String, Capital> _capitals =
+      const <String, Capital>{};
 
-  Map<String, ReferencePoint> _referenceOverrides =
+  Map<String, ReferencePoint>
+      _referenceOverrides =
       const <String, ReferencePoint>{};
 
-  Map<String, int> _countryDifficulties = const <String, int>{};
+  Map<String, int> _countryDifficulties =
+      const <String, int>{};
 
-  Map<String, GameDifficulty> _difficulties = const <String, GameDifficulty>{};
+  Map<String, GameDifficulty> _difficulties =
+      const <String, GameDifficulty>{};
 
-  List<GeoCountry> _missionCountries = const <GeoCountry>[];
+  List<GeoCountry> _missionCountries =
+      const <GeoCountry>[];
 
-  String _currentDifficultyId = 'discovery';
+  String _currentDifficultyId =
+      'discovery';
 
-  String _currentModeId = 'find_country';
+  String _currentModeId =
+      'find_country';
 
-  GameSession _session = GameSession.initial(
+  GameSession _session =
+      GameSession.initial(
     questionDurationSeconds: 25,
     totalQuestions: 5,
   );
@@ -87,178 +108,284 @@ class GameController extends ChangeNotifier {
 
   Timer? _questionTimer;
 
-  GameSession get session => _session;
+  GameSession get session =>
+      _session;
 
-  PlayerPassport get passport => _passport;
+  PlayerPassport get passport =>
+      _passport;
 
-  PassportEngine get passportEngine => _passportEngine;
+  PassportEngine get passportEngine =>
+      _passportEngine;
 
-  PassportResult? get lastPassportResult => _lastPassportResult;
+  PassportResult? get lastPassportResult =>
+      _lastPassportResult;
 
-  PlayerProfile get playerProfile => _playerProfile;
+  PlayerProfile get playerProfile =>
+      _playerProfile;
 
-  LevelResult? get lastLevelResult => _lastLevelResult;
+  LevelResult? get lastLevelResult =>
+      _lastLevelResult;
 
-  GeoBrainService get geoBrainService => _geoBrainService;
+  GeoBrainService get geoBrainService =>
+      _geoBrainService;
 
-  List<GeoCountry> get countries => _countries;
+  List<GeoCountry> get countries =>
+      _countries;
 
-  Map<String, Capital> get capitals => _capitals;
+  Map<String, Capital> get capitals =>
+      _capitals;
 
-  Map<String, int> get countryDifficulties => _countryDifficulties;
+  Map<String, int> get countryDifficulties =>
+      _countryDifficulties;
 
-  Map<String, ReferencePoint> get referenceOverrides => _referenceOverrides;
+  Map<String, ReferencePoint>
+      get referenceOverrides =>
+          _referenceOverrides;
 
-  String get currentDifficultyId => _currentDifficultyId;
+  String get currentDifficultyId =>
+      _currentDifficultyId;
 
-  String get currentModeId => _currentModeId;
+  String get currentModeId =>
+      _currentModeId;
 
   double get currentInitialZoom =>
-      _difficulties[_currentDifficultyId]?.initialZoom ?? 2.2;
+      _difficulties[_currentDifficultyId]
+          ?.initialZoom ??
+      2.2;
 
   LatLng get currentInitialCenter {
-    final GameQuestion? question = _session.currentQuestion;
+    final GameQuestion? question =
+        _session.currentQuestion;
 
     if (question == null) {
-      return const LatLng(20, 0);
+      return const LatLng(
+        20,
+        0,
+      );
     }
 
-    final GeoCountry? country = _findCountryById(question.countryId);
+    final GeoCountry? country =
+        _findCountryById(
+      question.countryId,
+    );
 
     if (country == null) {
-      return const LatLng(20, 0);
+      return const LatLng(
+        20,
+        0,
+      );
     }
 
-    final ReferencePoint? referencePoint = _findReferenceOverride(country);
+    final ReferencePoint? referencePoint =
+        _findReferenceOverride(
+      country,
+    );
 
     if (referencePoint != null) {
       return referencePoint.position;
     }
 
-    final Capital? capital = _findCapital(country);
+    final Capital? capital =
+        _findCapital(
+      country,
+    );
 
     if (capital != null) {
       return capital.position;
     }
 
-    return _calculateCountryCenter(country);
+    return _calculateCountryCenter(
+      country,
+    );
   }
 
-  bool get isFindCapitalMode => _currentModeId == 'find_capital';
+  bool get isFindCapitalMode =>
+      _currentModeId == 'find_capital';
 
-  bool get isFindFlagMode => _currentModeId == 'find_flag';
+  bool get isFindFlagMode =>
+      _currentModeId == 'find_flag';
 
-  bool get isMixedMode => _currentModeId == 'mixed';
+  bool get isMixedMode =>
+      _currentModeId == 'mixed';
 
-  int get totalQuestions => _session.totalQuestions;
+  int get totalQuestions =>
+      _session.totalQuestions;
 
-  int get questionDurationSeconds => _session.questionDurationSeconds;
+  int get questionDurationSeconds =>
+      _session.questionDurationSeconds;
 
-  int get availableCountryCount => _missionCountries.length;
+  int get availableCountryCount =>
+      _missionCountries.length;
 
-  LatLng? get selectedPoint => _selectedPoint;
+  LatLng? get selectedPoint =>
+      _selectedPoint;
 
-  LatLng? get answerPoint => _answerPoint;
+  LatLng? get answerPoint =>
+      _answerPoint;
 
-  GeoCountry? get selectedCountry => _selectedCountry;
+  GeoCountry? get selectedCountry =>
+      _selectedCountry;
 
-  GeoCountry? get answerCountry => _answerCountry;
+  GeoCountry? get answerCountry =>
+      _answerCountry;
 
-  Capital? get answerCapital => _answerCapital;
+  Capital? get answerCapital =>
+      _answerCapital;
 
-  ReferencePoint? get answerReferencePoint => _answerReferencePoint;
+  ReferencePoint? get answerReferencePoint =>
+      _answerReferencePoint;
 
-  String? get answerCapitalName => _answerCapital?.name;
+  String? get answerCapitalName =>
+      _answerCapital?.name;
 
-  String? get answerReferencePointName => _answerReferencePoint?.name;
+  String? get answerReferencePointName =>
+      _answerReferencePoint?.name;
 
-  String? get answerReferencePointTypeLabel => _answerReferencePoint?.typeLabel;
+  String? get answerReferencePointTypeLabel =>
+      _answerReferencePoint?.typeLabel;
 
   String? get answerParentCountryName =>
-      _answerReferencePoint?.parentCountryName;
+      _answerReferencePoint
+          ?.parentCountryName;
 
   String? get answerOfficialCapitalName =>
-      _answerReferencePoint?.officialCapitalName ?? _answerCapital?.name;
+      _answerReferencePoint
+              ?.officialCapitalName ??
+          _answerCapital?.name;
 
-  String? get answerReferenceDescription => _answerReferencePoint?.description;
+  String? get answerReferenceDescription =>
+      _answerReferencePoint
+          ?.description;
 
-  bool get usesReferenceOverride => _answerReferencePoint != null;
+  bool get usesReferenceOverride =>
+      _answerReferencePoint != null;
 
-  double? get distanceInKilometers => _distanceInKilometers;
+  double? get distanceInKilometers =>
+      _distanceInKilometers;
 
-  bool get hasStarted => _session.currentQuestion != null;
+  bool get hasStarted =>
+      _session.currentQuestion != null;
 
-  bool get hasAnswered => _session.hasAnswered;
+  bool get hasAnswered =>
+      _session.hasAnswered;
 
-  bool get isGameOver => _session.isGameOver;
+  bool get isGameOver =>
+      _session.isGameOver;
 
-  int get secondsRemaining => _session.secondsRemaining;
+  int get secondsRemaining =>
+      _session.secondsRemaining;
 
-  bool get isTimeUp => _session.isTimeUp;
+  bool get isTimeUp =>
+      _session.isTimeUp;
 
-  int get correctAnswers => _session.correctAnswers;
+  int get correctAnswers =>
+      _session.correctAnswers;
 
   double get averageDistanceInKilometers =>
       _session.averageDistanceInKilometers;
 
-  double get averageElapsedSeconds => _session.averageElapsedSeconds;
+  double get averageElapsedSeconds =>
+      _session.averageElapsedSeconds;
 
-  int get bestScore => _session.bestScore ?? 0;
+  int get bestScore =>
+      _session.bestScore ?? 0;
 
-  int get worstScore => _session.worstScore ?? 0;
+  int get worstScore =>
+      _session.worstScore ?? 0;
 
-  Future<void> initialize(List<GeoCountry> countries) async {
+  Future<void> initialize(
+    List<GeoCountry> countries,
+  ) async {
     _stopTimer();
 
-    _countries = List<GeoCountry>.unmodifiable(countries);
+    _countries =
+        List<GeoCountry>.unmodifiable(
+      countries,
+    );
 
-    final Map<String, Capital> capitals = await CapitalLoader.loadCapitals();
+    final Map<String, Capital> capitals =
+        await CapitalLoader.loadCapitals();
 
-    final Map<String, ReferencePoint> referenceOverrides =
-        await ReferencePointLoader.loadOverrides();
+    final Map<String, ReferencePoint>
+        referenceOverrides =
+        await ReferencePointLoader
+            .loadOverrides();
 
-    final Map<String, int> countryDifficulties =
-        await CountryDifficultyLoader.loadDifficulties();
+    final Map<String, int>
+        countryDifficulties =
+        await CountryDifficultyLoader
+            .loadDifficulties();
 
-    final List<GameDifficulty> difficultyList =
-        await GameDifficultyLoader.loadDifficulties();
+    final List<GameDifficulty>
+        difficultyList =
+        await GameDifficultyLoader
+            .loadDifficulties();
 
-    final PassportEngine passportEngine = await PassportService.createEngine();
+    final PassportEngine passportEngine =
+        await PassportService.createEngine();
 
-    final PlayerPassport? savedPassport = await PassportStorage.load();
+    final PlayerPassport? savedPassport =
+        await PassportStorage.load();
 
-    final PlayerProfile? savedProfile = await PlayerStorage.load();
+    final PlayerProfile? savedProfile =
+        await PlayerStorage.load();
 
-    final GeoBrainService geoBrainService = await GeoBrainService.create();
+    final GeoBrainService geoBrainService =
+        await GeoBrainService.create();
 
-    _capitals = Map<String, Capital>.unmodifiable(capitals);
+    _capitals =
+        Map<String, Capital>.unmodifiable(
+      capitals,
+    );
 
-    _referenceOverrides = Map<String, ReferencePoint>.unmodifiable(
+    _referenceOverrides =
+        Map<String, ReferencePoint>
+            .unmodifiable(
       referenceOverrides,
     );
 
-    _countryDifficulties = Map<String, int>.unmodifiable(countryDifficulties);
+    _countryDifficulties =
+        Map<String, int>.unmodifiable(
+      countryDifficulties,
+    );
 
     _difficulties =
-        Map<String, GameDifficulty>.unmodifiable(<String, GameDifficulty>{
-          for (final GameDifficulty difficulty in difficultyList)
-            difficulty.id: difficulty,
-        });
+        Map<String, GameDifficulty>
+            .unmodifiable(
+      <String, GameDifficulty>{
+        for (
+          final GameDifficulty difficulty
+          in difficultyList
+        )
+          difficulty.id: difficulty,
+      },
+    );
 
-    _passportEngine = passportEngine;
+    _passportEngine =
+        passportEngine;
 
-    _passport = savedPassport ?? PlayerPassport.initial();
+    _passport =
+        savedPassport ??
+            PlayerPassport.initial();
 
-    _playerProfile = savedProfile ?? PlayerProfile.initial();
+    _playerProfile =
+        savedProfile ??
+            PlayerProfile.initial();
 
-    _geoBrainService = geoBrainService;
+    _geoBrainService =
+        geoBrainService;
 
-    _countrySelector = CountrySelector(geoBrain: _geoBrainService);
+    _countrySelector =
+        CountrySelector(
+      geoBrain:
+          _geoBrainService,
+    );
 
     _lastPassportResult = null;
     _lastLevelResult = null;
 
-    _passportResultRegisteredForCurrentGame = false;
+    _passportResultRegisteredForCurrentGame =
+        false;
 
     debugPrint(
       'GeoPoint : '
@@ -303,7 +430,9 @@ class GameController extends ChangeNotifier {
         'tampon(s) validé(s).',
       );
     } else {
-      debugPrint('GeoPoint : nouveau Passeport créé.');
+      debugPrint(
+        'GeoPoint : nouveau Passeport créé.',
+      );
     }
 
     if (savedProfile != null) {
@@ -314,7 +443,9 @@ class GameController extends ChangeNotifier {
         '${_playerProfile.gamesPlayed} partie(s).',
       );
     } else {
-      debugPrint('GeoPoint : nouveau profil joueur créé.');
+      debugPrint(
+        'GeoPoint : nouveau profil joueur créé.',
+      );
     }
 
     debugPrint(
@@ -325,7 +456,9 @@ class GameController extends ChangeNotifier {
       'maîtrisée(s).',
     );
 
-    _applyMissionConfiguration('discovery');
+    _applyMissionConfiguration(
+      'discovery',
+    );
 
     _gameEngine.reset();
     _session = _createInitialSession();
@@ -341,9 +474,14 @@ class GameController extends ChangeNotifier {
   }) {
     _stopTimer();
 
-    _currentModeId = _normalizeModeId(modeId);
+    _currentModeId =
+        _normalizeModeId(
+      modeId,
+    );
 
-    _applyMissionConfiguration(difficultyId);
+    _applyMissionConfiguration(
+      difficultyId,
+    );
 
     _gameEngine.reset();
     _session = _createInitialSession();
@@ -351,7 +489,8 @@ class GameController extends ChangeNotifier {
     _lastPassportResult = null;
     _lastLevelResult = null;
 
-    _passportResultRegisteredForCurrentGame = false;
+    _passportResultRegisteredForCurrentGame =
+        false;
 
     _clearAnswer();
 
@@ -359,22 +498,28 @@ class GameController extends ChangeNotifier {
   }
 
   void startNextQuestion() {
-    if (_missionCountries.isEmpty || !_session.canStartNextQuestion) {
+    if (_missionCountries.isEmpty ||
+        !_session.canStartNextQuestion) {
       return;
     }
 
     _stopTimer();
 
-    final GameQuestion? question = _gameEngine.createNextQuestion(
+    final GameQuestion? question =
+        _gameEngine.createNextQuestion(
       _missionCountries,
-      modeId: _currentModeId,
+      modeId:
+          _currentModeId,
     );
 
     if (question == null) {
       return;
     }
 
-    _session = _session.startQuestion(question);
+    _session =
+        _session.startQuestion(
+      question,
+    );
 
     _clearAnswer();
     _startTimer();
@@ -386,7 +531,8 @@ class GameController extends ChangeNotifier {
     required LatLng selectedPoint,
     required GeoCountry? selectedCountry,
   }) {
-    final GameQuestion? question = _session.currentQuestion;
+    final GameQuestion? question =
+        _session.currentQuestion;
 
     if (question == null ||
         _session.hasAnswered ||
@@ -395,23 +541,33 @@ class GameController extends ChangeNotifier {
       return;
     }
 
-    final GeoCountry? answerCountry = _findCountryById(question.countryId);
+    final GeoCountry? answerCountry =
+        _findCountryById(
+      question.countryId,
+    );
 
     if (answerCountry == null) {
       return;
     }
 
-    final String questionModeId = question.modeId;
+    final String questionModeId =
+        question.modeId;
 
     _stopTimer();
 
-    final Capital? capital = _findCapital(answerCountry);
-
-    final ReferencePoint? referencePoint = _findReferenceOverride(
+    final Capital? capital =
+        _findCapital(
       answerCountry,
     );
 
-    if (questionModeId == 'find_capital' && capital == null) {
+    final ReferencePoint? referencePoint =
+        _findReferenceOverride(
+      answerCountry,
+    );
+
+    if (questionModeId ==
+            'find_capital' &&
+        capital == null) {
       debugPrint(
         'GeoPoint : aucune capitale disponible '
         'pour ${answerCountry.name}.',
@@ -419,64 +575,101 @@ class GameController extends ChangeNotifier {
       return;
     }
 
-    final LatLng answerPoint = questionModeId == 'find_capital'
-        ? capital!.position
-        : referencePoint?.position ??
-              capital?.position ??
-              _calculateCountryCenter(answerCountry);
+    final LatLng answerPoint =
+        questionModeId ==
+                'find_capital'
+            ? capital!.position
+            : referencePoint?.position ??
+                capital?.position ??
+                _calculateCountryCenter(
+                  answerCountry,
+                );
 
-    const Distance distanceCalculator = Distance();
+    const Distance distanceCalculator =
+        Distance();
 
-    final double distanceInKilometers = distanceCalculator.as(
+    final double distanceInKilometers =
+        distanceCalculator.as(
       LengthUnit.Kilometer,
       selectedPoint,
       answerPoint,
     );
 
-    final bool isCorrectCountry = questionModeId == 'find_capital'
-        ? distanceInKilometers <= _capitalValidationRadiusKm()
-        : selectedCountry?.id == answerCountry.id;
+    final bool isCorrectCountry =
+        questionModeId ==
+                'find_capital'
+            ? distanceInKilometers <=
+                _capitalValidationRadiusKm()
+            : selectedCountry?.id ==
+                answerCountry.id;
 
-    final int score = _scoreSystem.calculateScore(
-      modeId: questionModeId,
-      difficultyId: _currentDifficultyId,
-      isCorrectCountry: isCorrectCountry,
-      distanceInKilometers: distanceInKilometers,
-      secondsRemaining: _session.secondsRemaining,
-      questionDurationSeconds: _session.questionDurationSeconds,
+    final int score =
+        _scoreSystem.calculateScore(
+      modeId:
+          questionModeId,
+      difficultyId:
+          _currentDifficultyId,
+      isCorrectCountry:
+          isCorrectCountry,
+      distanceInKilometers:
+          distanceInKilometers,
+      secondsRemaining:
+          _session.secondsRemaining,
+      questionDurationSeconds:
+          _session
+              .questionDurationSeconds,
     );
 
     final int elapsedSeconds =
-        _session.questionDurationSeconds - _session.secondsRemaining;
+        _session.questionDurationSeconds -
+            _session.secondsRemaining;
 
-    _selectedPoint = selectedPoint;
+    _selectedPoint =
+        selectedPoint;
 
-    _selectedCountry = selectedCountry;
+    _selectedCountry =
+        selectedCountry;
 
-    _answerPoint = answerPoint;
+    _answerPoint =
+        answerPoint;
 
-    _answerCountry = answerCountry;
+    _answerCountry =
+        answerCountry;
 
-    _answerCapital = capital;
+    _answerCapital =
+        capital;
 
-    _answerReferencePoint = referencePoint;
+    _answerReferencePoint =
+        referencePoint;
 
-    _distanceInKilometers = distanceInKilometers;
+    _distanceInKilometers =
+        distanceInKilometers;
 
-    _session = _session.answer(
+    _session =
+        _session.answer(
       score: score,
-      isCorrectCountry: isCorrectCountry,
-      distanceInKilometers: distanceInKilometers,
-      elapsedSeconds: elapsedSeconds,
+      isCorrectCountry:
+          isCorrectCountry,
+      distanceInKilometers:
+          distanceInKilometers,
+      elapsedSeconds:
+          elapsedSeconds,
       includeDistanceInAverage:
-          questionModeId == 'find_capital' || !isCorrectCountry,
+          questionModeId ==
+                  'find_capital' ||
+              !isCorrectCountry,
     );
 
-    if (questionModeId == 'find_country' || questionModeId == 'find_flag') {
+    if (questionModeId ==
+            'find_country' ||
+        questionModeId ==
+            'find_flag') {
       unawaited(
         _registerGeoBrainAnswer(
-          countryId: answerCountry.id,
-          isCorrect: isCorrectCountry,
+          countryId:
+              answerCountry.id,
+          isCorrect:
+              isCorrectCountry,
         ),
       );
     }
@@ -514,7 +707,8 @@ class GameController extends ChangeNotifier {
     _lastPassportResult = null;
     _lastLevelResult = null;
 
-    _passportResultRegisteredForCurrentGame = false;
+    _passportResultRegisteredForCurrentGame =
+        false;
 
     _clearAnswer();
 
@@ -522,7 +716,8 @@ class GameController extends ChangeNotifier {
   }
 
   Future<void> clearSavedPassport() async {
-    final bool cleared = await PassportStorage.clear();
+    final bool cleared =
+        await PassportStorage.clear();
 
     if (!cleared) {
       debugPrint(
@@ -533,13 +728,17 @@ class GameController extends ChangeNotifier {
       return;
     }
 
-    _passport = PlayerPassport.initial();
+    _passport =
+        PlayerPassport.initial();
 
     _lastPassportResult = null;
 
-    _passportResultRegisteredForCurrentGame = false;
+    _passportResultRegisteredForCurrentGame =
+        false;
 
-    debugPrint('GeoPoint : Passeport réinitialisé.');
+    debugPrint(
+      'GeoPoint : Passeport réinitialisé.',
+    );
 
     notifyListeners();
   }
@@ -547,11 +746,14 @@ class GameController extends ChangeNotifier {
   Future<void> clearSavedPlayerProfile() async {
     await PlayerStorage.clear();
 
-    _playerProfile = PlayerProfile.initial();
+    _playerProfile =
+        PlayerProfile.initial();
 
     _lastLevelResult = null;
 
-    debugPrint('GeoPoint : profil joueur réinitialisé.');
+    debugPrint(
+      'GeoPoint : profil joueur réinitialisé.',
+    );
 
     notifyListeners();
   }
@@ -559,9 +761,13 @@ class GameController extends ChangeNotifier {
   Future<void> clearSavedGeoBrain() async {
     await _geoBrainService.clear();
 
-    _applyMissionConfiguration(_currentDifficultyId);
+    _applyMissionConfiguration(
+      _currentDifficultyId,
+    );
 
-    debugPrint('GeoPoint GeoBrain : progression réinitialisée.');
+    debugPrint(
+      'GeoPoint GeoBrain : progression réinitialisée.',
+    );
 
     notifyListeners();
   }
@@ -569,65 +775,100 @@ class GameController extends ChangeNotifier {
   void _startTimer() {
     _stopTimer();
 
-    _questionTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      if (_session.hasAnswered || _session.isTimeUp || _session.isGameOver) {
-        _stopTimer();
-        return;
-      }
+    _questionTimer =
+        Timer.periodic(
+      const Duration(seconds: 1),
+      (Timer timer) {
+        if (_session.hasAnswered ||
+            _session.isTimeUp ||
+            _session.isGameOver) {
+          _stopTimer();
+          return;
+        }
 
-      _session = _session.tick();
+        _session =
+            _session.tick();
 
-      if (_session.isTimeUp) {
-        _handleTimeout();
-      }
+        if (_session.isTimeUp) {
+          _handleTimeout();
+        }
 
-      notifyListeners();
-    });
+        notifyListeners();
+      },
+    );
   }
 
   void _handleTimeout() {
     _stopTimer();
 
-    final GameQuestion? question = _session.currentQuestion;
+    final GameQuestion? question =
+        _session.currentQuestion;
 
-    if (question == null || _session.hasAnswered) {
+    if (question == null ||
+        _session.hasAnswered) {
       return;
     }
 
-    final GeoCountry? answerCountry = _findCountryById(question.countryId);
+    final GeoCountry? answerCountry =
+        _findCountryById(
+      question.countryId,
+    );
 
-    final String questionModeId = question.modeId;
+    final String questionModeId =
+        question.modeId;
 
     if (answerCountry != null) {
-      final Capital? capital = _findCapital(answerCountry);
-
-      final ReferencePoint? referencePoint = _findReferenceOverride(
+      final Capital? capital =
+          _findCapital(
         answerCountry,
       );
 
-      _answerCountry = answerCountry;
+      final ReferencePoint? referencePoint =
+          _findReferenceOverride(
+        answerCountry,
+      );
 
-      _answerCapital = capital;
+      _answerCountry =
+          answerCountry;
 
-      _answerReferencePoint = referencePoint;
+      _answerCapital =
+          capital;
 
-      _answerPoint = questionModeId == 'find_capital' && capital != null
-          ? capital.position
-          : referencePoint?.position ??
-                capital?.position ??
-                _calculateCountryCenter(answerCountry);
+      _answerReferencePoint =
+          referencePoint;
+
+      _answerPoint =
+          questionModeId ==
+                      'find_capital' &&
+                  capital != null
+              ? capital.position
+              : referencePoint?.position ??
+                  capital?.position ??
+                  _calculateCountryCenter(
+                    answerCountry,
+                  );
     }
 
     _selectedPoint = null;
     _selectedCountry = null;
     _distanceInKilometers = null;
 
-    _session = _session.timeout();
+    _session =
+        _session.timeout();
 
     if (answerCountry != null &&
-        (questionModeId == 'find_country' || questionModeId == 'find_flag')) {
+        (
+          questionModeId ==
+                  'find_country' ||
+              questionModeId ==
+                  'find_flag'
+        )) {
       unawaited(
-        _registerGeoBrainAnswer(countryId: answerCountry.id, isCorrect: false),
+        _registerGeoBrainAnswer(
+          countryId:
+              answerCountry.id,
+          isCorrect: false,
+        ),
       );
     }
 
@@ -635,52 +876,76 @@ class GameController extends ChangeNotifier {
   }
 
   void _registerCompletedGame() {
-    if (!_session.isGameOver || _passportResultRegisteredForCurrentGame) {
+    if (!_session.isGameOver ||
+        _passportResultRegisteredForCurrentGame) {
       return;
     }
 
-    final String stampId = _stampIdForCurrentMode();
+    final String stampId =
+        _stampIdForCurrentMode();
 
-    final PassportResult passportResult = _passportEngine.registerResult(
+    final PassportResult passportResult =
+        _passportEngine.registerResult(
       passport: _passport,
       stampId: stampId,
       score: _session.totalScore,
     );
 
-    final LevelResult levelResult = _xpSystem.applyGameResult(
+    final LevelResult levelResult =
+        _xpSystem.applyGameResult(
       profile: _playerProfile,
-      correctAnswers: _session.correctAnswers,
-      totalQuestions: _session.totalQuestions,
-      averageDistanceKm: _session.averageDistanceInKilometers,
+      correctAnswers:
+          _session.correctAnswers,
+      totalQuestions:
+          _session.totalQuestions,
+      averageDistanceKm:
+          _session.averageDistanceInKilometers,
     );
 
-    final double totalGameDistance = _session.totalDistanceInKilometers;
+    final double totalGameDistance =
+        _session.totalDistanceInKilometers;
 
     final int totalGameElapsedSeconds =
-        (_session.averageElapsedSeconds * _session.totalQuestions).round();
+        (
+          _session.averageElapsedSeconds *
+          _session.totalQuestions
+        ).round();
 
-    _passport = passportResult.updatedPassport;
+    _passport =
+        passportResult.updatedPassport;
 
-    _playerProfile = _playerProfile.registerGameResult(
-      earnedXp: levelResult.earnedXp,
-      gameScore: _session.totalScore,
-      gameCorrectAnswers: _session.correctAnswers,
-      gameTotalAnswers: _session.totalQuestions,
-      modeId: _currentModeId,
-      difficultyId: _currentDifficultyId,
-      gameDistanceInKilometers: totalGameDistance,
-      gameElapsedSeconds: totalGameElapsedSeconds,
+    _playerProfile =
+        _playerProfile.registerGameResult(
+      earnedXp:
+          levelResult.earnedXp,
+      gameScore:
+          _session.totalScore,
+      gameCorrectAnswers:
+          _session.correctAnswers,
+      gameTotalAnswers:
+          _session.totalQuestions,
+      gameDistanceInKilometers:
+          totalGameDistance,
+      gameElapsedSeconds:
+          totalGameElapsedSeconds,
     );
 
-    _lastPassportResult = passportResult;
+    _lastPassportResult =
+        passportResult;
 
-    _lastLevelResult = levelResult;
+    _lastLevelResult =
+        levelResult;
 
-    _passportResultRegisteredForCurrentGame = true;
+    _passportResultRegisteredForCurrentGame =
+        true;
 
-    unawaited(_savePassport());
+    unawaited(
+      _savePassport(),
+    );
 
-    unawaited(_savePlayerProfile());
+    unawaited(
+      _savePlayerProfile(),
+    );
 
     debugPrint(
       'GeoPoint Passeport : '
@@ -737,18 +1002,25 @@ class GameController extends ChangeNotifier {
     required bool isCorrect,
   }) async {
     await _geoBrainService.registerAnswer(
-      countryId: countryId,
-      isCorrect: isCorrect,
+      countryId:
+          countryId,
+      isCorrect:
+          isCorrect,
     );
 
     notifyListeners();
   }
 
   Future<void> _savePassport() async {
-    final bool saved = await PassportStorage.save(_passport);
+    final bool saved =
+        await PassportStorage.save(
+      _passport,
+    );
 
     if (saved) {
-      debugPrint('GeoPoint : Passeport sauvegardé.');
+      debugPrint(
+        'GeoPoint : Passeport sauvegardé.',
+      );
     } else {
       debugPrint(
         'GeoPoint : échec de la sauvegarde '
@@ -758,10 +1030,15 @@ class GameController extends ChangeNotifier {
   }
 
   Future<void> _savePlayerProfile() async {
-    final bool saved = await PlayerStorage.save(_playerProfile);
+    final bool saved =
+        await PlayerStorage.save(
+      _playerProfile,
+    );
 
     if (saved) {
-      debugPrint('GeoPoint : profil joueur sauvegardé.');
+      debugPrint(
+        'GeoPoint : profil joueur sauvegardé.',
+      );
     } else {
       debugPrint(
         'GeoPoint : échec de la sauvegarde '
@@ -771,66 +1048,140 @@ class GameController extends ChangeNotifier {
   }
 
   GameSession _createInitialSession() {
-    final GameDifficulty? difficulty = _difficulties[_currentDifficultyId];
+    final GameDifficulty? difficulty =
+        _difficulties[
+          _currentDifficultyId
+        ];
 
     return GameSession.initial(
-      questionDurationSeconds: difficulty?.questionDurationSeconds ?? 15,
-      totalQuestions: difficulty?.questionCount ?? 10,
+      questionDurationSeconds:
+          difficulty
+                  ?.questionDurationSeconds ??
+              15,
+      totalQuestions:
+          difficulty?.questionCount ??
+              10,
     );
   }
 
-  void _applyMissionConfiguration(String difficultyId) {
-    final String normalizedId = difficultyId.trim().toLowerCase();
+  void _applyMissionConfiguration(
+    String difficultyId,
+  ) {
+    final String normalizedId =
+        difficultyId
+            .trim()
+            .toLowerCase();
 
-    final String resolvedId = _difficulties.containsKey(normalizedId)
-        ? normalizedId
-        : 'discovery';
+    final String resolvedId =
+        _difficulties.containsKey(
+          normalizedId,
+        )
+            ? normalizedId
+            : 'discovery';
 
-    _currentDifficultyId = resolvedId;
+    _currentDifficultyId =
+        resolvedId;
 
-    final int maximumDifficulty = _maximumCountryDifficultyFor(resolvedId);
-
-    final List<GeoCountry> filtered = _countries
-        .where((GeoCountry country) {
-          final String countryId = country.id.trim().toUpperCase();
-
-          final int difficulty = _countryDifficulties[countryId] ?? 100;
-
-          final bool requiresCapital =
-              _currentModeId == 'find_capital' || _currentModeId == 'mixed';
-
-          final bool hasRequiredCapital =
-              !requiresCapital || _findCapital(country) != null;
-
-          final bool requiresFlag =
-              _currentModeId == 'find_flag' || _currentModeId == 'mixed';
-
-          final bool hasRequiredFlag =
-              !requiresFlag ||
-              RegExp(
-                r'^[A-Z]{2}$',
-              ).hasMatch(country.isoA2.trim().toUpperCase());
-
-          return difficulty <= maximumDifficulty &&
-              hasRequiredCapital &&
-              hasRequiredFlag;
-        })
-        .toList(growable: false);
-
-    final List<GeoCountry> eligibleCountries = filtered.isEmpty
-        ? _countries
-        : filtered;
-
-    final int requestedQuestionCount =
-        _difficulties[_currentDifficultyId]?.questionCount ?? 10;
-
-    final List<GeoCountry> selectedCountries = _countrySelector.selectCountries(
-      availableCountries: eligibleCountries,
-      questionCount: requestedQuestionCount,
+    final int maximumDifficulty =
+        _maximumCountryDifficultyFor(
+      resolvedId,
     );
 
-    _missionCountries = List<GeoCountry>.unmodifiable(
-      selectedCountries.isEmpty ? eligibleCountries : selectedCountries,
+    final List<GeoCountry> playableCountries =
+        _countries.where(
+      (GeoCountry country) {
+        return !_isExcludedFromQuestions(
+          country,
+        );
+      },
+    ).toList(
+      growable: false,
+    );
+
+    final List<GeoCountry> filtered =
+        playableCountries.where(
+      (GeoCountry country) {
+        final String countryId =
+            country.id
+                .trim()
+                .toUpperCase();
+
+        final int difficulty =
+            _countryDifficulties[
+              countryId
+            ] ??
+            100;
+
+        final bool usesTerritorialReference =
+            _findReferenceOverride(
+                  country,
+                ) !=
+                null;
+
+        final bool requiresCapital =
+            _currentModeId ==
+                    'find_capital' ||
+                _currentModeId ==
+                    'mixed';
+
+        final bool hasRequiredCapital =
+            !requiresCapital ||
+                (!usesTerritorialReference &&
+                    _findCapital(
+                      country,
+                    ) !=
+                    null);
+
+        final bool requiresFlag =
+            _currentModeId ==
+                    'find_flag' ||
+                _currentModeId ==
+                    'mixed';
+
+        final bool hasRequiredFlag =
+            !requiresFlag ||
+                (!usesTerritorialReference &&
+                    RegExp(
+                      r'^[A-Z]{2}$',
+                    ).hasMatch(
+                      country.isoA2
+                          .trim()
+                          .toUpperCase(),
+                    ));
+
+        return difficulty <=
+                maximumDifficulty &&
+            hasRequiredCapital &&
+            hasRequiredFlag;
+      },
+    ).toList(
+      growable: false,
+    );
+
+    final List<GeoCountry> eligibleCountries =
+        filtered.isEmpty
+            ? playableCountries
+            : filtered;
+
+    final int requestedQuestionCount =
+        _difficulties[
+              _currentDifficultyId
+            ]?.questionCount ??
+            10;
+
+    final List<GeoCountry> selectedCountries =
+        _countrySelector.selectCountries(
+      availableCountries:
+          eligibleCountries,
+      questionCount:
+          requestedQuestionCount,
+    );
+
+    _missionCountries =
+        List<GeoCountry>.unmodifiable(
+      selectedCountries.isEmpty
+          ? eligibleCountries
+          : selectedCountries,
     );
 
     debugPrint(
@@ -846,8 +1197,11 @@ class GameController extends ChangeNotifier {
     );
   }
 
-  String _normalizeModeId(String modeId) {
-    final String normalized = modeId.trim().toLowerCase();
+  String _normalizeModeId(
+    String modeId,
+  ) {
+    final String normalized =
+        modeId.trim().toLowerCase();
 
     switch (normalized) {
       case 'find_country':
@@ -900,35 +1254,66 @@ class GameController extends ChangeNotifier {
     }
   }
 
-  List<GeoCountry> ultimateCountriesForDifficulty(String difficultyId) {
-    final String normalizedId = difficultyId.trim().toLowerCase();
+  List<GeoCountry> ultimateCountriesForDifficulty(
+    String difficultyId,
+  ) {
+    final String normalizedId =
+        difficultyId
+            .trim()
+            .toLowerCase();
 
-    final String resolvedId = _difficulties.containsKey(normalizedId)
-        ? normalizedId
-        : 'discovery';
+    final String resolvedId =
+        _difficulties.containsKey(
+          normalizedId,
+        )
+            ? normalizedId
+            : 'discovery';
 
-    final int maximumDifficulty = _maximumCountryDifficultyFor(resolvedId);
+    final int maximumDifficulty =
+        _maximumCountryDifficultyFor(
+      resolvedId,
+    );
 
-    final List<GeoCountry> result = _countries
-        .where((GeoCountry country) {
-          final String countryId = country.id.trim().toUpperCase();
+    final List<GeoCountry> result =
+        _countries.where(
+      (GeoCountry country) {
+        final String countryId =
+            country.id
+                .trim()
+                .toUpperCase();
 
-          final int difficulty = _countryDifficulties[countryId] ?? 100;
+        final int difficulty =
+            _countryDifficulties[
+                  countryId
+                ] ??
+                100;
 
-          final bool hasUsableShape = country.polygons.any((
-            List<LatLng> polygon,
-          ) {
+        final bool hasUsableShape =
+            country.polygons.any(
+          (List<LatLng> polygon) {
             return polygon.length >= 3;
-          });
+          },
+        );
 
-          return difficulty <= maximumDifficulty && hasUsableShape;
-        })
-        .toList(growable: false);
+        return !_isExcludedFromQuestions(
+              country,
+            ) &&
+            difficulty <=
+                maximumDifficulty &&
+            hasUsableShape;
+      },
+    ).toList(
+      growable: false,
+    );
 
-    return List<GeoCountry>.unmodifiable(result);
+    return List<GeoCountry>.unmodifiable(
+      result,
+    );
   }
 
-  int _maximumCountryDifficultyFor(String difficultyId) {
+  int _maximumCountryDifficultyFor(
+    String difficultyId,
+  ) {
     switch (difficultyId) {
       case 'discovery':
         return 20;
@@ -950,21 +1335,44 @@ class GameController extends ChangeNotifier {
     }
   }
 
-  ReferencePoint? _findReferenceOverride(GeoCountry country) {
-    final String countryId = country.id.trim().toUpperCase();
+  bool _isExcludedFromQuestions(
+    GeoCountry country,
+  ) {
+    final String countryId =
+        country.id
+            .trim()
+            .toUpperCase();
+
+    return _excludedQuestionEntityIds.contains(
+      countryId,
+    );
+  }
+
+  ReferencePoint? _findReferenceOverride(
+    GeoCountry country,
+  ) {
+    final String countryId =
+        country.id
+            .trim()
+            .toUpperCase();
 
     if (countryId.isEmpty) {
       return null;
     }
 
-    final ReferencePoint? directMatch = _referenceOverrides[countryId];
+    final ReferencePoint? directMatch =
+        _referenceOverrides[countryId];
 
     if (directMatch != null) {
       return directMatch;
     }
 
-    for (final ReferencePoint point in _referenceOverrides.values) {
-      if (point.entityId.trim().toUpperCase() == countryId) {
+    for (final ReferencePoint point
+        in _referenceOverrides.values) {
+      if (point.entityId
+              .trim()
+              .toUpperCase() ==
+          countryId) {
         return point;
       }
     }
@@ -972,22 +1380,39 @@ class GameController extends ChangeNotifier {
     return null;
   }
 
-  Capital? _findCapital(GeoCountry country) {
-    final String countryId = country.id.trim().toUpperCase();
+  Capital? _findCapital(
+    GeoCountry country,
+  ) {
+    if (_findReferenceOverride(
+          country,
+        ) !=
+        null) {
+      return null;
+    }
 
-    final Capital? byCountryId = _capitals[countryId];
+    final String countryId =
+        country.id
+            .trim()
+            .toUpperCase();
+
+    final Capital? byCountryId =
+        _capitals[countryId];
 
     if (byCountryId != null) {
       return byCountryId;
     }
 
-    final String isoA2 = country.isoA2.trim().toUpperCase();
+    final String isoA2 =
+        country.isoA2
+            .trim()
+            .toUpperCase();
 
     if (isoA2.isEmpty) {
       return null;
     }
 
-    for (final Capital capital in _capitals.values) {
+    for (final Capital capital
+        in _capitals.values) {
       if (capital.isoA2 == isoA2) {
         return capital;
       }
@@ -996,11 +1421,20 @@ class GameController extends ChangeNotifier {
     return null;
   }
 
-  GeoCountry? _findCountryById(String countryId) {
-    final String normalizedId = countryId.trim().toUpperCase();
+  GeoCountry? _findCountryById(
+    String countryId,
+  ) {
+    final String normalizedId =
+        countryId
+            .trim()
+            .toUpperCase();
 
-    for (final GeoCountry country in _countries) {
-      if (country.id.trim().toUpperCase() == normalizedId) {
+    for (final GeoCountry country
+        in _countries) {
+      if (country.id
+              .trim()
+              .toUpperCase() ==
+          normalizedId) {
         return country;
       }
     }
@@ -1008,14 +1442,27 @@ class GameController extends ChangeNotifier {
     return null;
   }
 
-  LatLng _calculateCountryCenter(GeoCountry country) {
+  LatLng _calculateCountryCenter(
+    GeoCountry country,
+  ) {
     final double latitude =
-        (country.bounds.minLatitude + country.bounds.maxLatitude) / 2;
+        (
+          country.bounds.minLatitude +
+          country.bounds.maxLatitude
+        ) /
+        2;
 
     final double longitude =
-        (country.bounds.minLongitude + country.bounds.maxLongitude) / 2;
+        (
+          country.bounds.minLongitude +
+          country.bounds.maxLongitude
+        ) /
+        2;
 
-    return LatLng(latitude, longitude);
+    return LatLng(
+      latitude,
+      longitude,
+    );
   }
 
   void _clearAnswer() {

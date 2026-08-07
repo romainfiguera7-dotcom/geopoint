@@ -10,7 +10,7 @@
   "AFG": {
     "isoA2": "AF",
     "isoA3": "AFG",
-    "capital": "Kabul",
+    "capital": "Kaboul",
     "latitude": 34.52813,
     "longitude": 69.17233,
     "population": 4434550
@@ -50,7 +50,7 @@
   "AND": {
     "isoA2": "AD",
     "isoA3": "AND",
-    "capital": "Andorra la Vella",
+    "capital": "Andorre-la-Vieille",
     "latitude": 42.50779,
     "longitude": 1.52109,
     "population": 20430
@@ -58,7 +58,7 @@
   "ARE": {
     "isoA2": "AE",
     "isoA3": "ARE",
-    "capital": "Abu Dhabi",
+    "capital": "Abou Dabi",
     "latitude": 24.45118,
     "longitude": 54.39696,
     "population": 1807000
@@ -74,7 +74,7 @@
   "ARM": {
     "isoA2": "AM",
     "isoA3": "ARM",
-    "capital": "Yerevan",
+    "capital": "Erevan",
     "latitude": 40.17765,
     "longitude": 44.5126,
     "population": 1144700
@@ -114,7 +114,7 @@
   "AUT": {
     "isoA2": "AT",
     "isoA3": "AUT",
-    "capital": "Vienna",
+    "capital": "Vienne",
     "latitude": 48.20849,
     "longitude": 16.37208,
     "population": 1691468
@@ -122,7 +122,7 @@
   "AZE": {
     "isoA2": "AZ",
     "isoA3": "AZE",
-    "capital": "Baku",
+    "capital": "Bakou",
     "latitude": 40.37767,
     "longitude": 49.89201,
     "population": 2351300
@@ -138,7 +138,7 @@
   "BEL": {
     "isoA2": "BE",
     "isoA3": "BEL",
-    "capital": "Brussels",
+    "capital": "Bruxelles",
     "latitude": 50.85045,
     "longitude": 4.34878,
     "population": 1019022
@@ -170,7 +170,7 @@
   "BGD": {
     "isoA2": "BD",
     "isoA3": "BGD",
-    "capital": "Dhaka",
+    "capital": "Dacca",
     "latitude": 23.7104,
     "longitude": 90.40744,
     "population": 10356500
@@ -274,7 +274,7 @@
   "BTN": {
     "isoA2": "BT",
     "isoA3": "BTN",
-    "capital": "Thimphu",
+    "capital": "Thimphou",
     "latitude": 27.46609,
     "longitude": 89.64191,
     "population": 98676
@@ -330,7 +330,7 @@
   "CHN": {
     "isoA2": "CN",
     "isoA3": "CHN",
-    "capital": "Beijing",
+    "capital": "Pékin",
     "latitude": 39.9075,
     "longitude": 116.39723,
     "population": 18960744
@@ -410,7 +410,7 @@
   "CUB": {
     "isoA2": "CU",
     "isoA3": "CUB",
-    "capital": "Havana",
+    "capital": "La Havane",
     "latitude": 23.13302,
     "longitude": -82.38304,
     "population": 2163824
@@ -442,7 +442,7 @@
   "CYP": {
     "isoA2": "CY",
     "isoA3": "CYP",
-    "capital": "Nicosia",
+    "capital": "Nicosie",
     "latitude": 35.17284,
     "longitude": 33.35397,
     "population": 200452
@@ -482,7 +482,7 @@
   "DNK": {
     "isoA2": "DK",
     "isoA3": "DNK",
-    "capital": "Copenhagen",
+    "capital": "Copenhague",
     "latitude": 55.67594,
     "longitude": 12.56553,
     "population": 1153615
@@ -498,7 +498,7 @@
   "DZA": {
     "isoA2": "DZ",
     "isoA3": "DZA",
-    "capital": "Algiers",
+    "capital": "Alger",
     "latitude": 36.73225,
     "longitude": 3.08746,
     "population": 2364230
@@ -514,7 +514,7 @@
   "EGY": {
     "isoA2": "EG",
     "isoA3": "EGY",
-    "capital": "Cairo",
+    "capital": "Le Caire",
     "latitude": 30.06263,
     "longitude": 31.24967,
     "population": 9606916
@@ -546,7 +546,7 @@
   "ETH": {
     "isoA2": "ET",
     "isoA3": "ETH",
-    "capital": "Addis Ababa",
+    "capital": "Addis-Abeba",
     "latitude": 9.02497,
     "longitude": 38.74689,
     "population": 3860000
@@ -610,7 +610,7 @@
   "GBR": {
     "isoA2": "GB",
     "isoA3": "GBR",
-    "capital": "London",
+    "capital": "Londres",
     "latitude": 51.50853,
     "longitude": -0.12574,
     "population": 8961989
@@ -618,7 +618,7 @@
   "GEO": {
     "isoA2": "GE",
     "isoA3": "GEO",
-    "capital": "Tbilisi",
+    "capital": "Tbilissi",
     "latitude": 41.69143,
     "longitude": 44.83412,
     "population": 1049498
@@ -626,7 +626,7 @@
   "GGY": {
     "isoA2": "GG",
     "isoA3": "GGY",
-    "capital": "Saint Peter Port",
+    "capital": "Saint-Pierre-Port",
     "latitude": 49.45981,
     "longitude": -2.53527,
     "population": 16488
@@ -690,7 +690,7 @@
   "GRC": {
     "isoA2": "GR",
     "isoA3": "GRC",
-    "capital": "Athens",
+    "capital": "Athènes",
     "latitude": 37.98376,
     "longitude": 23.72784,
     "population": 664046
@@ -714,7 +714,7 @@
   "GTM": {
     "isoA2": "GT",
     "isoA3": "GTM",
-    "capital": "Guatemala City",
+    "capital": "Guatemala",
     "latitude": 14.64072,
     "longitude": -90.51327,
     "population": 994938
@@ -818,7 +818,7 @@
   "IRN": {
     "isoA2": "IR",
     "isoA3": "IRN",
-    "capital": "Tehran",
+    "capital": "Téhéran",
     "latitude": 35.69439,
     "longitude": 51.42151,
     "population": 7153309
@@ -826,10 +826,18 @@
   "IRQ": {
     "isoA2": "IQ",
     "isoA3": "IRQ",
-    "capital": "Baghdad",
+    "capital": "Bagdad",
     "latitude": 33.34058,
     "longitude": 44.40088,
     "population": 7216000
+  },
+  "ISR": {
+    "isoA2": "IL",
+    "isoA3": "ISR",
+    "capital": "Jérusalem",
+    "latitude": 31.7683,
+    "longitude": 35.2137,
+    "population": 936425
   },
   "ISL": {
     "isoA2": "IS",
@@ -858,7 +866,7 @@
   "JEY": {
     "isoA2": "JE",
     "isoA3": "JEY",
-    "capital": "Saint Helier",
+    "capital": "Saint-Hélier",
     "latitude": 49.18804,
     "longitude": -2.10491,
     "population": 28000
@@ -875,8 +883,8 @@
     "isoA2": "JP",
     "isoA3": "JPN",
     "capital": "Tokyo",
-    "latitude": 35.6895,
-    "longitude": 139.69171,
+    "latitude": 35.6586,
+    "longitude": 139.7454,
     "population": 9733276
   },
   "KAZ": {
@@ -898,7 +906,7 @@
   "KGZ": {
     "isoA2": "KG",
     "isoA3": "KGZ",
-    "capital": "Bishkek",
+    "capital": "Bichkek",
     "latitude": 42.87,
     "longitude": 74.59,
     "population": 900000
@@ -930,7 +938,7 @@
   "KOR": {
     "isoA2": "KR",
     "isoA3": "KOR",
-    "capital": "Seoul",
+    "capital": "Séoul",
     "latitude": 37.566,
     "longitude": 126.9784,
     "population": 10349312
@@ -938,7 +946,7 @@
   "KWT": {
     "isoA2": "KW",
     "isoA3": "KWT",
-    "capital": "Kuwait City",
+    "capital": "Koweït",
     "latitude": 29.367,
     "longitude": 47.97429,
     "population": 60064
@@ -954,7 +962,7 @@
   "LBN": {
     "isoA2": "LB",
     "isoA3": "LBN",
-    "capital": "Beirut",
+    "capital": "Beyrouth",
     "latitude": 33.89332,
     "longitude": 35.50157,
     "population": 1916100
@@ -994,10 +1002,10 @@
   "LKA": {
     "isoA2": "LK",
     "isoA3": "LKA",
-    "capital": "Colombo",
-    "latitude": 6.93548,
-    "longitude": 79.84868,
-    "population": 648034
+    "capital": "Sri Jayawardenepura Kotte",
+    "latitude": 6.8941,
+    "longitude": 79.9025,
+    "population": 115826
   },
   "LSO": {
     "isoA2": "LS",
@@ -1034,7 +1042,7 @@
   "MAC": {
     "isoA2": "MO",
     "isoA3": "MAC",
-    "capital": "Macau",
+    "capital": "Macao",
     "latitude": 22.20056,
     "longitude": 113.54611,
     "population": 649335
@@ -1082,7 +1090,7 @@
   "MDV": {
     "isoA2": "MV",
     "isoA3": "MDV",
-    "capital": "Male",
+    "capital": "Malé",
     "latitude": 4.17521,
     "longitude": 73.50916,
     "population": 103693
@@ -1090,7 +1098,7 @@
   "MEX": {
     "isoA2": "MX",
     "isoA3": "MEX",
-    "capital": "Mexico City",
+    "capital": "Mexico",
     "latitude": 19.42847,
     "longitude": -99.12766,
     "population": 12294193
@@ -1122,7 +1130,7 @@
   "MLT": {
     "isoA2": "MT",
     "isoA3": "MLT",
-    "capital": "Valletta",
+    "capital": "La Valette",
     "latitude": 35.89968,
     "longitude": 14.5148,
     "population": 6794
@@ -1130,7 +1138,7 @@
   "MMR": {
     "isoA2": "MM",
     "isoA3": "MMR",
-    "capital": "Nay Pyi Taw",
+    "capital": "Naypyidaw",
     "latitude": 19.745,
     "longitude": 96.12972,
     "population": 925000
@@ -1146,7 +1154,7 @@
   "MNG": {
     "isoA2": "MN",
     "isoA3": "MNG",
-    "capital": "Ulan Bator",
+    "capital": "Oulan-Bator",
     "latitude": 47.90771,
     "longitude": 106.88324,
     "population": 844818
@@ -1194,7 +1202,7 @@
   "MUS": {
     "isoA2": "MU",
     "isoA3": "MUS",
-    "capital": "Port Louis",
+    "capital": "Port-Louis",
     "latitude": -20.16194,
     "longitude": 57.49889,
     "population": 155226
@@ -1298,7 +1306,7 @@
   "NPL": {
     "isoA2": "NP",
     "isoA3": "NPL",
-    "capital": "Kathmandu",
+    "capital": "Katmandou",
     "latitude": 27.70169,
     "longitude": 85.3206,
     "population": 1442271
@@ -1322,7 +1330,7 @@
   "OMN": {
     "isoA2": "OM",
     "isoA3": "OMN",
-    "capital": "Muscat",
+    "capital": "Mascate",
     "latitude": 23.58413,
     "longitude": 58.40778,
     "population": 797000
@@ -1338,7 +1346,7 @@
   "PAN": {
     "isoA2": "PA",
     "isoA3": "PAN",
-    "capital": "Panama City",
+    "capital": "Panama",
     "latitude": 8.9936,
     "longitude": -79.51973,
     "population": 408168
@@ -1378,7 +1386,7 @@
   "PNG": {
     "isoA2": "PG",
     "isoA3": "PNG",
-    "capital": "Port Moresby",
+    "capital": "Port-Moresby",
     "latitude": -9.47723,
     "longitude": 147.15089,
     "population": 283733
@@ -1386,7 +1394,7 @@
   "POL": {
     "isoA2": "PL",
     "isoA3": "POL",
-    "capital": "Warsaw",
+    "capital": "Varsovie",
     "latitude": 52.22977,
     "longitude": 21.01178,
     "population": 1702139
@@ -1410,7 +1418,7 @@
   "PRT": {
     "isoA2": "PT",
     "isoA3": "PRT",
-    "capital": "Lisbon",
+    "capital": "Lisbonne",
     "latitude": 38.72509,
     "longitude": -9.1498,
     "population": 517802
@@ -1450,7 +1458,7 @@
   "ROU": {
     "isoA2": "RO",
     "isoA3": "ROU",
-    "capital": "Bucharest",
+    "capital": "Bucarest",
     "latitude": 44.43225,
     "longitude": 26.10626,
     "population": 1877155
@@ -1458,7 +1466,7 @@
   "RUS": {
     "isoA2": "RU",
     "isoA3": "RUS",
-    "capital": "Moscow",
+    "capital": "Moscou",
     "latitude": 55.75204,
     "longitude": 37.61781,
     "population": 10381222
@@ -1474,7 +1482,7 @@
   "SAU": {
     "isoA2": "SA",
     "isoA3": "SAU",
-    "capital": "Riyadh",
+    "capital": "Riyad",
     "latitude": 24.68773,
     "longitude": 46.72185,
     "population": 4205961
@@ -1498,7 +1506,7 @@
   "SGP": {
     "isoA2": "SG",
     "isoA3": "SGP",
-    "capital": "Singapore",
+    "capital": "Singapour",
     "latitude": 1.28967,
     "longitude": 103.85007,
     "population": 5638700
@@ -1554,7 +1562,7 @@
   "SMR": {
     "isoA2": "SM",
     "isoA3": "SMR",
-    "capital": "San Marino",
+    "capital": "Saint-Marin",
     "latitude": 43.93667,
     "longitude": 12.44639,
     "population": 4500
@@ -1562,7 +1570,7 @@
   "SOM": {
     "isoA2": "SO",
     "isoA3": "SOM",
-    "capital": "Mogadishu",
+    "capital": "Mogadiscio",
     "latitude": 2.03711,
     "longitude": 45.34375,
     "population": 2587183
@@ -1658,7 +1666,7 @@
   "SYR": {
     "isoA2": "SY",
     "isoA3": "SYR",
-    "capital": "Damascus",
+    "capital": "Damas",
     "latitude": 33.5102,
     "longitude": 36.29128,
     "population": 1569394
@@ -1698,7 +1706,7 @@
   "TJK": {
     "isoA2": "TJ",
     "isoA3": "TJK",
-    "capital": "Dushanbe",
+    "capital": "Douchanbé",
     "latitude": 38.53575,
     "longitude": 68.77905,
     "population": 679400
@@ -1706,7 +1714,7 @@
   "TKM": {
     "isoA2": "TM",
     "isoA3": "TKM",
-    "capital": "Ashgabat",
+    "capital": "Achgabat",
     "latitude": 37.95,
     "longitude": 58.38333,
     "population": 1030063
@@ -1730,7 +1738,7 @@
   "TTO": {
     "isoA2": "TT",
     "isoA3": "TTO",
-    "capital": "Port of Spain",
+    "capital": "Port-d'Espagne",
     "latitude": 10.66668,
     "longitude": -61.51889,
     "population": 49031
@@ -1810,7 +1818,7 @@
   "UZB": {
     "isoA2": "UZ",
     "isoA3": "UZB",
-    "capital": "Tashkent",
+    "capital": "Tachkent",
     "latitude": 41.26465,
     "longitude": 69.21627,
     "population": 1978028
@@ -1818,9 +1826,9 @@
   "VAT": {
     "isoA2": "VA",
     "isoA3": "VAT",
-    "capital": "Vatican City",
-    "latitude": 41.90268,
-    "longitude": 12.45414,
+    "capital": "Cité du Vatican",
+    "latitude": 41.90333,
+    "longitude": 12.45339,
     "population": 829
   },
   "VCT": {

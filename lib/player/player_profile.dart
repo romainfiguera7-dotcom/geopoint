@@ -1,4 +1,5 @@
 import 'player_level.dart';
+import 'player_statistics.dart';
 
 class PlayerProfile {
   const PlayerProfile({
@@ -11,13 +12,14 @@ class PlayerProfile {
     required this.correctAnswers,
     required this.totalAnswers,
     required this.totalScore,
+    this.statisticsByMode = const <String, ModeStatistics>{},
     required this.totalDistanceInKilometers,
     required this.totalElapsedSeconds,
     required this.createdAt,
     required this.lastPlayedAt,
   });
 
-  static const int currentSchemaVersion = 1;
+  static const int currentSchemaVersion = 2;
 
   final int schemaVersion;
 
@@ -31,6 +33,13 @@ class PlayerProfile {
   final int correctAnswers;
   final int totalAnswers;
   final int totalScore;
+
+  /// Statistiques détaillées pour chaque mode de jeu.
+  ///
+  /// Les anciennes sauvegardes restent compatibles :
+  /// cette collection est simplement vide jusqu’à la
+  /// prochaine partie terminée.
+  final Map<String, ModeStatistics> statisticsByMode;
 
   final double totalDistanceInKilometers;
   final int totalElapsedSeconds;
@@ -56,6 +65,7 @@ class PlayerProfile {
       correctAnswers: 0,
       totalAnswers: 0,
       totalScore: 0,
+      statisticsByMode: const <String, ModeStatistics>{},
       totalDistanceInKilometers: 0,
       totalElapsedSeconds: 0,
       createdAt: now,
@@ -135,11 +145,23 @@ class PlayerProfile {
     return Duration(seconds: totalElapsedSeconds);
   }
 
+  ModeStatistics statisticsForMode(String modeId) {
+    final String normalizedId = _normalizeStatisticsId(
+      modeId,
+      fallback: 'find_country',
+    );
+
+    return statisticsByMode[normalizedId] ??
+        ModeStatistics.initial(normalizedId);
+  }
+
   PlayerProfile registerGameResult({
     required int earnedXp,
     required int gameScore,
     required int gameCorrectAnswers,
     required int gameTotalAnswers,
+    String modeId = 'find_country',
+    String difficultyId = 'discovery',
     required double gameDistanceInKilometers,
     required int gameElapsedSeconds,
     DateTime? playedAt,
@@ -166,12 +188,36 @@ class PlayerProfile {
       throw ArgumentError('Le temps total ne peut pas être négatif.');
     }
 
+    final String normalizedModeId = _normalizeStatisticsId(
+      modeId,
+      fallback: 'find_country',
+    );
+
+    final String normalizedDifficultyId = _normalizeStatisticsId(
+      difficultyId,
+      fallback: 'discovery',
+    );
+
+    final Map<String, ModeStatistics> updatedStatistics =
+        Map<String, ModeStatistics>.from(statisticsByMode);
+
+    updatedStatistics[normalizedModeId] = statisticsForMode(normalizedModeId)
+        .registerGame(
+          difficultyId: normalizedDifficultyId,
+          score: gameScore,
+          correctAnswers: gameCorrectAnswers,
+          totalQuestions: gameTotalAnswers,
+        );
+
     return copyWith(
       totalXp: totalXp + earnedXp,
       gamesPlayed: gamesPlayed + 1,
       correctAnswers: correctAnswers + gameCorrectAnswers,
       totalAnswers: totalAnswers + gameTotalAnswers,
       totalScore: totalScore + gameScore,
+      statisticsByMode: Map<String, ModeStatistics>.unmodifiable(
+        updatedStatistics,
+      ),
       totalDistanceInKilometers:
           totalDistanceInKilometers + gameDistanceInKilometers,
       totalElapsedSeconds: totalElapsedSeconds + gameElapsedSeconds,
@@ -209,6 +255,7 @@ class PlayerProfile {
     int? correctAnswers,
     int? totalAnswers,
     int? totalScore,
+    Map<String, ModeStatistics>? statisticsByMode,
     double? totalDistanceInKilometers,
     int? totalElapsedSeconds,
     DateTime? createdAt,
@@ -225,6 +272,7 @@ class PlayerProfile {
       correctAnswers: correctAnswers ?? this.correctAnswers,
       totalAnswers: totalAnswers ?? this.totalAnswers,
       totalScore: totalScore ?? this.totalScore,
+      statisticsByMode: statisticsByMode ?? this.statisticsByMode,
       totalDistanceInKilometers:
           totalDistanceInKilometers ?? this.totalDistanceInKilometers,
       totalElapsedSeconds: totalElapsedSeconds ?? this.totalElapsedSeconds,
@@ -246,6 +294,11 @@ class PlayerProfile {
       'correctAnswers': correctAnswers,
       'totalAnswers': totalAnswers,
       'totalScore': totalScore,
+      'statisticsByMode': <String, dynamic>{
+        for (final MapEntry<String, ModeStatistics> entry
+            in statisticsByMode.entries)
+          entry.key: entry.value.toJson(),
+      },
       'totalDistanceInKilometers': totalDistanceInKilometers,
       'totalElapsedSeconds': totalElapsedSeconds,
       'createdAt': createdAt.toIso8601String(),
@@ -256,11 +309,32 @@ class PlayerProfile {
   factory PlayerProfile.fromJson(Map<String, dynamic> json) {
     final DateTime now = DateTime.now();
 
+    final Map<String, ModeStatistics> statistics = <String, ModeStatistics>{};
+
+    final Object? rawStatistics = json['statisticsByMode'];
+
+    if (rawStatistics is Map) {
+      for (final MapEntry<dynamic, dynamic> entry in rawStatistics.entries) {
+        final String modeId = _normalizeStatisticsId(
+          entry.key.toString(),
+          fallback: '',
+        );
+
+        if (modeId.isEmpty || entry.value is! Map) {
+          continue;
+        }
+
+        final Map<String, dynamic> modeJson = (entry.value as Map)
+            .map<String, dynamic>((dynamic key, dynamic value) {
+              return MapEntry<String, dynamic>(key.toString(), value);
+            });
+
+        statistics[modeId] = ModeStatistics.fromJson(modeId, modeJson);
+      }
+    }
+
     return PlayerProfile(
-      schemaVersion: _readInt(
-        json['schemaVersion'],
-        fallback: currentSchemaVersion,
-      ),
+      schemaVersion: currentSchemaVersion,
       playerId: _readString(json['playerId'], fallback: 'local_player'),
       displayName: _readString(json['displayName'], fallback: 'Voyageur'),
       avatarId: _readString(json['avatarId'], fallback: 'default'),
@@ -269,6 +343,7 @@ class PlayerProfile {
       correctAnswers: _readInt(json['correctAnswers'], fallback: 0),
       totalAnswers: _readInt(json['totalAnswers'], fallback: 0),
       totalScore: _readInt(json['totalScore'], fallback: 0),
+      statisticsByMode: Map<String, ModeStatistics>.unmodifiable(statistics),
       totalDistanceInKilometers: _readDouble(
         json['totalDistanceInKilometers'],
         fallback: 0,
@@ -327,6 +402,15 @@ class PlayerProfile {
     }
 
     return DateTime.tryParse(text);
+  }
+
+  static String _normalizeStatisticsId(
+    String value, {
+    required String fallback,
+  }) {
+    final String normalized = value.trim().toLowerCase();
+
+    return normalized.isEmpty ? fallback : normalized;
   }
 
   @override

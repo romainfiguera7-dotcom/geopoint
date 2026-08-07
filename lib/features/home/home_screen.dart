@@ -7,11 +7,10 @@ import '../../geo_engine/geojson_loader.dart';
 import '../expeditions/expeditions_screen.dart';
 import '../passport/passport_screen.dart';
 import '../settings/settings_screen.dart';
+import '../statistics/statistics_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({
-    super.key,
-  });
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() {
@@ -26,22 +25,17 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _hasOpenedAdventure = false;
 
   Future<GameController> _getGameController() async {
-    final GameController? existingController =
-        _gameController;
+    final GameController? existingController = _gameController;
 
     if (existingController != null) {
       return existingController;
     }
 
-    final GameController controller =
-        GameController();
+    final GameController controller = GameController();
 
-    final List<GeoCountry> countries =
-        await GeoJsonLoader.loadCountries();
+    final List<GeoCountry> countries = await GeoJsonLoader.loadCountries();
 
-    await controller.initialize(
-      countries,
-    );
+    await controller.initialize(countries);
 
     _gameController = controller;
 
@@ -75,12 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
       await Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
-          builder: (
-            BuildContext context,
-          ) {
-            return ExpeditionsScreen(
-              controller: _gameController!,
-            );
+          builder: (BuildContext context) {
+            return ExpeditionsScreen(controller: _gameController!);
           },
         ),
       );
@@ -94,9 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'des expéditions : $error',
       );
 
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
+      debugPrintStack(stackTrace: stackTrace);
 
       if (!mounted) {
         return;
@@ -122,12 +110,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openPassport() {
     Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (
-          BuildContext context,
-        ) {
-          return PassportScreen(
-            controller: _gameController,
-          );
+        builder: (BuildContext context) {
+          return PassportScreen(controller: _gameController);
         },
       ),
     );
@@ -155,12 +139,66 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _openStatistics() async {
+    if (_isPreparingGame) {
+      return;
+    }
+
+    setState(() {
+      _isPreparingGame = true;
+    });
+
+    try {
+      final GameController controller = await _getGameController();
+
+      if (!mounted) {
+        return;
+      }
+
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) {
+            return StatisticsScreen(controller: controller);
+          },
+        ),
+      );
+
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Erreur pendant l’ouverture '
+        'des statistiques : $error',
+      );
+
+      debugPrintStack(stackTrace: stackTrace);
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Impossible d’ouvrir les statistiques.\n'
+            '$error',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPreparingGame = false;
+        });
+      }
+    }
+  }
+
   void _openSettings() {
     Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (
-          BuildContext context,
-        ) {
+        builder: (BuildContext context) {
           return const SettingsScreen();
         },
       ),
@@ -175,67 +213,42 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final GameController? controller =
-        _gameController;
+    final GameController? controller = _gameController;
 
     final bool hasStarted =
-        _hasOpenedAdventure ||
-        controller?.passport.hasStarted == true;
+        _hasOpenedAdventure || controller?.passport.hasStarted == true;
 
-    final String adventureTitle =
-        hasStarted
-            ? 'CONTINUER L’AVENTURE'
-            : 'COMMENCER L’AVENTURE';
+    final String adventureTitle = hasStarted
+        ? 'CONTINUER L’AVENTURE'
+        : 'COMMENCER L’AVENTURE';
 
-    final String adventureSubtitle =
-        hasStarted
-            ? 'Reprends ton exploration'
-            : 'Obtiens ton premier tampon';
+    final String adventureSubtitle = hasStarted
+        ? 'Reprends ton exploration'
+        : 'Obtiens ton premier tampon';
 
-    final int validatedStamps =
-        controller
-                ?.passport
-                .validatedStampCount ??
-            0;
+    final int validatedStamps = controller?.passport.validatedStampCount ?? 0;
 
     final int totalStamps =
-        controller
-                ?.passportEngine
-                .stamps
-                .values
-                .where(
-                  (stamp) => stamp.isEnabled,
-                )
-                .length ??
-            4;
+        controller?.passportEngine.stamps.values
+            .where((stamp) => stamp.isEnabled)
+            .length ??
+        4;
 
-    final double progress =
-        totalStamps <= 0
-            ? 0
-            : validatedStamps / totalStamps;
+    final double progress = totalStamps <= 0
+        ? 0
+        : validatedStamps / totalStamps;
 
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          const Positioned.fill(
-            child: _GameBackground(),
-          ),
+          const Positioned.fill(child: _GameBackground()),
 
           SafeArea(
             child: SingleChildScrollView(
-              padding:
-                  const EdgeInsets.fromLTRB(
-                20,
-                10,
-                20,
-                28,
-              ),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
               child: Center(
                 child: Container(
-                  constraints:
-                      const BoxConstraints(
-                    maxWidth: 520,
-                  ),
+                  constraints: const BoxConstraints(maxWidth: 520),
                   child: Column(
                     children: <Widget>[
                       Row(
@@ -245,27 +258,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           const Spacer(),
 
                           IconButton(
-                            onPressed:
-                                _openSettings,
+                            onPressed: _openSettings,
                             tooltip: 'Paramètres',
-                            style:
-                                IconButton.styleFrom(
-                              backgroundColor:
-                                  Colors.white
-                                      .withValues(
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.white.withValues(
                                 alpha: 0.12,
                               ),
-                              foregroundColor:
-                                  Colors.white,
-                              minimumSize:
-                                  const Size(
-                                46,
-                                46,
-                              ),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(46, 46),
                             ),
-                            icon: const Icon(
-                              Icons.settings_outlined,
-                            ),
+                            icon: const Icon(Icons.settings_outlined),
                           ),
                         ],
                       ),
@@ -278,21 +280,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       _AdventureCard(
                         title: adventureTitle,
-                        subtitle:
-                            adventureSubtitle,
+                        subtitle: adventureSubtitle,
                         progress: progress,
-                        validatedStamps:
-                            validatedStamps,
-                        totalStamps:
-                            totalStamps,
-                        isLoading:
-                            _isPreparingGame,
-                        hasStarted:
-                            hasStarted,
-                        onPressed:
-                            _isPreparingGame
-                                ? null
-                                : _openAdventure,
+                        validatedStamps: validatedStamps,
+                        totalStamps: totalStamps,
+                        isLoading: _isPreparingGame,
+                        hasStarted: hasStarted,
+                        onPressed: _isPreparingGame ? null : _openAdventure,
                       ),
 
                       const SizedBox(height: 18),
@@ -301,20 +295,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: <Widget>[
                           Expanded(
                             child: _GameModeCard(
-                              icon:
-                                  Icons.badge_outlined,
-                              iconColor:
-                                  const Color(
-                                0xFFFFC857,
-                              ),
+                              icon: Icons.badge_outlined,
+                              iconColor: const Color(0xFFFFC857),
                               title: 'Passeport',
-                              subtitle:
-                                  controller == null
-                                      ? 'Ton aventure'
-                                      : '$validatedStamps '
-                                          'tampon(s)',
-                              onPressed:
-                                  _openPassport,
+                              subtitle: controller == null
+                                  ? 'Ton aventure'
+                                  : '$validatedStamps '
+                                        'tampon(s)',
+                              onPressed: _openPassport,
                             ),
                           ),
 
@@ -322,17 +310,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           Expanded(
                             child: _GameModeCard(
-                              icon:
-                                  Icons.travel_explore,
-                              iconColor:
-                                  const Color(
-                                0xFF57E389,
-                              ),
+                              icon: Icons.travel_explore,
+                              iconColor: const Color(0xFF57E389),
                               title: 'Découverte',
-                              subtitle:
-                                  'Explore librement',
-                              onPressed:
-                                  _openDiscovery,
+                              subtitle: 'Explore librement',
+                              onPressed: _openDiscovery,
                             ),
                           ),
                         ],
@@ -341,14 +323,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 14),
 
                       _WideModeCard(
-                        icon:
-                            Icons.child_care,
+                        icon: Icons.query_stats_rounded,
+                        title: 'Statistiques',
+                        subtitle: 'Suis tes progrès par mode',
+                        badgeText: 'NOUVEAU',
+                        onPressed: _openStatistics,
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      _WideModeCard(
+                        icon: Icons.child_care,
                         title: 'Mode enfant',
-                        subtitle:
-                            'Apprendre sans chronomètre',
+                        subtitle: 'Apprendre sans chronomètre',
                         badgeText: 'BIENTÔT',
-                        onPressed:
-                            _openChildMode,
+                        onPressed: _openChildMode,
                       ),
 
                       const SizedBox(height: 22),
@@ -359,15 +348,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       Text(
                         'GEOPOINT • VERSION 1.0.0',
-                        style:
-                            GoogleFonts.nunitoSans(
-                          color: Colors.white
-                              .withValues(
-                            alpha: 0.38,
-                          ),
+                        style: GoogleFonts.nunitoSans(
+                          color: Colors.white.withValues(alpha: 0.38),
                           fontSize: 10,
-                          fontWeight:
-                              FontWeight.w800,
+                          fontWeight: FontWeight.w800,
                           letterSpacing: 1,
                         ),
                       ),
@@ -398,11 +382,7 @@ class _GameBackground extends StatelessWidget {
             Color(0xFF0D3B78),
             Color(0xFF176BFF),
           ],
-          stops: <double>[
-            0,
-            0.60,
-            1,
-          ],
+          stops: <double>[0, 0.60, 1],
         ),
       ),
       child: Stack(
@@ -410,31 +390,19 @@ class _GameBackground extends StatelessWidget {
           Positioned(
             top: 76,
             left: -50,
-            child: _GlowCircle(
-              size: 190,
-              color:
-                  Color(0xFF28C2FF),
-            ),
+            child: _GlowCircle(size: 190, color: Color(0xFF28C2FF)),
           ),
 
           Positioned(
             right: -70,
             top: 250,
-            child: _GlowCircle(
-              size: 210,
-              color:
-                  Color(0xFF57E389),
-            ),
+            child: _GlowCircle(size: 210, color: Color(0xFF57E389)),
           ),
 
           Positioned(
             left: 32,
             bottom: 120,
-            child: Icon(
-              Icons.location_on,
-              size: 54,
-              color: Colors.white24,
-            ),
+            child: Icon(Icons.location_on, size: 54, color: Colors.white24),
           ),
 
           Positioned(
@@ -442,11 +410,7 @@ class _GameBackground extends StatelessWidget {
             top: 126,
             child: Transform.rotate(
               angle: 0.20,
-              child: Icon(
-                Icons.explore,
-                size: 54,
-                color: Colors.white24,
-              ),
+              child: Icon(Icons.explore, size: 54, color: Colors.white24),
             ),
           ),
 
@@ -455,10 +419,7 @@ class _GameBackground extends StatelessWidget {
             top: 280,
             child: Text(
               '✦',
-              style: TextStyle(
-                color: Colors.white30,
-                fontSize: 30,
-              ),
+              style: TextStyle(color: Colors.white30, fontSize: 30),
             ),
           ),
 
@@ -467,10 +428,7 @@ class _GameBackground extends StatelessWidget {
             bottom: 250,
             child: Text(
               '✦',
-              style: TextStyle(
-                color: Colors.white30,
-                fontSize: 24,
-              ),
+              style: TextStyle(color: Colors.white30, fontSize: 24),
             ),
           ),
         ],
@@ -480,10 +438,7 @@ class _GameBackground extends StatelessWidget {
 }
 
 class _GlowCircle extends StatelessWidget {
-  const _GlowCircle({
-    required this.size,
-    required this.color,
-  });
+  const _GlowCircle({required this.size, required this.color});
 
   final double size;
   final Color color;
@@ -495,14 +450,10 @@ class _GlowCircle extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withValues(
-          alpha: 0.10,
-        ),
+        color: color.withValues(alpha: 0.10),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: color.withValues(
-              alpha: 0.18,
-            ),
+            color: color.withValues(alpha: 0.18),
             blurRadius: 80,
             spreadRadius: 25,
           ),
@@ -518,32 +469,16 @@ class _PlayerBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-          const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 8,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(
-          alpha: 0.11,
-        ),
-        borderRadius:
-            BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.white.withValues(
-            alpha: 0.14,
-          ),
-        ),
+        color: Colors.white.withValues(alpha: 0.11),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
       ),
       child: Row(
-        mainAxisSize:
-            MainAxisSize.min,
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          const Icon(
-            Icons.explore,
-            color: Color(0xFFFFC857),
-            size: 21,
-          ),
+          const Icon(Icons.explore, color: Color(0xFFFFC857), size: 21),
           const SizedBox(width: 7),
           Text(
             'VOYAGEUR',
@@ -574,27 +509,21 @@ class _GeoPointLogo extends StatelessWidget {
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Row(
-            mainAxisSize:
-                MainAxisSize.min,
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Text(
                 'GEO',
                 style: GoogleFonts.fredoka(
                   color: Colors.white,
                   fontSize: 43,
-                  fontWeight:
-                      FontWeight.w700,
+                  fontWeight: FontWeight.w700,
                   height: 0.95,
                   letterSpacing: 1.2,
                   shadows: <Shadow>[
                     Shadow(
-                      color: Colors.black
-                          .withValues(
-                        alpha: 0.28,
-                      ),
+                      color: Colors.black.withValues(alpha: 0.28),
                       blurRadius: 12,
-                      offset:
-                          const Offset(0, 5),
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
@@ -602,33 +531,20 @@ class _GeoPointLogo extends StatelessWidget {
               Text(
                 'POINT',
                 style: GoogleFonts.fredoka(
-                  color:
-                      const Color(
-                    0xFF53D8FF,
-                  ),
+                  color: const Color(0xFF53D8FF),
                   fontSize: 43,
-                  fontWeight:
-                      FontWeight.w700,
+                  fontWeight: FontWeight.w700,
                   height: 0.95,
                   letterSpacing: 1.2,
                   shadows: <Shadow>[
                     Shadow(
-                      color:
-                          const Color(
-                        0xFF28C2FF,
-                      ).withValues(
-                        alpha: 0.38,
-                      ),
+                      color: const Color(0xFF28C2FF).withValues(alpha: 0.38),
                       blurRadius: 16,
                     ),
                     Shadow(
-                      color: Colors.black
-                          .withValues(
-                        alpha: 0.25,
-                      ),
+                      color: Colors.black.withValues(alpha: 0.25),
                       blurRadius: 10,
-                      offset:
-                          const Offset(0, 4),
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
@@ -641,12 +557,9 @@ class _GeoPointLogo extends StatelessWidget {
 
         Text(
           'EXPLORE • JOUE • APPRENDS',
-          textAlign:
-              TextAlign.center,
+          textAlign: TextAlign.center,
           style: GoogleFonts.nunitoSans(
-            color: Colors.white.withValues(
-              alpha: 0.72,
-            ),
+            color: Colors.white.withValues(alpha: 0.72),
             fontSize: 11,
             fontWeight: FontWeight.w900,
             letterSpacing: 2,
@@ -657,8 +570,7 @@ class _GeoPointLogo extends StatelessWidget {
   }
 }
 
-class _GeoPointLogoMark
-    extends StatelessWidget {
+class _GeoPointLogoMark extends StatelessWidget {
   const _GeoPointLogoMark();
 
   @override
@@ -674,26 +586,13 @@ class _GeoPointLogoMark
             shape: BoxShape.circle,
             gradient: RadialGradient(
               colors: <Color>[
-                const Color(
-                  0xFF28C2FF,
-                ).withValues(
-                  alpha: 0.25,
-                ),
-                const Color(
-                  0xFF176BFF,
-                ).withValues(
-                  alpha: 0.04,
-                ),
+                const Color(0xFF28C2FF).withValues(alpha: 0.25),
+                const Color(0xFF176BFF).withValues(alpha: 0.04),
               ],
             ),
             boxShadow: <BoxShadow>[
               BoxShadow(
-                color:
-                    const Color(
-                  0xFF28C2FF,
-                ).withValues(
-                  alpha: 0.28,
-                ),
+                color: const Color(0xFF28C2FF).withValues(alpha: 0.28),
                 blurRadius: 36,
                 spreadRadius: 5,
               ),
@@ -706,11 +605,9 @@ class _GeoPointLogoMark
           height: 116,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient:
-                const LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
-              end:
-                  Alignment.bottomRight,
+              end: Alignment.bottomRight,
               colors: <Color>[
                 Color(0xFF38D4FF),
                 Color(0xFF176BFF),
@@ -718,31 +615,20 @@ class _GeoPointLogoMark
               ],
             ),
             border: Border.all(
-              color: Colors.white
-                  .withValues(
-                alpha: 0.68,
-              ),
+              color: Colors.white.withValues(alpha: 0.68),
               width: 3,
             ),
             boxShadow: <BoxShadow>[
               BoxShadow(
-                color: Colors.black
-                    .withValues(
-                  alpha: 0.25,
-                ),
+                color: Colors.black.withValues(alpha: 0.25),
                 blurRadius: 18,
-                offset:
-                    const Offset(0, 9),
+                offset: const Offset(0, 9),
               ),
             ],
           ),
           child: const Padding(
-            padding:
-                EdgeInsets.all(14),
-            child: CustomPaint(
-              painter:
-                  _GeoPointGlobePainter(),
-            ),
+            padding: EdgeInsets.all(14),
+            child: CustomPaint(painter: _GeoPointGlobePainter()),
           ),
         ),
 
@@ -754,31 +640,17 @@ class _GeoPointLogoMark
             height: 45,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient:
-                  const LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topLeft,
-                end:
-                    Alignment.bottomRight,
-                colors: <Color>[
-                  Color(0xFFFF8A73),
-                  Color(0xFFFF4F64),
-                ],
+                end: Alignment.bottomRight,
+                colors: <Color>[Color(0xFFFF8A73), Color(0xFFFF4F64)],
               ),
-              border: Border.all(
-                color: Colors.white,
-                width: 3,
-              ),
+              border: Border.all(color: Colors.white, width: 3),
               boxShadow: <BoxShadow>[
                 BoxShadow(
-                  color:
-                      const Color(
-                    0xFFFF4F64,
-                  ).withValues(
-                    alpha: 0.44,
-                  ),
+                  color: const Color(0xFFFF4F64).withValues(alpha: 0.44),
                   blurRadius: 15,
-                  offset:
-                      const Offset(0, 6),
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
@@ -796,32 +668,21 @@ class _GeoPointLogoMark
           child: Transform.rotate(
             angle: -0.18,
             child: Container(
-              padding:
-                  const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color:
-                    const Color(
-                  0xFFFFC857,
-                ),
+                color: const Color(0xFFFFC857),
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white,
-                  width: 2,
-                ),
+                border: Border.all(color: Colors.white, width: 2),
                 boxShadow: <BoxShadow>[
                   BoxShadow(
-                    color: Colors.black
-                        .withValues(
-                      alpha: 0.18,
-                    ),
+                    color: Colors.black.withValues(alpha: 0.18),
                     blurRadius: 8,
                   ),
                 ],
               ),
               child: const Icon(
                 Icons.explore_rounded,
-                color:
-                    Color(0xFF4A2B00),
+                color: Color(0xFF4A2B00),
                 size: 20,
               ),
             ),
@@ -832,51 +693,26 @@ class _GeoPointLogoMark
   }
 }
 
-class _GeoPointGlobePainter
-    extends CustomPainter {
+class _GeoPointGlobePainter extends CustomPainter {
   const _GeoPointGlobePainter();
 
   @override
-  void paint(
-    Canvas canvas,
-    Size size,
-  ) {
-    final Offset center = Offset(
-      size.width / 2,
-      size.height / 2,
-    );
+  void paint(Canvas canvas, Size size) {
+    final Offset center = Offset(size.width / 2, size.height / 2);
 
-    final double radius =
-        size.shortestSide / 2;
+    final double radius = size.shortestSide / 2;
 
-    final Paint linePaint =
-        Paint()
-          ..color =
-              Colors.white.withValues(
-            alpha: 0.72,
-          )
-          ..style =
-              PaintingStyle.stroke
-          ..strokeWidth = 2.2
-          ..strokeCap =
-              StrokeCap.round;
+    final Paint linePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.72)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round;
 
-    final Paint continentPaint =
-        Paint()
-          ..color =
-              const Color(
-            0xFF71EDA7,
-          ).withValues(
-            alpha: 0.88,
-          )
-          ..style =
-              PaintingStyle.fill;
+    final Paint continentPaint = Paint()
+      ..color = const Color(0xFF71EDA7).withValues(alpha: 0.88)
+      ..style = PaintingStyle.fill;
 
-    canvas.drawCircle(
-      center,
-      radius - 2,
-      linePaint,
-    );
+    canvas.drawCircle(center, radius - 2, linePaint);
 
     canvas.drawOval(
       Rect.fromCenter(
@@ -894,12 +730,8 @@ class _GeoPointGlobePainter
         height: radius * 1.90,
       ),
       Paint()
-        ..color =
-            Colors.white.withValues(
-          alpha: 0.38,
-        )
-        ..style =
-            PaintingStyle.stroke
+        ..color = Colors.white.withValues(alpha: 0.38)
+        ..style = PaintingStyle.stroke
         ..strokeWidth = 2.2,
     );
 
@@ -910,12 +742,8 @@ class _GeoPointGlobePainter
         height: radius * 0.66,
       ),
       Paint()
-        ..color =
-            Colors.white.withValues(
-          alpha: 0.66,
-        )
-        ..style =
-            PaintingStyle.stroke
+        ..color = Colors.white.withValues(alpha: 0.66)
+        ..style = PaintingStyle.stroke
         ..strokeWidth = 2.2,
     );
 
@@ -926,112 +754,92 @@ class _GeoPointGlobePainter
         height: radius * 1.20,
       ),
       Paint()
-        ..color =
-            Colors.white.withValues(
-          alpha: 0.30,
-        )
-        ..style =
-            PaintingStyle.stroke
+        ..color = Colors.white.withValues(alpha: 0.30)
+        ..style = PaintingStyle.stroke
         ..strokeWidth = 2.2,
     );
 
-    final Path leftContinent =
-        Path()
-          ..moveTo(
-            size.width * 0.18,
-            size.height * 0.32,
-          )
-          ..quadraticBezierTo(
-            size.width * 0.28,
-            size.height * 0.18,
-            size.width * 0.42,
-            size.height * 0.28,
-          )
-          ..quadraticBezierTo(
-            size.width * 0.49,
-            size.height * 0.38,
-            size.width * 0.38,
-            size.height * 0.46,
-          )
-          ..quadraticBezierTo(
-            size.width * 0.29,
-            size.height * 0.51,
-            size.width * 0.32,
-            size.height * 0.64,
-          )
-          ..quadraticBezierTo(
-            size.width * 0.27,
-            size.height * 0.73,
-            size.width * 0.20,
-            size.height * 0.59,
-          )
-          ..quadraticBezierTo(
-            size.width * 0.10,
-            size.height * 0.47,
-            size.width * 0.18,
-            size.height * 0.32,
-          )
-          ..close();
+    final Path leftContinent = Path()
+      ..moveTo(size.width * 0.18, size.height * 0.32)
+      ..quadraticBezierTo(
+        size.width * 0.28,
+        size.height * 0.18,
+        size.width * 0.42,
+        size.height * 0.28,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.49,
+        size.height * 0.38,
+        size.width * 0.38,
+        size.height * 0.46,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.29,
+        size.height * 0.51,
+        size.width * 0.32,
+        size.height * 0.64,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.27,
+        size.height * 0.73,
+        size.width * 0.20,
+        size.height * 0.59,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.10,
+        size.height * 0.47,
+        size.width * 0.18,
+        size.height * 0.32,
+      )
+      ..close();
 
-    canvas.drawPath(
-      leftContinent,
-      continentPaint,
-    );
+    canvas.drawPath(leftContinent, continentPaint);
 
-    final Path rightContinent =
-        Path()
-          ..moveTo(
-            size.width * 0.54,
-            size.height * 0.22,
-          )
-          ..quadraticBezierTo(
-            size.width * 0.70,
-            size.height * 0.13,
-            size.width * 0.84,
-            size.height * 0.30,
-          )
-          ..quadraticBezierTo(
-            size.width * 0.91,
-            size.height * 0.42,
-            size.width * 0.75,
-            size.height * 0.46,
-          )
-          ..quadraticBezierTo(
-            size.width * 0.67,
-            size.height * 0.48,
-            size.width * 0.70,
-            size.height * 0.62,
-          )
-          ..quadraticBezierTo(
-            size.width * 0.65,
-            size.height * 0.77,
-            size.width * 0.56,
-            size.height * 0.65,
-          )
-          ..quadraticBezierTo(
-            size.width * 0.47,
-            size.height * 0.54,
-            size.width * 0.57,
-            size.height * 0.43,
-          )
-          ..quadraticBezierTo(
-            size.width * 0.46,
-            size.height * 0.33,
-            size.width * 0.54,
-            size.height * 0.22,
-          )
-          ..close();
+    final Path rightContinent = Path()
+      ..moveTo(size.width * 0.54, size.height * 0.22)
+      ..quadraticBezierTo(
+        size.width * 0.70,
+        size.height * 0.13,
+        size.width * 0.84,
+        size.height * 0.30,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.91,
+        size.height * 0.42,
+        size.width * 0.75,
+        size.height * 0.46,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.67,
+        size.height * 0.48,
+        size.width * 0.70,
+        size.height * 0.62,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.65,
+        size.height * 0.77,
+        size.width * 0.56,
+        size.height * 0.65,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.47,
+        size.height * 0.54,
+        size.width * 0.57,
+        size.height * 0.43,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.46,
+        size.height * 0.33,
+        size.width * 0.54,
+        size.height * 0.22,
+      )
+      ..close();
 
-    canvas.drawPath(
-      rightContinent,
-      continentPaint,
-    );
+    canvas.drawPath(rightContinent, continentPaint);
   }
 
   @override
-  bool shouldRepaint(
-    covariant CustomPainter oldDelegate,
-  ) {
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
   }
 }
@@ -1064,39 +872,25 @@ class _AdventureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      borderRadius:
-          BorderRadius.circular(26),
+      borderRadius: BorderRadius.circular(26),
       child: InkWell(
         onTap: onPressed,
-        borderRadius:
-            BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(26),
         child: Ink(
           width: double.infinity,
-          padding:
-              const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient:
-                const LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: <Color>[
-                Color(0xFFFFD166),
-                Color(0xFFFF8A4C),
-              ],
+              colors: <Color>[Color(0xFFFFD166), Color(0xFFFF8A4C)],
             ),
-            borderRadius:
-                BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(26),
             boxShadow: <BoxShadow>[
               BoxShadow(
-                color:
-                    const Color(
-                  0xFFFF8A4C,
-                ).withValues(
-                  alpha: 0.35,
-                ),
+                color: const Color(0xFFFF8A4C).withValues(alpha: 0.35),
                 blurRadius: 20,
-                offset:
-                    const Offset(0, 10),
+                offset: const Offset(0, 10),
               ),
             ],
           ),
@@ -1108,36 +902,22 @@ class _AdventureCard extends StatelessWidget {
                     width: 58,
                     height: 58,
                     decoration: BoxDecoration(
-                      color: Colors.white
-                          .withValues(
-                        alpha: 0.20,
-                      ),
-                      borderRadius:
-                          BorderRadius.circular(
-                        18,
-                      ),
+                      color: Colors.white.withValues(alpha: 0.20),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                     child: isLoading
                         ? const Padding(
-                            padding:
-                                EdgeInsets.all(
-                              17,
-                            ),
-                            child:
-                                CircularProgressIndicator(
+                            padding: EdgeInsets.all(17),
+                            child: CircularProgressIndicator(
                               strokeWidth: 3,
-                              color:
-                                  Colors.white,
+                              color: Colors.white,
                             ),
                           )
                         : Icon(
                             hasStarted
-                                ? Icons
-                                    .play_arrow_rounded
-                                : Icons
-                                    .explore_rounded,
-                            color:
-                                Colors.white,
+                                ? Icons.play_arrow_rounded
+                                : Icons.explore_rounded,
+                            color: Colors.white,
                             size: 35,
                           ),
                   ),
@@ -1146,40 +926,26 @@ class _AdventureCard extends StatelessWidget {
 
                   Expanded(
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment
-                              .start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          isLoading
-                              ? 'CHARGEMENT...'
-                              : title,
-                          style:
-                              GoogleFonts.fredoka(
-                            color:
-                                const Color(
-                              0xFF392108,
-                            ),
+                          isLoading ? 'CHARGEMENT...' : title,
+                          style: GoogleFonts.fredoka(
+                            color: const Color(0xFF392108),
                             fontSize: 18,
-                            fontWeight:
-                                FontWeight.w700,
+                            fontWeight: FontWeight.w700,
                             letterSpacing: 0.2,
                           ),
                         ),
                         const SizedBox(height: 3),
                         Text(
                           subtitle,
-                          style:
-                              GoogleFonts.nunitoSans(
-                            color:
-                                const Color(
+                          style: GoogleFonts.nunitoSans(
+                            color: const Color(
                               0xFF392108,
-                            ).withValues(
-                              alpha: 0.72,
-                            ),
+                            ).withValues(alpha: 0.72),
                             fontSize: 13,
-                            fontWeight:
-                                FontWeight.w700,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -1200,22 +966,12 @@ class _AdventureCard extends StatelessWidget {
                 children: <Widget>[
                   Expanded(
                     child: ClipRRect(
-                      borderRadius:
-                          BorderRadius.circular(
-                        20,
-                      ),
-                      child:
-                          LinearProgressIndicator(
+                      borderRadius: BorderRadius.circular(20),
+                      child: LinearProgressIndicator(
                         value: progress,
                         minHeight: 9,
-                        backgroundColor:
-                            Colors.white
-                                .withValues(
-                          alpha: 0.28,
-                        ),
-                        valueColor:
-                            const AlwaysStoppedAnimation<
-                                Color>(
+                        backgroundColor: Colors.white.withValues(alpha: 0.28),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
                           Colors.white,
                         ),
                       ),
@@ -1227,15 +983,10 @@ class _AdventureCard extends StatelessWidget {
                   Text(
                     '$validatedStamps / '
                     '$totalStamps tampons',
-                    style:
-                        GoogleFonts.nunitoSans(
-                      color:
-                          const Color(
-                        0xFF392108,
-                      ),
+                    style: GoogleFonts.nunitoSans(
+                      color: const Color(0xFF392108),
                       fontSize: 12,
-                      fontWeight:
-                          FontWeight.w900,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ],
@@ -1266,51 +1017,29 @@ class _GameModeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(
-        alpha: 0.12,
-      ),
-      borderRadius:
-          BorderRadius.circular(22),
+      color: Colors.white.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(22),
       child: InkWell(
         onTap: onPressed,
-        borderRadius:
-            BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(22),
         child: Container(
           height: 150,
-          padding:
-              const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(22),
-            border: Border.all(
-              color: Colors.white
-                  .withValues(
-                alpha: 0.15,
-              ),
-            ),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
           ),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Container(
                 width: 49,
                 height: 49,
                 decoration: BoxDecoration(
-                  color: iconColor
-                      .withValues(
-                    alpha: 0.18,
-                  ),
-                  borderRadius:
-                      BorderRadius.circular(
-                    15,
-                  ),
+                  color: iconColor.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor,
-                  size: 28,
-                ),
+                child: Icon(icon, color: iconColor, size: 28),
               ),
 
               const Spacer(),
@@ -1320,8 +1049,7 @@ class _GameModeCard extends StatelessWidget {
                 style: GoogleFonts.fredoka(
                   color: Colors.white,
                   fontSize: 17,
-                  fontWeight:
-                      FontWeight.w700,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
 
@@ -1330,17 +1058,11 @@ class _GameModeCard extends StatelessWidget {
               Text(
                 subtitle,
                 maxLines: 1,
-                overflow:
-                    TextOverflow.ellipsis,
-                style:
-                    GoogleFonts.nunitoSans(
-                  color: Colors.white
-                      .withValues(
-                    alpha: 0.65,
-                  ),
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.nunitoSans(
+                  color: Colors.white.withValues(alpha: 0.65),
                   fontSize: 12,
-                  fontWeight:
-                      FontWeight.w600,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -1369,27 +1091,16 @@ class _WideModeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(
-        alpha: 0.11,
-      ),
-      borderRadius:
-          BorderRadius.circular(22),
+      color: Colors.white.withValues(alpha: 0.11),
+      borderRadius: BorderRadius.circular(22),
       child: InkWell(
         onTap: onPressed,
-        borderRadius:
-            BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(22),
         child: Container(
-          padding:
-              const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(22),
-            border: Border.all(
-              color: Colors.white
-                  .withValues(
-                alpha: 0.14,
-              ),
-            ),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
           ),
           child: Row(
             children: <Widget>[
@@ -1397,54 +1108,35 @@ class _WideModeCard extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  gradient:
-                      const LinearGradient(
-                    colors: <Color>[
-                      Color(0xFFB983FF),
-                      Color(0xFFFF6BCE),
-                    ],
+                  gradient: const LinearGradient(
+                    colors: <Color>[Color(0xFFB983FF), Color(0xFFFF6BCE)],
                   ),
-                  borderRadius:
-                      BorderRadius.circular(
-                    16,
-                  ),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                  size: 29,
-                ),
+                child: Icon(icon, color: Colors.white, size: 29),
               ),
 
               const SizedBox(width: 14),
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
                       title,
-                      style:
-                          GoogleFonts.fredoka(
+                      style: GoogleFonts.fredoka(
                         color: Colors.white,
                         fontSize: 17,
-                        fontWeight:
-                            FontWeight.w700,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style:
-                          GoogleFonts.nunitoSans(
-                        color: Colors.white
-                            .withValues(
-                          alpha: 0.64,
-                        ),
+                      style: GoogleFonts.nunitoSans(
+                        color: Colors.white.withValues(alpha: 0.64),
                         fontSize: 12,
-                        fontWeight:
-                            FontWeight.w600,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -1452,34 +1144,17 @@ class _WideModeCard extends StatelessWidget {
               ),
 
               Container(
-                padding:
-                    const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                 decoration: BoxDecoration(
-                  color:
-                      const Color(
-                    0xFFFFC857,
-                  ).withValues(
-                    alpha: 0.18,
-                  ),
-                  borderRadius:
-                      BorderRadius.circular(
-                    12,
-                  ),
+                  color: const Color(0xFFFFC857).withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   badgeText,
-                  style:
-                      GoogleFonts.nunitoSans(
-                    color:
-                        const Color(
-                      0xFFFFC857,
-                    ),
+                  style: GoogleFonts.nunitoSans(
+                    color: const Color(0xFFFFC857),
                     fontSize: 9,
-                    fontWeight:
-                        FontWeight.w900,
+                    fontWeight: FontWeight.w900,
                     letterSpacing: 0.7,
                   ),
                 ),
@@ -1492,30 +1167,18 @@ class _WideModeCard extends StatelessWidget {
   }
 }
 
-class _DailyChallengeCard
-    extends StatelessWidget {
+class _DailyChallengeCard extends StatelessWidget {
   const _DailyChallengeCard();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding:
-          const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color:
-            const Color(
-          0xFF071B3A,
-        ).withValues(
-          alpha: 0.46,
-        ),
-        borderRadius:
-            BorderRadius.circular(22),
-        border: Border.all(
-          color: Colors.white.withValues(
-            alpha: 0.13,
-          ),
-        ),
+        color: const Color(0xFF071B3A).withValues(alpha: 0.46),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.13)),
       ),
       child: Row(
         children: <Widget>[
@@ -1523,14 +1186,8 @@ class _DailyChallengeCard
             width: 49,
             height: 49,
             decoration: BoxDecoration(
-              color:
-                  const Color(
-                0xFFFF6B6B,
-              ).withValues(
-                alpha: 0.17,
-              ),
-              borderRadius:
-                  BorderRadius.circular(15),
+              color: const Color(0xFFFF6B6B).withValues(alpha: 0.17),
+              borderRadius: BorderRadius.circular(15),
             ),
             child: const Icon(
               Icons.local_fire_department,
@@ -1543,20 +1200,14 @@ class _DailyChallengeCard
 
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
                   'DÉFI DU JOUR',
-                  style:
-                      GoogleFonts.nunitoSans(
-                    color:
-                        const Color(
-                      0xFFFF6B6B,
-                    ),
+                  style: GoogleFonts.nunitoSans(
+                    color: const Color(0xFFFF6B6B),
                     fontSize: 11,
-                    fontWeight:
-                        FontWeight.w900,
+                    fontWeight: FontWeight.w900,
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -1566,12 +1217,10 @@ class _DailyChallengeCard
                 Text(
                   'Trouve 10 pays '
                   'sans erreur',
-                  style:
-                      GoogleFonts.fredoka(
+                  style: GoogleFonts.fredoka(
                     color: Colors.white,
                     fontSize: 15,
-                    fontWeight:
-                        FontWeight.w700,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
 
@@ -1579,27 +1228,17 @@ class _DailyChallengeCard
 
                 Text(
                   'Disponible prochainement',
-                  style:
-                      GoogleFonts.nunitoSans(
-                    color: Colors.white
-                        .withValues(
-                      alpha: 0.53,
-                    ),
+                  style: GoogleFonts.nunitoSans(
+                    color: Colors.white.withValues(alpha: 0.53),
                     fontSize: 11,
-                    fontWeight:
-                        FontWeight.w600,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
           ),
 
-          Icon(
-            Icons.lock_outline,
-            color: Colors.white.withValues(
-              alpha: 0.45,
-            ),
-          ),
+          Icon(Icons.lock_outline, color: Colors.white.withValues(alpha: 0.45)),
         ],
       ),
     );

@@ -666,6 +666,8 @@ class GameController extends ChangeNotifier {
       gameScore: _session.totalScore,
       gameCorrectAnswers: _session.correctAnswers,
       gameTotalAnswers: _session.totalQuestions,
+      modeId: _currentModeId,
+      difficultyId: _currentDifficultyId,
       gameDistanceInKilometers: totalGameDistance,
       gameElapsedSeconds: totalGameElapsedSeconds,
     );

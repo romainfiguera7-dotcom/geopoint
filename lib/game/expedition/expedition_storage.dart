@@ -1,55 +1,26 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../storage/versioned_local_storage.dart';
 import 'expedition_progress.dart';
 
 class ExpeditionStorage {
   ExpeditionStorage._();
 
-  static const String _storageKey =
-      'geopoint_expedition_progress';
+  static const String _storageKey = 'geopoint_expedition_progress';
+  static const String _recordType = 'expedition_progress';
 
-  static Future<ExpeditionProgress>
-      load() async {
+  static Future<ExpeditionProgress> load() async {
     try {
-      final SharedPreferences preferences =
-          await SharedPreferences.getInstance();
-
-      final String? source =
-          preferences.getString(
-        _storageKey,
+      final Map<String, dynamic>? json =
+          await VersionedLocalStorage.loadData(
+        storageKey: _storageKey,
       );
 
-      if (source == null ||
-          source.trim().isEmpty) {
+      if (json == null) {
         return ExpeditionProgress.initial();
       }
 
-      final Object? decoded =
-          jsonDecode(source);
-
-      if (decoded is! Map) {
-        return ExpeditionProgress.initial();
-      }
-
-      final Map<String, dynamic> json =
-          decoded.map<String, dynamic>(
-        (
-          dynamic key,
-          dynamic value,
-        ) {
-          return MapEntry<String, dynamic>(
-            key.toString(),
-            value,
-          );
-        },
-      );
-
-      return ExpeditionProgress.fromJson(
-        json,
-      );
+      return ExpeditionProgress.fromJson(json);
     } catch (error, stackTrace) {
       debugPrint(
         'GeoPoint : erreur de chargement '
@@ -68,14 +39,10 @@ class ExpeditionStorage {
     ExpeditionProgress progress,
   ) async {
     try {
-      final SharedPreferences preferences =
-          await SharedPreferences.getInstance();
-
-      return preferences.setString(
-        _storageKey,
-        jsonEncode(
-          progress.toJson(),
-        ),
+      return await VersionedLocalStorage.saveData(
+        storageKey: _storageKey,
+        recordType: _recordType,
+        data: progress.toJson(),
       );
     } catch (error, stackTrace) {
       debugPrint(
@@ -92,11 +59,8 @@ class ExpeditionStorage {
   }
 
   static Future<bool> clear() async {
-    final SharedPreferences preferences =
-        await SharedPreferences.getInstance();
-
-    return preferences.remove(
-      _storageKey,
+    return VersionedLocalStorage.clear(
+      storageKey: _storageKey,
     );
   }
 }

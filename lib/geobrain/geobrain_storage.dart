@@ -1,61 +1,29 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../storage/versioned_local_storage.dart';
 import 'geobrain_profile.dart';
 
 class GeoBrainStorage {
   GeoBrainStorage._();
 
-  static const String _storageKey =
-      'geopoint_geobrain_profile';
+  static const String _storageKey = 'geopoint_geobrain_profile';
+  static const String _recordType = 'geobrain_profile';
 
   static Future<GeoBrainProfile?> load() async {
     try {
-      final SharedPreferences preferences =
-          await SharedPreferences.getInstance();
-
-      final String? source =
-          preferences.getString(
-        _storageKey,
+      final Map<String, dynamic>? json =
+          await VersionedLocalStorage.loadData(
+        storageKey: _storageKey,
       );
 
-      if (source == null ||
-          source.trim().isEmpty) {
+      if (json == null) {
         return null;
       }
 
-      final Object? decoded =
-          jsonDecode(source);
-
-      if (decoded is! Map) {
-        throw const FormatException(
-          'La sauvegarde GeoBrain '
-          'ne contient pas un objet JSON.',
-        );
-      }
-
-      final Map<String, dynamic> json =
-          decoded.map<String, dynamic>(
-        (
-          dynamic key,
-          dynamic value,
-        ) {
-          return MapEntry<String, dynamic>(
-            key.toString(),
-            value,
-          );
-        },
-      );
-
-      return GeoBrainProfile.fromJson(
-        json,
-      );
+      return GeoBrainProfile.fromJson(json);
     } catch (error, stackTrace) {
       debugPrint(
-        'GeoPoint GeoBrain : erreur de chargement : '
-        '$error',
+        'GeoPoint GeoBrain : erreur de chargement : $error',
       );
 
       debugPrintStack(
@@ -70,22 +38,14 @@ class GeoBrainStorage {
     GeoBrainProfile profile,
   ) async {
     try {
-      final SharedPreferences preferences =
-          await SharedPreferences.getInstance();
-
-      final String source =
-          jsonEncode(
-        profile.toJson(),
-      );
-
-      return preferences.setString(
-        _storageKey,
-        source,
+      return await VersionedLocalStorage.saveData(
+        storageKey: _storageKey,
+        recordType: _recordType,
+        data: profile.toJson(),
       );
     } catch (error, stackTrace) {
       debugPrint(
-        'GeoPoint GeoBrain : erreur de sauvegarde : '
-        '$error',
+        'GeoPoint GeoBrain : erreur de sauvegarde : $error',
       );
 
       debugPrintStack(
@@ -98,16 +58,12 @@ class GeoBrainStorage {
 
   static Future<bool> clear() async {
     try {
-      final SharedPreferences preferences =
-          await SharedPreferences.getInstance();
-
-      return preferences.remove(
-        _storageKey,
+      return await VersionedLocalStorage.clear(
+        storageKey: _storageKey,
       );
     } catch (error, stackTrace) {
       debugPrint(
-        'GeoPoint GeoBrain : erreur de suppression : '
-        '$error',
+        'GeoPoint GeoBrain : erreur de suppression : $error',
       );
 
       debugPrintStack(

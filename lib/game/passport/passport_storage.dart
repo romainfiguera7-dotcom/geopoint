@@ -1,57 +1,26 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../storage/versioned_local_storage.dart';
 import 'player_passport.dart';
 
 class PassportStorage {
   PassportStorage._();
 
-  static const String _passportKey =
-      'geopoint_player_passport';
+  static const String _passportKey = 'geopoint_player_passport';
+  static const String _recordType = 'player_passport';
 
   static Future<PlayerPassport?> load() async {
     try {
-      final SharedPreferences preferences =
-          await SharedPreferences.getInstance();
-
-      final String? source =
-          preferences.getString(
-        _passportKey,
+      final Map<String, dynamic>? json =
+          await VersionedLocalStorage.loadData(
+        storageKey: _passportKey,
       );
 
-      if (source == null ||
-          source.trim().isEmpty) {
+      if (json == null) {
         return null;
       }
 
-      final Object? decoded =
-          jsonDecode(source);
-
-      if (decoded is! Map) {
-        throw const FormatException(
-          'La sauvegarde du Passeport '
-          'ne contient pas un objet JSON.',
-        );
-      }
-
-      final Map<String, dynamic> json =
-          decoded.map<String, dynamic>(
-        (
-          dynamic key,
-          dynamic value,
-        ) {
-          return MapEntry<String, dynamic>(
-            key.toString(),
-            value,
-          );
-        },
-      );
-
-      return PlayerPassport.fromJson(
-        json,
-      );
+      return PlayerPassport.fromJson(json);
     } catch (error, stackTrace) {
       debugPrint(
         'GeoPoint : erreur pendant le '
@@ -70,17 +39,10 @@ class PassportStorage {
     PlayerPassport passport,
   ) async {
     try {
-      final SharedPreferences preferences =
-          await SharedPreferences.getInstance();
-
-      final String source =
-          jsonEncode(
-        passport.toJson(),
-      );
-
-      return preferences.setString(
-        _passportKey,
-        source,
+      return await VersionedLocalStorage.saveData(
+        storageKey: _passportKey,
+        recordType: _recordType,
+        data: passport.toJson(),
       );
     } catch (error, stackTrace) {
       debugPrint(
@@ -97,11 +59,8 @@ class PassportStorage {
   }
 
   static Future<bool> clear() async {
-    final SharedPreferences preferences =
-        await SharedPreferences.getInstance();
-
-    return preferences.remove(
-      _passportKey,
+    return VersionedLocalStorage.clear(
+      storageKey: _passportKey,
     );
   }
 }

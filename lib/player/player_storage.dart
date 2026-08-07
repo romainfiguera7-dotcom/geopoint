@@ -1,50 +1,26 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../storage/versioned_local_storage.dart';
 import 'player_profile.dart';
 
 class PlayerStorage {
   PlayerStorage._();
 
-  static const String _profileKey =
-      'geopoint_player_profile';
+  static const String _profileKey = 'geopoint_player_profile';
+  static const String _recordType = 'player_profile';
 
   static Future<PlayerProfile?> load() async {
     try {
-      final SharedPreferences preferences =
-          await SharedPreferences.getInstance();
-
-      final String? source =
-          preferences.getString(
-        _profileKey,
+      final Map<String, dynamic>? json =
+          await VersionedLocalStorage.loadData(
+        storageKey: _profileKey,
       );
 
-      if (source == null ||
-          source.trim().isEmpty) {
+      if (json == null) {
         return null;
       }
 
-      final Object? decoded =
-          jsonDecode(source);
-
-      if (decoded is! Map) {
-        return null;
-      }
-
-      final Map<String, dynamic> json =
-          decoded.map<String, dynamic>(
-        (key, value) =>
-            MapEntry<String, dynamic>(
-          key.toString(),
-          value,
-        ),
-      );
-
-      return PlayerProfile.fromJson(
-        json,
-      );
+      return PlayerProfile.fromJson(json);
     } catch (error, stackTrace) {
       debugPrint(
         'Erreur lors du chargement du profil : $error',
@@ -62,17 +38,10 @@ class PlayerStorage {
     PlayerProfile profile,
   ) async {
     try {
-      final SharedPreferences preferences =
-          await SharedPreferences.getInstance();
-
-      final String source =
-          jsonEncode(
-        profile.toJson(),
-      );
-
-      return preferences.setString(
-        _profileKey,
-        source,
+      return await VersionedLocalStorage.saveData(
+        storageKey: _profileKey,
+        recordType: _recordType,
+        data: profile.toJson(),
       );
     } catch (error, stackTrace) {
       debugPrint(
@@ -88,11 +57,8 @@ class PlayerStorage {
   }
 
   static Future<void> clear() async {
-    final SharedPreferences preferences =
-        await SharedPreferences.getInstance();
-
-    await preferences.remove(
-      _profileKey,
+    await VersionedLocalStorage.clear(
+      storageKey: _profileKey,
     );
   }
 }

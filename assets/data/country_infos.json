@@ -32,10 +32,11 @@
       "tsonga",
       "venda",
       "xhosa",
-      "zoulou"
+      "zoulou",
+      "langue des signes sud-africaine"
     ],
     "shortFact": "L'Afrique du Sud possède trois capitales aux fonctions différentes.",
-    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Pretoria. Sa superficie est d'environ 1 221 037 km². Sa population est estimée à environ 58,6 millions d'habitants. Monnaie principale : rand sud-africain. Langues principales : afrikaans, anglais, ndébélé du Sud, sotho du Nord, sotho du Sud, swati, tswana, tsonga, venda, xhosa et zoulou. L'Afrique du Sud possède trois capitales aux fonctions différentes."
+    "history": "Ce territoire se situe en Afrique. Sa capitale ou son centre administratif principal est Pretoria. Sa superficie est d'environ 1 221 037 km². Sa population est estimée à environ 58,6 millions d'habitants. Monnaie principale : rand sud-africain. Langues principales : afrikaans, anglais, ndébélé du Sud, sotho du Nord, sotho du Sud, swati, tswana, tsonga, venda, xhosa, zoulou et langue des signes sud-africaine. L'Afrique du Sud possède trois capitales aux fonctions différentes."
   },
   {
     "entityId": "WSB",
@@ -811,14 +812,14 @@
     "continent": "Amérique du Nord",
     "population": 157538,
     "areaSquareKilometers": 444,
-    "currency": "florin antillais",
+    "currency": "florin caribéen (XCG)",
     "languages": [
       "anglais",
       "néerlandais",
       "papiamento"
     ],
     "shortFact": "Curaçao est un pays autonome du royaume des Pays-Bas.",
-    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Willemstad. Sa superficie est d'environ 444 km². Sa population est estimée à environ 157 538 habitants. Monnaie principale : florin antillais. Langues principales : anglais, néerlandais et papiamento. Curaçao est un pays autonome du royaume des Pays-Bas."
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Willemstad. Sa superficie est d'environ 444 km². Sa population est estimée à environ 157 538 habitants. Monnaie principale : florin caribéen (XCG). Langues principales : anglais, néerlandais et papiamento. Curaçao est un pays autonome du royaume des Pays-Bas."
   },
   {
     "entityId": "DNK",
@@ -1090,7 +1091,7 @@
   },
   {
     "entityId": "SGS",
-    "title": "Géorgie du Sud-et-les Îles Sandwich du Sud",
+    "title": "Géorgie du Sud-et-les îles Sandwich du Sud",
     "continent": "Amérique du Sud",
     "population": 30,
     "areaSquareKilometers": 3903,
@@ -1098,8 +1099,8 @@
     "languages": [
       "anglais"
     ],
-    "shortFact": "La Géorgie du Sud-et-les Îles Sandwich du Sud ne possède pas de population permanente.",
-    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est Grytviken. Sa superficie est d'environ 3 903 km². Sa population est estimée à environ 30 habitants. Monnaie principale : livre de Sainte-Hélène. Langues principales : anglais. La Géorgie du Sud-et-les Îles Sandwich du Sud ne possède pas de population permanente."
+    "shortFact": "La Géorgie du Sud-et-les îles Sandwich du Sud ne possède pas de population permanente.",
+    "history": "Ce territoire se situe en Amérique du Sud. Sa capitale ou son centre administratif principal est King Edward Point. Sa superficie est d'environ 3 903 km². Sa population est estimée à environ 30 habitants. Monnaie principale : livre de Sainte-Hélène. Langues principales : anglais. La Géorgie du Sud-et-les îles Sandwich du Sud ne possède pas de population permanente."
   },
   {
     "entityId": "GHA",
@@ -1189,8 +1190,8 @@
       "anglais",
       "espagnol"
     ],
-    "shortFact": "Guam est un territoire rattaché à les États-Unis, situé en Océanie.",
-    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Hagåtña. Sa superficie est d'environ 549 km². Sa population est estimée à environ 167 294 habitants. Monnaie principale : dollar des États-Unis. Langues principales : chamorro, anglais et espagnol. Guam est un territoire rattaché à les États-Unis, situé en Océanie."
+    "shortFact": "Guam est un territoire non incorporé des États-Unis situé dans l’archipel des Mariannes.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Hagåtña. Sa superficie est d'environ 549 km². Sa population est estimée à environ 167 294 habitants. Monnaie principale : dollar des États-Unis. Langues principales : chamorro, anglais et espagnol. Guam est un territoire non incorporé des États-Unis situé dans l’archipel des Mariannes."
   },
   {
     "entityId": "GTM",
@@ -1342,7 +1343,7 @@
   },
   {
     "entityId": "IMN",
-    "title": "île de Man",
+    "title": "Île de Man",
     "continent": "Europe",
     "population": 84584,
     "areaSquareKilometers": 572,
@@ -1365,7 +1366,7 @@
       "anglais",
       "pitkern-norf'k"
     ],
-    "shortFact": "Île Norfolk est un territoire rattaché à l’Australie, situé en Océanie.",
+    "shortFact": "L’île Norfolk est un territoire extérieur australien du Pacifique Sud.",
     "history": "Ce territoire se situe en Océanie. Son centre administratif principal est Kingston. Sa superficie est d'environ 36 km². Sa population est estimée à environ 2 169 habitants. Monnaie principale : dollar australien. Langues principales : anglais et pitkern-norf'k. L'île Norfolk est un territoire rattaché à l'Australie."
   },
   {
@@ -1381,7 +1382,7 @@
   },
   {
     "entityId": "CYM",
-    "title": "îles Caïmans",
+    "title": "Îles Caïmans",
     "continent": "Amérique du Nord",
     "population": 64948,
     "areaSquareKilometers": 264,
@@ -1389,8 +1390,8 @@
     "languages": [
       "anglais"
     ],
-    "shortFact": "îles Caïmans est un territoire rattaché à le Royaume-Uni, situé en Amérique du Nord.",
-    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est George Town. Sa superficie est d'environ 264 km². Sa population est estimée à environ 64 948 habitants. Monnaie principale : dollar des îles Caïmans. Langues principales : anglais. îles Caïmans est un territoire rattaché à le Royaume-Uni, situé en Amérique du Nord."
+    "shortFact": "Les îles Caïmans sont un territoire britannique d’outre-mer situé dans les Caraïbes.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est George Town. Sa superficie est d'environ 264 km². Sa population est estimée à environ 64 948 habitants. Monnaie principale : dollar des îles Caïmans. Langues principales : anglais. Les îles Caïmans sont un territoire britannique d’outre-mer situé dans les Caraïbes."
   },
   {
     "entityId": "COK",
@@ -1403,8 +1404,8 @@
       "anglais",
       "rarotongien"
     ],
-    "shortFact": "Îles Cook est un territoire rattaché à la Nouvelle-Zélande, situé en Océanie.",
-    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Avarua. Sa superficie est d'environ 236 km². Sa population est estimée à environ 17 459 habitants. Monnaie principale : CKD et dollar néo-zélandais. Langues principales : anglais et rarotongien. Îles Cook est un territoire rattaché à la Nouvelle-Zélande, situé en Océanie."
+    "shortFact": "Les îles Cook sont un État autonome en libre association avec la Nouvelle-Zélande.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Avarua. Sa superficie est d'environ 236 km². Sa population est estimée à environ 17 459 habitants. Monnaie principale : CKD et dollar néo-zélandais. Langues principales : anglais et rarotongien. Les îles Cook sont un État autonome en libre association avec la Nouvelle-Zélande."
   },
   {
     "entityId": "CSI",
@@ -1419,7 +1420,7 @@
   },
   {
     "entityId": "FRO",
-    "title": "îles Féroé",
+    "title": "Îles Féroé",
     "continent": "Europe",
     "population": 48678,
     "areaSquareKilometers": 1393,
@@ -1446,7 +1447,7 @@
   },
   {
     "entityId": "FLK",
-    "title": "îles Malouines",
+    "title": "Îles Malouines",
     "continent": "Amérique du Sud",
     "population": 3398,
     "areaSquareKilometers": 12173,
@@ -1459,7 +1460,7 @@
   },
   {
     "entityId": "MNP",
-    "title": "îles Mariannes du Nord",
+    "title": "Îles Mariannes du Nord",
     "continent": "Océanie",
     "population": 57216,
     "areaSquareKilometers": 464,
@@ -1527,7 +1528,7 @@
   },
   {
     "entityId": "TCA",
-    "title": "îles Turques-et-Caïques",
+    "title": "Îles Turques-et-Caïques",
     "continent": "Amérique du Nord",
     "population": 38191,
     "areaSquareKilometers": 948,
@@ -1535,12 +1536,12 @@
     "languages": [
       "anglais"
     ],
-    "shortFact": "îles Turques-et-Caïques est un territoire rattaché à le Royaume-Uni, situé en Amérique du Nord.",
-    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Cockburn Town. Sa superficie est d'environ 948 km². Sa population est estimée à environ 38 191 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. îles Turques-et-Caïques est un territoire rattaché à le Royaume-Uni, situé en Amérique du Nord."
+    "shortFact": "Les îles Turques-et-Caïques sont un territoire britannique d’outre-mer situé dans les Caraïbes.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Cockburn Town. Sa superficie est d'environ 948 km². Sa population est estimée à environ 38 191 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. Les îles Turques-et-Caïques sont un territoire britannique d’outre-mer situé dans les Caraïbes."
   },
   {
     "entityId": "VGB",
-    "title": "îles Vierges britanniques",
+    "title": "Îles Vierges britanniques",
     "continent": "Amérique du Nord",
     "population": 30030,
     "areaSquareKilometers": 151,
@@ -1548,12 +1549,12 @@
     "languages": [
       "anglais"
     ],
-    "shortFact": "îles Vierges britanniques est un territoire rattaché à le Royaume-Uni, situé en Amérique du Nord.",
-    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Road Town. Sa superficie est d'environ 151 km². Sa population est estimée à environ 30 030 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. îles Vierges britanniques est un territoire rattaché à le Royaume-Uni, situé en Amérique du Nord."
+    "shortFact": "Les îles Vierges britanniques sont un territoire britannique d’outre-mer des Caraïbes.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Road Town. Sa superficie est d'environ 151 km². Sa population est estimée à environ 30 030 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. Les îles Vierges britanniques sont un territoire britannique d’outre-mer des Caraïbes."
   },
   {
     "entityId": "VIR",
-    "title": "îles Vierges des États-Unis",
+    "title": "Îles Vierges des États-Unis",
     "continent": "Amérique du Nord",
     "population": 106631,
     "areaSquareKilometers": 347,
@@ -1561,8 +1562,8 @@
     "languages": [
       "anglais"
     ],
-    "shortFact": "îles Vierges des États-Unis est un territoire rattaché à les États-Unis, situé en Amérique du Nord.",
-    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Charlotte Amalie. Sa superficie est d'environ 347 km². Sa population est estimée à environ 106 631 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. îles Vierges des États-Unis est un territoire rattaché à les États-Unis, situé en Amérique du Nord."
+    "shortFact": "Les îles Vierges des États-Unis sont un territoire non incorporé des États-Unis.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Charlotte Amalie. Sa superficie est d'environ 347 km². Sa population est estimée à environ 106 631 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. Les îles Vierges des États-Unis sont un territoire non incorporé des États-Unis."
   },
   {
     "entityId": "BRI",
@@ -2284,8 +2285,8 @@
       "anglais",
       "niuéen"
     ],
-    "shortFact": "Niue est un territoire rattaché à la Nouvelle-Zélande, situé en Océanie.",
-    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Alofi. Sa superficie est d'environ 260 km². Sa population est estimée à environ 1 620 habitants. Monnaie principale : dollar néo-zélandais. Langues principales : anglais et niuéen. Niue est un territoire rattaché à la Nouvelle-Zélande, situé en Océanie."
+    "shortFact": "Niue est un État autonome en libre association avec la Nouvelle-Zélande.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Alofi. Sa superficie est d'environ 260 km². Sa population est estimée à environ 1 620 habitants. Monnaie principale : dollar néo-zélandais. Langues principales : anglais et niuéen. Niue est un État autonome en libre association avec la Nouvelle-Zélande."
   },
   {
     "entityId": "NOR",
@@ -2722,8 +2723,8 @@
     "languages": [
       "français"
     ],
-    "shortFact": "Saint-Barthélemy est un territoire rattaché à la France, situé en Amérique du Nord.",
-    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Gustavia. Sa superficie est d'environ 21 km². Sa population est estimée à environ 9 961 habitants. Monnaie principale : euro. Langues principales : français. Saint-Barthélemy est un territoire rattaché à la France, situé en Amérique du Nord."
+    "shortFact": "Saint-Barthélemy est une collectivité française d’outre-mer située dans les Caraïbes.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Gustavia. Sa superficie est d'environ 21 km². Sa population est estimée à environ 9 961 habitants. Monnaie principale : euro. Langues principales : français. Saint-Barthélemy est une collectivité française d’outre-mer située dans les Caraïbes."
   },
   {
     "entityId": "KNA",
@@ -2761,8 +2762,8 @@
     "languages": [
       "français"
     ],
-    "shortFact": "Saint-Martin est un territoire rattaché à la France, situé en Amérique du Nord.",
-    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Marigot. Sa superficie est d'environ 53 km². Sa population est estimée à environ 38 002 habitants. Monnaie principale : euro. Langues principales : français. Saint-Martin est un territoire rattaché à la France, situé en Amérique du Nord."
+    "shortFact": "Saint-Martin est une collectivité française d’outre-mer qui occupe le nord de l’île partagée avec Sint Maarten.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est Marigot. Sa superficie est d'environ 53 km². Sa population est estimée à environ 38 002 habitants. Monnaie principale : euro. Langues principales : français. Saint-Martin est une collectivité française d’outre-mer qui occupe le nord de l’île partagée avec Sint Maarten."
   },
   {
     "entityId": "SXM",
@@ -2770,14 +2771,14 @@
     "continent": "Amérique du Nord",
     "population": 40733,
     "areaSquareKilometers": 34,
-    "currency": "florin antillais",
+    "currency": "florin caribéen (XCG)",
     "languages": [
       "anglais",
       "français",
       "néerlandais"
     ],
     "shortFact": "Sint Maarten est la partie néerlandaise de l'île partagée avec la collectivité française de Saint-Martin.",
-    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale est Philipsburg. Sa superficie est d'environ 34 km². Sa population est estimée à environ 40 733 habitants. Monnaie principale : florin antillais. Langues principales : anglais, français et néerlandais. Sint Maarten est un pays constitutif du Royaume des Pays-Bas."
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale est Philipsburg. Sa superficie est d'environ 34 km². Sa population est estimée à environ 40 733 habitants. Monnaie principale : florin caribéen (XCG). Langues principales : anglais, français et néerlandais. Sint Maarten est un pays constitutif du Royaume des Pays-Bas."
   },
   {
     "entityId": "SPM",
@@ -2833,7 +2834,7 @@
   },
   {
     "entityId": "SLV",
-    "title": "Salvador",
+    "title": "El Salvador",
     "continent": "Amérique du Nord",
     "population": 6453553,
     "areaSquareKilometers": 21041,
@@ -2841,8 +2842,8 @@
     "languages": [
       "espagnol"
     ],
-    "shortFact": "Le Salvador est le plus petit pays d'Amérique centrale continentale.",
-    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est San Salvador. Sa superficie est d'environ 21 041 km². Sa population est estimée à environ 6,5 millions d'habitants. Monnaie principale : dollar des États-Unis. Langues principales : espagnol. Le Salvador est le plus petit pays d'Amérique centrale continentale."
+    "shortFact": "El Salvador est le plus petit pays d'Amérique centrale continentale.",
+    "history": "Ce territoire se situe en Amérique du Nord. Sa capitale ou son centre administratif principal est San Salvador. Sa superficie est d'environ 21 041 km². Sa population est estimée à environ 6,5 millions d'habitants. Monnaie principale : dollar des États-Unis. Langues principales : espagnol. El Salvador est le plus petit pays d'Amérique centrale continentale."
   },
   {
     "entityId": "WSM",
@@ -2869,8 +2870,8 @@
       "anglais",
       "samoan"
     ],
-    "shortFact": "Samoa américaines est un territoire rattaché à les États-Unis, situé en Océanie.",
-    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Pago Pago. Sa superficie est d'environ 199 km². Sa population est estimée à environ 55 312 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais et samoan. Samoa américaines est un territoire rattaché à les États-Unis, situé en Océanie."
+    "shortFact": "Les Samoa américaines sont un territoire non incorporé des États-Unis situé en Polynésie.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Pago Pago. Sa superficie est d'environ 199 km². Sa population est estimée à environ 55 312 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais et samoan. Les Samoa américaines sont un territoire non incorporé des États-Unis situé en Polynésie."
   },
   {
     "entityId": "STP",
@@ -3197,12 +3198,12 @@
     "languages": [
       "anglais"
     ],
-    "shortFact": "Le Territoire britannique de l'océan Indien comprend notamment l'archipel des Chagos.",
-    "history": "Ce territoire se situe en Asie. Son statut territorial présente une situation particulière ou contestée. Sa capitale ou son centre administratif principal est Diego Garcia. Sa superficie est d'environ 60 km². Sa population est estimée à environ 3 000 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. Le Territoire britannique de l'océan Indien comprend notamment l'archipel des Chagos."
+    "shortFact": "Un traité signé en 2025 prévoit le transfert de souveraineté de l’archipel des Chagos à Maurice lorsqu’il entrera en vigueur.",
+    "history": "Ce territoire se situe en Asie. Son statut territorial présente une situation particulière ou contestée. Sa capitale ou son centre administratif principal est Diego Garcia. Sa superficie est d'environ 60 km². Sa population est estimée à environ 3 000 habitants. Monnaie principale : dollar des États-Unis. Langues principales : anglais. Un traité signé en 2025 prévoit le transfert de souveraineté de l’archipel des Chagos à Maurice lorsqu’il entrera en vigueur."
   },
   {
     "entityId": "IOA",
-    "title": "Territoires extérieurs australiens de l'Océan Indien",
+    "title": "Territoires extérieurs australiens de l’océan Indien",
     "continent": "Asie",
     "population": 2387,
     "areaSquareKilometers": 149,
@@ -3228,7 +3229,7 @@
   },
   {
     "entityId": "TLS",
-    "title": "Timor oriental",
+    "title": "Timor-Leste",
     "continent": "Asie",
     "population": 1293119,
     "areaSquareKilometers": 14874,
@@ -3237,8 +3238,8 @@
       "portugais",
       "tétoum"
     ],
-    "shortFact": "Le Timor oriental occupe la partie orientale de l'île de Timor.",
-    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Dili. Sa superficie est d'environ 14 874 km². Sa population est estimée à environ 1,3 million d'habitants. Monnaie principale : dollar des États-Unis. Langues principales : portugais et tétoum. Le Timor oriental occupe la partie orientale de l'île de Timor."
+    "shortFact": "Le Timor-Leste occupe la partie orientale de l'île de Timor.",
+    "history": "Ce territoire se situe en Asie. Sa capitale ou son centre administratif principal est Dili. Sa superficie est d'environ 14 874 km². Sa population est estimée à environ 1,3 million d'habitants. Monnaie principale : dollar des États-Unis. Langues principales : portugais et tétoum. Le Timor-Leste occupe la partie orientale de l'île de Timor."
   },
   {
     "entityId": "TGO",
@@ -3422,8 +3423,8 @@
     "languages": [
       "français"
     ],
-    "shortFact": "Wallis-et-Futuna est un territoire rattaché à la France, situé en Océanie.",
-    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Mata-Utu. Sa superficie est d'environ 142 km². Sa population est estimée à environ 11 558 habitants. Monnaie principale : franc CFP. Langues principales : français. Wallis-et-Futuna est un territoire rattaché à la France, situé en Océanie."
+    "shortFact": "Wallis-et-Futuna est une collectivité française d’outre-mer située en Polynésie.",
+    "history": "Ce territoire se situe en Océanie. Sa capitale ou son centre administratif principal est Mata-Utu. Sa superficie est d'environ 142 km². Sa population est estimée à environ 11 558 habitants. Monnaie principale : franc CFP. Langues principales : français. Wallis-et-Futuna est une collectivité française d’outre-mer située en Polynésie."
   },
   {
     "entityId": "YEM",

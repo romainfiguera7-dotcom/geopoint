@@ -5,7 +5,7 @@
     "countryIsoA2": "AQ",
     "name": "Antarctique",
     "latitude": -89.9,
-    "longitude": 0.0,
+    "longitude": 0,
     "type": "territory",
     "parentCountryName": "Aucun pays",
     "officialCapitalName": "Aucune capitale",
@@ -123,7 +123,7 @@
     "entityId": "IOA",
     "countryId": "AUS",
     "countryIsoA2": "AU",
-    "name": "Territoires extérieurs australiens de l'océan Indien",
+    "name": "Territoires extérieurs australiens de l’océan Indien",
     "latitude": -10.49252,
     "longitude": 105.66252,
     "type": "territory",
@@ -135,13 +135,13 @@
     "entityId": "IOT",
     "countryId": "GBR",
     "countryIsoA2": "GB",
-    "name": "Territoire britannique de l'océan Indien",
+    "name": "Territoire britannique de l’océan Indien",
     "latitude": -7.38589,
     "longitude": 72.43517,
     "type": "territory",
     "parentCountryName": "Royaume-Uni",
     "officialCapitalName": "Londres",
-    "description": "Territoire de l'archipel des Chagos dont le statut international reste contesté."
+    "description": "Territoire de l’archipel des Chagos administré par le Royaume-Uni. Un traité signé en 2025 prévoit le transfert de souveraineté à Maurice lors de son entrée en vigueur."
   },
   {
     "entityId": "KAB",

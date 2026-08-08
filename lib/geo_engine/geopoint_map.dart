@@ -14,6 +14,7 @@ class GeoPointMap extends StatefulWidget {
     super.key,
     this.answerPoint,
     this.answerCountry,
+    this.preferProvidedAnswerCountry = false,
     this.resultRadiusInKilometers,
     this.resultPanelCollapsed = false,
     this.onTap,
@@ -27,6 +28,15 @@ class GeoPointMap extends StatefulWidget {
 
   final LatLng? answerPoint;
   final GeoCountry? answerCountry;
+
+  /// Force l'utilisation du pays fourni comme bonne réponse.
+  ///
+  /// Cette option est utile lorsqu'un point représentatif peut aussi tomber
+  /// dans le contour d'une autre entité, par exemple pour un pays enclavé ou
+  /// un territoire superposé. Le comportement historique reste inchangé par
+  /// défaut pour les modes de localisation.
+  final bool preferProvidedAnswerCountry;
+
   final double? resultRadiusInKilometers;
 
   /// Indique que la fiche de résultat est repliée.
@@ -76,29 +86,33 @@ class _GeoPointMapState extends State<GeoPointMap>
       85.05112878;
 
   /*
+   * À un zoom inférieur à 2, la hauteur du monde
+   * devient plus petite que celle d'un écran de
+   * téléphone en mode portrait. Il est alors
+   * impossible d'empêcher l'affichage de vide au-delà
+   * des pôles, quelle que soit la contrainte utilisée.
+   */
+  static const double _minimumMapZoom =
+      2.0;
+
+  static const double _maximumMapZoom =
+      12.0;
+
+  /*
    * Le cadrage du resultat reserve beaucoup de place
    * au panneau situe en bas de l'ecran. Il peut donc
    * decaler les bords visibles au-dela des latitudes
    * du monde, meme lorsque le centre reste valide.
    *
-   * On contraint uniquement le centre de la camera :
-   * cela evite le conflit de flutter_map lors d'une
-   * mise a jour de MapOptions, tout en empechant le
-   * joueur de faire sortir le centre hors du monde.
+   * Cette contrainte limite les bords nord et sud de
+   * la camera, sans bloquer le defilement horizontal
+   * continu autour du monde.
    */
-  static final CameraConstraint
-      _worldCenterConstraint =
-      CameraConstraint.containCenter(
-    bounds: LatLngBounds(
-      const LatLng(
-        -_maximumLatitude,
-        -180,
-      ),
-      const LatLng(
-        _maximumLatitude,
-        180,
-      ),
-    ),
+  static const CameraConstraint
+      _worldLatitudeConstraint =
+      CameraConstraint.containLatitude(
+    -_maximumLatitude,
+    _maximumLatitude,
   );
 
   static const Duration _cameraAnimationDuration =
@@ -350,6 +364,12 @@ class _GeoPointMapState extends State<GeoPointMap>
   void _resolveAnswerCountry() {
     final LatLng? answerPoint =
         widget.answerPoint;
+
+    if (widget.preferProvidedAnswerCountry &&
+        widget.answerCountry != null) {
+      _resolvedAnswerCountry = widget.answerCountry;
+      return;
+    }
 
     final CountrySpatialIndex? spatialIndex =
         _spatialIndex;
@@ -649,7 +669,7 @@ class _GeoPointMapState extends State<GeoPointMap>
         bottomPadding,
       ),
       maxZoom: 7.4,
-      minZoom: 1.2,
+      minZoom: _minimumMapZoom,
     );
 
     try {
@@ -686,6 +706,12 @@ class _GeoPointMapState extends State<GeoPointMap>
     final MapCamera startCamera =
         _mapController.camera;
 
+    final double safeTargetZoom =
+        targetZoom.clamp(
+      _minimumMapZoom,
+      _maximumMapZoom,
+    ).toDouble();
+
     final LatLng startCenter =
         startCamera.center;
 
@@ -721,7 +747,7 @@ class _GeoPointMapState extends State<GeoPointMap>
     _zoomAnimation =
         Tween<double>(
       begin: startCamera.zoom,
-      end: targetZoom,
+      end: safeTargetZoom,
     ).animate(
       curvedAnimation,
     );
@@ -730,7 +756,7 @@ class _GeoPointMapState extends State<GeoPointMap>
         targetCenter;
 
     _finalCameraZoom =
-        targetZoom;
+        safeTargetZoom;
 
     _cameraAnimationId =
         animationId;
@@ -1706,13 +1732,18 @@ class _GeoPointMapState extends State<GeoPointMap>
                     initialCenter:
                         widget.initialCenter,
                     initialZoom:
-                        widget.initialZoom,
-                    minZoom: 1.2,
-                    maxZoom: 12,
+                        math.max(
+                      widget.initialZoom,
+                      _minimumMapZoom,
+                    ),
+                    minZoom:
+                        _minimumMapZoom,
+                    maxZoom:
+                        _maximumMapZoom,
                     backgroundColor:
                         _oceanColor,
                     cameraConstraint:
-                        _worldCenterConstraint,
+                        _worldLatitudeConstraint,
                     interactionOptions:
                         const InteractionOptions(
                       flags:
@@ -1729,7 +1760,10 @@ class _GeoPointMapState extends State<GeoPointMap>
 
                       _mapController.move(
                         widget.initialCenter,
-                        widget.initialZoom,
+                        math.max(
+                          widget.initialZoom,
+                          _minimumMapZoom,
+                        ),
                         id: 'geopoint-question-initial',
                       );
 

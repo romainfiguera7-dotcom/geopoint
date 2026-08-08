@@ -4,25 +4,23 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../geo_engine/country_display_geometry.dart';
 import '../../geo_engine/geo_country.dart';
 
 class CountrySilhouette extends StatelessWidget {
   const CountrySilhouette({
     required this.country,
-    this.fillColor = const Color(0xFF53D8FF),
+    this.fillColor = const Color(0xFFD9C2A6),
     this.borderColor = Colors.white,
-    this.backgroundColor =
-        const Color(0xFF0B2345),
+    this.backgroundColor = const Color(0xFF0B2345),
     this.padding = 24,
     super.key,
   });
 
   final GeoCountry country;
-
   final Color fillColor;
   final Color borderColor;
   final Color backgroundColor;
-
   final double padding;
 
   @override
@@ -31,18 +29,13 @@ class CountrySilhouette extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius:
-              BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: Colors.white.withValues(
-              alpha: 0.16,
-            ),
+            color: Colors.white.withValues(alpha: 0.16),
           ),
         ),
         child: Padding(
-          padding: EdgeInsets.all(
-            padding,
-          ),
+          padding: EdgeInsets.all(padding),
           child: CustomPaint(
             painter: _CountrySilhouettePainter(
               country: country,
@@ -57,605 +50,213 @@ class CountrySilhouette extends StatelessWidget {
   }
 }
 
-class _CountrySilhouettePainter
-    extends CustomPainter {
+class _CountrySilhouettePainter extends CustomPainter {
   const _CountrySilhouettePainter({
     required this.country,
     required this.fillColor,
     required this.borderColor,
   });
 
-  final GeoCountry country;
+  static const double _maximumMercatorLatitude = 85.05112878;
 
+  final GeoCountry country;
   final Color fillColor;
   final Color borderColor;
 
-  /*
-   * Ces pays sont de véritables archipels.
-   *
-   * Pour eux, conserver uniquement le plus grand
-   * polygone donnerait une silhouette trompeuse.
-   */
-  static const Set<String> _archipelagoIsoA2 =
-      <String>{
-    'BS',
-    'CV',
-    'FM',
-    'FJ',
-    'ID',
-    'JP',
-    'KI',
-    'KM',
-    'MH',
-    'MV',
-    'NZ',
-    'PG',
-    'PH',
-    'PW',
-    'SB',
-    'SC',
-    'TO',
-    'TV',
-    'VU',
-    'WS',
-  };
-
-  /*
-   * Certaines entités possèdent des territoires
-   * très éloignés du territoire principal.
-   *
-   * Ces zones de cadrage permettent d'afficher
-   * une silhouette immédiatement reconnaissable.
-   */
-  static const Map<String, _PreferredRegion>
-      _preferredRegions =
-      <String, _PreferredRegion>{
-    'FR': _PreferredRegion(
-      minLatitude: 40.5,
-      maxLatitude: 52.0,
-      minLongitude: -6.5,
-      maxLongitude: 10.5,
-    ),
-    'US': _PreferredRegion(
-      minLatitude: 23.0,
-      maxLatitude: 51.5,
-      minLongitude: -130.0,
-      maxLongitude: -60.0,
-    ),
-    'NL': _PreferredRegion(
-      minLatitude: 50.0,
-      maxLatitude: 54.5,
-      minLongitude: 2.5,
-      maxLongitude: 8.5,
-    ),
-    'PT': _PreferredRegion(
-      minLatitude: 36.0,
-      maxLatitude: 43.0,
-      minLongitude: -10.5,
-      maxLongitude: -6.0,
-    ),
-    'ES': _PreferredRegion(
-      minLatitude: 35.0,
-      maxLatitude: 44.5,
-      minLongitude: -10.5,
-      maxLongitude: 5.5,
-    ),
-    'DK': _PreferredRegion(
-      minLatitude: 54.0,
-      maxLatitude: 58.5,
-      minLongitude: 7.0,
-      maxLongitude: 16.0,
-    ),
-    'NO': _PreferredRegion(
-      minLatitude: 57.0,
-      maxLatitude: 72.5,
-      minLongitude: 3.0,
-      maxLongitude: 33.5,
-    ),
-  };
-
   @override
-  void paint(
-    Canvas canvas,
-    Size size,
-  ) {
-    if (size.width <= 0 ||
-        size.height <= 0 ||
-        country.polygons.isEmpty) {
+  void paint(Canvas canvas, Size size) {
+    if (size.width <= 0 || size.height <= 0) {
       return;
     }
 
     final List<List<LatLng>> sourcePolygons =
-        country.polygons
-            .where(
-              (List<LatLng> polygon) {
-                return polygon.length >= 3;
-              },
-            )
-            .toList(
-              growable: false,
-            );
+        CountryDisplayGeometry.selectPolygons(country);
 
     if (sourcePolygons.isEmpty) {
       return;
     }
 
-    final List<List<LatLng>> polygons =
-        _selectDisplayPolygons(
-      sourcePolygons,
-    );
-
-    if (polygons.isEmpty) {
-      return;
-    }
-
-    final _SilhouetteBounds bounds =
-        _calculateBounds(
-      polygons,
-    );
+    final List<List<_ProjectedPoint>> polygons =
+        _projectPolygons(sourcePolygons);
+    final _ProjectedBounds bounds = _calculateBounds(polygons);
 
     if (!bounds.isValid) {
       return;
     }
 
-    final double longitudeSpan =
-        math.max(
-      bounds.maxLongitude -
-          bounds.minLongitude,
-      0.000001,
-    );
+    final double widthSpan = math.max(bounds.maxX - bounds.minX, 0.000001);
+    final double heightSpan = math.max(bounds.maxY - bounds.minY, 0.000001);
+    final double scale = math.min(size.width / widthSpan, size.height / heightSpan);
+    final double horizontalOffset = (size.width - widthSpan * scale) / 2;
+    final double verticalOffset = (size.height - heightSpan * scale) / 2;
 
-    final double latitudeSpan =
-        math.max(
-      bounds.maxLatitude -
-          bounds.minLatitude,
-      0.000001,
-    );
+    final Paint fillPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = fillColor;
+    final Paint borderPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..strokeJoin = StrokeJoin.round
+      ..strokeCap = StrokeCap.round
+      ..color = borderColor.withValues(alpha: 0.92);
 
-    final double scaleX =
-        size.width / longitudeSpan;
+    for (final List<_ProjectedPoint> polygon in polygons) {
+      if (polygon.length < 3) {
+        continue;
+      }
 
-    final double scaleY =
-        size.height / latitudeSpan;
+      final ui.Path path = ui.Path();
 
-    final double scale =
-        math.min(
-      scaleX,
-      scaleY,
-    );
-
-    final double renderedWidth =
-        longitudeSpan * scale;
-
-    final double renderedHeight =
-        latitudeSpan * scale;
-
-    final double horizontalOffset =
-        (
-          size.width -
-          renderedWidth
-        ) /
-        2;
-
-    final double verticalOffset =
-        (
-          size.height -
-          renderedHeight
-        ) /
-        2;
-
-    final Paint fillPaint =
-        Paint()
-          ..style = PaintingStyle.fill
-          ..color = fillColor;
-
-    final Paint borderPaint =
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2
-          ..strokeJoin = StrokeJoin.round
-          ..strokeCap = StrokeCap.round
-          ..color = borderColor.withValues(
-            alpha: 0.90,
-          );
-
-    for (final List<LatLng> polygon
-        in polygons) {
-      final ui.Path path =
-          ui.Path();
-
-      for (
-        int index = 0;
-        index < polygon.length;
-        index++
-      ) {
-        final LatLng point =
-            polygon[index];
-
-        final double x =
-            horizontalOffset +
-                (
-                  point.longitude -
-                  bounds.minLongitude
-                ) *
-                    scale;
-
-        final double y =
-            verticalOffset +
-                (
-                  bounds.maxLatitude -
-                  point.latitude
-                ) *
-                    scale;
+      for (int index = 0; index < polygon.length; index++) {
+        final _ProjectedPoint point = polygon[index];
+        final double x = horizontalOffset + (point.x - bounds.minX) * scale;
+        final double y = verticalOffset + (bounds.maxY - point.y) * scale;
 
         if (index == 0) {
-          path.moveTo(
-            x,
-            y,
-          );
+          path.moveTo(x, y);
         } else {
-          path.lineTo(
-            x,
-            y,
-          );
+          path.lineTo(x, y);
         }
       }
 
       path.close();
-
-      canvas.drawPath(
-        path,
-        fillPaint,
-      );
-
-      canvas.drawPath(
-        path,
-        borderPaint,
-      );
+      canvas.drawPath(path, fillPaint);
+      canvas.drawPath(path, borderPaint);
     }
   }
 
-  List<List<LatLng>> _selectDisplayPolygons(
+  /// Utilise la même projection Web Mercator que flutter_map.
+  ///
+  /// Les pays nordiques conservent ainsi les proportions visibles sur la carte
+  /// au lieu d'être aplatis par un simple dessin latitude/longitude.
+  List<List<_ProjectedPoint>> _projectPolygons(
     List<List<LatLng>> polygons,
   ) {
-    final String isoA2 =
-        country.isoA2
-            .trim()
-            .toUpperCase();
+    final double referenceLongitude = _referenceLongitude(polygons);
 
-    final _PreferredRegion? preferredRegion =
-        _preferredRegions[isoA2];
+    return polygons.map((List<LatLng> polygon) {
+      final List<double> unwrappedLongitudes = <double>[];
+      double previousLongitude = referenceLongitude;
 
-    if (preferredRegion != null) {
-      final List<List<LatLng>> regionalPolygons =
-          polygons.where(
-        (List<LatLng> polygon) {
-          final LatLng center =
-              _calculatePolygonCenter(
-            polygon,
-          );
-
-          return preferredRegion.contains(
-            center,
-          );
-        },
-      ).toList(
-        growable: false,
-      );
-
-      if (regionalPolygons.isNotEmpty) {
-        return regionalPolygons;
+      for (final LatLng point in polygon) {
+        final double longitude = _unwrapLongitude(
+          point.longitude,
+          previousLongitude,
+        );
+        unwrappedLongitudes.add(longitude);
+        previousLongitude = longitude;
       }
-    }
 
-    if (_archipelagoIsoA2.contains(
-      isoA2,
-    )) {
-      return polygons;
-    }
+      final double averageLongitude = unwrappedLongitudes.reduce(
+            (double first, double second) => first + second,
+          ) /
+          unwrappedLongitudes.length;
+      final double polygonShift =
+          (((referenceLongitude - averageLongitude) / 360).round() * 360)
+              .toDouble();
 
-    final List<_PolygonInfo> polygonInfos =
-        polygons
-            .map<_PolygonInfo>(
-              (List<LatLng> polygon) {
-                return _PolygonInfo(
-                  polygon: polygon,
-                  bounds:
-                      _calculateBounds(
-                    <List<LatLng>>[
-                      polygon,
-                    ],
-                  ),
-                  center:
-                      _calculatePolygonCenter(
-                    polygon,
-                  ),
-                  area:
-                      _calculatePolygonArea(
-                    polygon,
-                  ),
-                );
-              },
+      return List<_ProjectedPoint>.generate(polygon.length, (int index) {
+        final LatLng point = polygon[index];
+        final double latitude = point.latitude
+            .clamp(
+              -_maximumMercatorLatitude,
+              _maximumMercatorLatitude,
             )
-            .toList();
+            .toDouble();
+        final double latitudeRadians = latitude * math.pi / 180;
+        final double mercatorY =
+            math.log(math.tan(math.pi / 4 + latitudeRadians / 2)) *
+                180 /
+                math.pi;
 
-    polygonInfos.sort(
-      (
-        _PolygonInfo first,
-        _PolygonInfo second,
-      ) {
-        return second.area.compareTo(
-          first.area,
+        return _ProjectedPoint(
+          unwrappedLongitudes[index] + polygonShift,
+          mercatorY,
         );
-      },
+      }, growable: false);
+    }).toList(growable: false);
+  }
+
+  double _referenceLongitude(List<List<LatLng>> polygons) {
+    final List<LatLng> largestPolygon = polygons.reduce(
+      (List<LatLng> first, List<LatLng> second) =>
+          first.length >= second.length ? first : second,
     );
 
-    final _PolygonInfo mainPolygon =
-        polygonInfos.first;
+    double sineTotal = 0;
+    double cosineTotal = 0;
 
-    final double mainSpan =
-        math.max(
-      mainPolygon.bounds.maxLongitude -
-          mainPolygon.bounds.minLongitude,
-      mainPolygon.bounds.maxLatitude -
-          mainPolygon.bounds.minLatitude,
-    );
+    for (final LatLng point in largestPolygon) {
+      final double radians = point.longitude * math.pi / 180;
+      sineTotal += math.sin(radians);
+      cosineTotal += math.cos(radians);
+    }
 
-    final double safeMainSpan =
-        math.max(
-      mainSpan,
-      1,
-    );
+    return math.atan2(sineTotal, cosineTotal) * 180 / math.pi;
+  }
 
-    final List<List<LatLng>> selected =
-        <List<LatLng>>[
-      mainPolygon.polygon,
-    ];
+  double _unwrapLongitude(double longitude, double reference) {
+    double result = longitude;
 
-    for (final _PolygonInfo info
-        in polygonInfos.skip(1)) {
-      final double latitudeDifference =
-          info.center.latitude -
-              mainPolygon.center.latitude;
+    while (result - reference > 180) {
+      result -= 360;
+    }
 
-      final double longitudeDifference =
-          info.center.longitude -
-              mainPolygon.center.longitude;
+    while (result - reference < -180) {
+      result += 360;
+    }
 
-      final double centerDistance =
-          math.sqrt(
-        latitudeDifference *
-                latitudeDifference +
-            longitudeDifference *
-                longitudeDifference,
-      );
+    return result;
+  }
 
-      final double relativeDistance =
-          centerDistance /
-              safeMainSpan;
+  _ProjectedBounds _calculateBounds(
+    List<List<_ProjectedPoint>> polygons,
+  ) {
+    double minX = double.infinity;
+    double maxX = double.negativeInfinity;
+    double minY = double.infinity;
+    double maxY = double.negativeInfinity;
 
-      final double relativeArea =
-          mainPolygon.area <= 0
-              ? 0
-              : info.area /
-                  mainPolygon.area;
-
-      /*
-       * On conserve :
-       * - les grandes parties du pays ;
-       * - les îles et territoires proches ;
-       * - les polygones moyens, même légèrement
-       *   éloignés, lorsqu'ils font réellement
-       *   partie de la silhouette principale.
-       */
-      final bool isLargePart =
-          relativeArea >= 0.12;
-
-      final bool isNearbyPart =
-          relativeDistance <= 1.15;
-
-      final bool isMediumAndReasonablyClose =
-          relativeArea >= 0.025 &&
-              relativeDistance <= 1.80;
-
-      if (isLargePart ||
-          isNearbyPart ||
-          isMediumAndReasonablyClose) {
-        selected.add(
-          info.polygon,
-        );
+    for (final List<_ProjectedPoint> polygon in polygons) {
+      for (final _ProjectedPoint point in polygon) {
+        minX = math.min(minX, point.x);
+        maxX = math.max(maxX, point.x);
+        minY = math.min(minY, point.y);
+        maxY = math.max(maxY, point.y);
       }
     }
 
-    return selected;
-  }
-
-  double _calculatePolygonArea(
-    List<LatLng> polygon,
-  ) {
-    if (polygon.length < 3) {
-      return 0;
-    }
-
-    double twiceArea = 0;
-
-    for (
-      int index = 0;
-      index < polygon.length;
-      index++
-    ) {
-      final LatLng current =
-          polygon[index];
-
-      final LatLng next =
-          polygon[
-            (
-              index + 1
-            ) %
-                polygon.length
-          ];
-
-      twiceArea +=
-          current.longitude *
-                  next.latitude -
-              next.longitude *
-                  current.latitude;
-    }
-
-    return twiceArea.abs() / 2;
-  }
-
-  LatLng _calculatePolygonCenter(
-    List<LatLng> polygon,
-  ) {
-    double latitudeSum = 0;
-    double longitudeSum = 0;
-
-    for (final LatLng point
-        in polygon) {
-      latitudeSum +=
-          point.latitude;
-
-      longitudeSum +=
-          point.longitude;
-    }
-
-    return LatLng(
-      latitudeSum /
-          polygon.length,
-      longitudeSum /
-          polygon.length,
-    );
-  }
-
-  _SilhouetteBounds _calculateBounds(
-    List<List<LatLng>> polygons,
-  ) {
-    double minLatitude =
-        double.infinity;
-
-    double maxLatitude =
-        -double.infinity;
-
-    double minLongitude =
-        double.infinity;
-
-    double maxLongitude =
-        -double.infinity;
-
-    for (final List<LatLng> polygon
-        in polygons) {
-      for (final LatLng point
-          in polygon) {
-        minLatitude =
-            math.min(
-          minLatitude,
-          point.latitude,
-        );
-
-        maxLatitude =
-            math.max(
-          maxLatitude,
-          point.latitude,
-        );
-
-        minLongitude =
-            math.min(
-          minLongitude,
-          point.longitude,
-        );
-
-        maxLongitude =
-            math.max(
-          maxLongitude,
-          point.longitude,
-        );
-      }
-    }
-
-    return _SilhouetteBounds(
-      minLatitude: minLatitude,
-      maxLatitude: maxLatitude,
-      minLongitude: minLongitude,
-      maxLongitude: maxLongitude,
-    );
+    return _ProjectedBounds(minX, maxX, minY, maxY);
   }
 
   @override
-  bool shouldRepaint(
-    covariant _CountrySilhouettePainter
-        oldDelegate,
-  ) {
-    return oldDelegate.country.id !=
-            country.id ||
-        oldDelegate.fillColor !=
-            fillColor ||
-        oldDelegate.borderColor !=
-            borderColor;
+  bool shouldRepaint(covariant _CountrySilhouettePainter oldDelegate) {
+    return oldDelegate.country.id != country.id ||
+        oldDelegate.fillColor != fillColor ||
+        oldDelegate.borderColor != borderColor;
   }
 }
 
-class _PolygonInfo {
-  const _PolygonInfo({
-    required this.polygon,
-    required this.bounds,
-    required this.center,
-    required this.area,
-  });
+class _ProjectedPoint {
+  const _ProjectedPoint(this.x, this.y);
 
-  final List<LatLng> polygon;
-  final _SilhouetteBounds bounds;
-  final LatLng center;
-  final double area;
+  final double x;
+  final double y;
 }
 
-class _PreferredRegion {
-  const _PreferredRegion({
-    required this.minLatitude,
-    required this.maxLatitude,
-    required this.minLongitude,
-    required this.maxLongitude,
-  });
+class _ProjectedBounds {
+  const _ProjectedBounds(this.minX, this.maxX, this.minY, this.maxY);
 
-  final double minLatitude;
-  final double maxLatitude;
-  final double minLongitude;
-  final double maxLongitude;
+  final double minX;
+  final double maxX;
+  final double minY;
+  final double maxY;
 
-  bool contains(
-    LatLng point,
-  ) {
-    return point.latitude >=
-            minLatitude &&
-        point.latitude <=
-            maxLatitude &&
-        point.longitude >=
-            minLongitude &&
-        point.longitude <=
-            maxLongitude;
-  }
-}
-
-class _SilhouetteBounds {
-  const _SilhouetteBounds({
-    required this.minLatitude,
-    required this.maxLatitude,
-    required this.minLongitude,
-    required this.maxLongitude,
-  });
-
-  final double minLatitude;
-  final double maxLatitude;
-
-  final double minLongitude;
-  final double maxLongitude;
-
-  bool get isValid {
-    return minLatitude.isFinite &&
-        maxLatitude.isFinite &&
-        minLongitude.isFinite &&
-        maxLongitude.isFinite &&
-        maxLatitude > minLatitude &&
-        maxLongitude > minLongitude;
-  }
+  bool get isValid =>
+      minX.isFinite &&
+      maxX.isFinite &&
+      minY.isFinite &&
+      maxY.isFinite &&
+      maxX > minX &&
+      maxY > minY;
 }

@@ -3,7 +3,7 @@
     "id": "discovery",
     "order": 1,
     "name": "Découverte",
-    "description": "Apprends les bases dans ta région de départ avec les pays les plus faciles à reconnaître.",
+    "description": "Apprends les bases avec les pays les plus faciles et un cadrage large de leur continent.",
     "iconName": "school",
     "questionDurationSeconds": 25,
     "questionCount": 5,
@@ -12,14 +12,14 @@
     "includeTerritories": false,
     "includeSmallCountries": false,
     "usePlayerRegion": true,
-    "initialZoom": 3.4,
+    "initialZoom": 2.35,
     "isEnabled": true
   },
   {
     "id": "easy",
     "order": 2,
     "name": "Facile",
-    "description": "Retrouve les pays les plus connus de ta région et des continents voisins.",
+    "description": "Retrouve les pays les plus connus avec un repère continental plus large.",
     "iconName": "sentiment_satisfied",
     "questionDurationSeconds": 20,
     "questionCount": 10,
@@ -28,14 +28,14 @@
     "includeTerritories": false,
     "includeSmallCountries": false,
     "usePlayerRegion": true,
-    "initialZoom": 2.8,
+    "initialZoom": 2.1,
     "isEnabled": true
   },
   {
     "id": "intermediate",
     "order": 3,
     "name": "Intermédiaire",
-    "description": "Parcours l’ensemble des pays indépendants du monde.",
+    "description": "Parcours l’ensemble des pays indépendants depuis une vue mondiale sans ciblage.",
     "iconName": "public",
     "questionDurationSeconds": 17,
     "questionCount": 10,
@@ -44,14 +44,14 @@
     "includeTerritories": false,
     "includeSmallCountries": true,
     "usePlayerRegion": false,
-    "initialZoom": 2.2,
+    "initialZoom": 2.0,
     "isEnabled": true
   },
   {
     "id": "hard",
     "order": 4,
     "name": "Difficile",
-    "description": "Affronte les petits pays, les îles et les zones géographiques complexes.",
+    "description": "Affronte les petits pays, les îles et les zones complexes depuis une vue mondiale neutre.",
     "iconName": "local_fire_department",
     "questionDurationSeconds": 14,
     "questionCount": 12,
@@ -60,14 +60,14 @@
     "includeTerritories": false,
     "includeSmallCountries": true,
     "usePlayerRegion": false,
-    "initialZoom": 1.8,
+    "initialZoom": 2.0,
     "isEnabled": true
   },
   {
     "id": "expert",
     "order": 5,
     "name": "Expert",
-    "description": "Maîtrise les pays, les micro-États et les territoires du monde entier sans assistance.",
+    "description": "Maîtrise les pays, les micro-États et les territoires depuis une vue mondiale sans assistance.",
     "iconName": "workspace_premium",
     "questionDurationSeconds": 10,
     "questionCount": 15,
@@ -76,7 +76,7 @@
     "includeTerritories": true,
     "includeSmallCountries": true,
     "usePlayerRegion": false,
-    "initialZoom": 1.4,
+    "initialZoom": 2.0,
     "isEnabled": true
   }
 ]

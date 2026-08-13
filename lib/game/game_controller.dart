@@ -151,9 +151,30 @@ class GameController extends ChangeNotifier {
   double get currentInitialZoom =>
       _difficulties[_currentDifficultyId]
           ?.initialZoom ??
-      2.2;
+      2.0;
 
   LatLng get currentInitialCenter {
+    /*
+     * La camera ne doit jamais utiliser la capitale,
+     * le point de reference ou le centre du pays a
+     * trouver : ce cadrage revelait presque directement
+     * la reponse.
+     *
+     * Les deux premiers niveaux donnent uniquement un
+     * indice continental volontaire. Tous les pays d'un
+     * meme continent partagent donc exactement le meme
+     * centre. A partir du niveau Intermediaire, la vue de
+     * depart est totalement neutre.
+     */
+    if (_currentDifficultyId !=
+            'discovery' &&
+        _currentDifficultyId != 'easy') {
+      return const LatLng(
+        20,
+        0,
+      );
+    }
+
     final GameQuestion? question =
         _session.currentQuestion;
 
@@ -164,39 +185,51 @@ class GameController extends ChangeNotifier {
       );
     }
 
-    final GeoCountry? country =
-        _findCountryById(
-      question.countryId,
+    return _initialCenterForContinent(
+      question.continent,
     );
+  }
 
-    if (country == null) {
-      return const LatLng(
-        20,
-        0,
-      );
+  LatLng _initialCenterForContinent(
+    String continent,
+  ) {
+    final String normalized =
+        continent.trim().toLowerCase();
+
+    switch (normalized) {
+      case 'afrique':
+      case 'africa':
+        return const LatLng(5, 20);
+
+      case 'amerique du nord':
+      case 'amérique du nord':
+      case 'north america':
+        return const LatLng(38, -100);
+
+      case 'amerique du sud':
+      case 'amérique du sud':
+      case 'south america':
+        return const LatLng(-18, -60);
+
+      case 'asie':
+      case 'asia':
+        return const LatLng(34, 90);
+
+      case 'europe':
+        return const LatLng(46, 15);
+
+      case 'oceanie':
+      case 'océanie':
+      case 'oceania':
+        return const LatLng(-23, 135);
+
+      case 'antarctique':
+      case 'antarctica':
+        return const LatLng(-58, 0);
+
+      default:
+        return const LatLng(20, 0);
     }
-
-    final ReferencePoint? referencePoint =
-        _findReferenceOverride(
-      country,
-    );
-
-    if (referencePoint != null) {
-      return referencePoint.position;
-    }
-
-    final Capital? capital =
-        _findCapital(
-      country,
-    );
-
-    if (capital != null) {
-      return capital.position;
-    }
-
-    return _calculateCountryCenter(
-      country,
-    );
   }
 
   bool get isFindCapitalMode =>

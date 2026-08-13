@@ -325,6 +325,45 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  double _maximumMapZoom() {
+    /*
+     * Le zoom maximal ne sert plus d'indice sur la
+     * position de la reponse. Il limite seulement le
+     * niveau de detail disponible pendant la recherche.
+     *
+     * Les niveaux eleves autorisent davantage de zoom
+     * car ils contiennent des micro-Etats, des iles et
+     * des capitales qui seraient sinon impossibles a
+     * selectionner. La difficulte vient du depart neutre,
+     * du temps et de la precision, pas d'une carte rendue
+     * artificiellement inutilisable.
+     */
+    if (widget.modeId == 'mixed') {
+      return 12;
+    }
+
+    final bool isCapitalMode =
+        widget.modeId == 'find_capital';
+
+    switch (widget.difficultyId) {
+      case 'discovery':
+        return isCapitalMode ? 8 : 6.5;
+
+      case 'easy':
+        return isCapitalMode ? 9 : 7.5;
+
+      case 'intermediate':
+        return isCapitalMode ? 10 : 9;
+
+      case 'hard':
+        return isCapitalMode ? 11 : 10.5;
+
+      case 'expert':
+      default:
+        return 12;
+    }
+  }
+
   @override
   void dispose() {
     _controller.removeListener(
@@ -360,6 +399,8 @@ class _GameScreenState extends State<GameScreen> {
                     _controller.currentInitialZoom,
                 initialCenter:
                     _controller.currentInitialCenter,
+                maximumZoom:
+                    _maximumMapZoom(),
                 answerPoint:
                     _controller.answerPoint,
                 answerCountry:

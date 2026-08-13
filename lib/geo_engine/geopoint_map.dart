@@ -24,6 +24,7 @@ class GeoPointMap extends StatefulWidget {
     this.initialCenter =
         const LatLng(20, 0),
     this.initialZoom = 2.2,
+    this.maximumZoom = 12.0,
   });
 
   final LatLng? answerPoint;
@@ -58,6 +59,13 @@ class GeoPointMap extends StatefulWidget {
   final bool allowInteraction;
   final LatLng initialCenter;
   final double initialZoom;
+
+  /// Zoom maximal autorise pendant la recherche.
+  ///
+  /// Il depend du mode et de la difficulte afin de
+  /// conserver un deplacement manuel agreable sans
+  /// rendre les grands pays inutilement faciles.
+  final double maximumZoom;
 
   @override
   State<GeoPointMap> createState() {
@@ -95,7 +103,7 @@ class _GeoPointMapState extends State<GeoPointMap>
   static const double _minimumMapZoom =
       2.0;
 
-  static const double _maximumMapZoom =
+  static const double _absoluteMaximumMapZoom =
       12.0;
 
   /*
@@ -153,6 +161,29 @@ class _GeoPointMapState extends State<GeoPointMap>
 
   bool get _isAnswerRevealed {
     return widget.answerPoint != null;
+  }
+
+  double get _effectiveMaximumMapZoom {
+    /*
+     * Apres la validation, le joueur peut de nouveau
+     * zoomer librement pour explorer le territoire et
+     * profiter de la fiche pedagogique.
+     */
+    if (_isAnswerRevealed) {
+      return _absoluteMaximumMapZoom;
+    }
+
+    return widget.maximumZoom.clamp(
+      _minimumMapZoom,
+      _absoluteMaximumMapZoom,
+    ).toDouble();
+  }
+
+  double get _safeInitialZoom {
+    return widget.initialZoom.clamp(
+      _minimumMapZoom,
+      _effectiveMaximumMapZoom,
+    ).toDouble();
   }
 
   GeoCountry? get _effectiveAnswerCountry {
@@ -232,21 +263,20 @@ class _GeoPointMapState extends State<GeoPointMap>
     if (newQuestionIsDisplayed) {
       _resetQuestionView();
 
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) {
-        if (!mounted || !_mapIsReady) {
-          return;
-        }
-
-        _startCameraAnimation(
-          targetCenter:
-              widget.initialCenter,
-          targetZoom:
-              widget.initialZoom,
-          animationId:
-              'geopoint-question-animation',
+      /*
+       * Le retour au cadrage de depart est immediat.
+       * Cela evite que la camera conserve quelques
+       * instants le zoom de la reponse precedente et
+       * garantit qu'elle respecte le nouveau zoom
+       * maximal avant la reconstruction de FlutterMap.
+       */
+      if (_mapIsReady) {
+        _mapController.move(
+          widget.initialCenter,
+          _safeInitialZoom,
+          id: 'geopoint-question-reset',
         );
-      });
+      }
     }
 
     if (widget.answerPoint != null &&
@@ -709,7 +739,7 @@ class _GeoPointMapState extends State<GeoPointMap>
     final double safeTargetZoom =
         targetZoom.clamp(
       _minimumMapZoom,
-      _maximumMapZoom,
+      _effectiveMaximumMapZoom,
     ).toDouble();
 
     final LatLng startCenter =
@@ -1732,14 +1762,11 @@ class _GeoPointMapState extends State<GeoPointMap>
                     initialCenter:
                         widget.initialCenter,
                     initialZoom:
-                        math.max(
-                      widget.initialZoom,
-                      _minimumMapZoom,
-                    ),
+                        _safeInitialZoom,
                     minZoom:
                         _minimumMapZoom,
                     maxZoom:
-                        _maximumMapZoom,
+                        _effectiveMaximumMapZoom,
                     backgroundColor:
                         _oceanColor,
                     cameraConstraint:
@@ -1760,10 +1787,7 @@ class _GeoPointMapState extends State<GeoPointMap>
 
                       _mapController.move(
                         widget.initialCenter,
-                        math.max(
-                          widget.initialZoom,
-                          _minimumMapZoom,
-                        ),
+                        _safeInitialZoom,
                         id: 'geopoint-question-initial',
                       );
 

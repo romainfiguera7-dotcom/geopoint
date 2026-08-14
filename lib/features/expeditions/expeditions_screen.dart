@@ -6,6 +6,7 @@ import '../../game/continent/americas_expedition.dart';
 import '../../game/continent/asia_expedition.dart';
 import '../../game/continent/continent_expedition.dart';
 import '../../game/continent/europe_expedition.dart';
+import '../../game/continent/oceania_expedition.dart';
 import '../../game/expedition/expedition_mission.dart';
 import '../../game/expedition/expedition_progress.dart';
 import '../../game/expedition/expedition_storage.dart';
@@ -139,6 +140,7 @@ class _ExpeditionList extends StatelessWidget {
     AfricaExpeditionCatalog.africa,
     AsiaExpeditionCatalog.asia,
     AmericasExpeditionCatalog.americas,
+    OceaniaExpeditionCatalog.oceania,
   ];
 
   Future<void> _openTutorials(
@@ -400,6 +402,11 @@ class _ContinentExpeditionCard extends StatelessWidget {
 
   List<Color> get _colors {
     switch (expedition.id) {
+      case 'oceania':
+        return const <Color>[
+          Color(0xFF8C67D9),
+          Color(0xFF4C2D86),
+        ];
       case 'americas':
         return const <Color>[
           Color(0xFF22B98D),

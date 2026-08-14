@@ -1,4 +1,4 @@
-GeoPoint - Phase 2 : Expéditions Europe, Afrique, Asie et Amériques
+GeoPoint - Phase 2 : Expéditions Europe, Afrique, Asie, Amériques et Océanie
 
 INSTALLATION
 
@@ -19,6 +19,7 @@ lib/game/continent/continent_storage.dart
 lib/game/continent/africa_expedition.dart
 lib/game/continent/asia_expedition.dart
 lib/game/continent/americas_expedition.dart
+lib/game/continent/oceania_expedition.dart
 
 FICHIERS MIS À JOUR
 
@@ -29,16 +30,35 @@ lib/game/game_screen.dart
 TEST RAPIDE
 
 - Ouvrir Expéditions.
-- Vérifier que les cartes Europe, Afrique, Asie et Amériques apparaissent sous Tutoriels de jeu.
+- Vérifier que les cartes Europe, Afrique, Asie, Amériques et Océanie apparaissent sous Tutoriels de jeu.
 - Ouvrir Europe : les 15 niveaux doivent être affichés.
 - Ouvrir Afrique : les 15 niveaux doivent être affichés.
 - Ouvrir Asie : les 15 niveaux doivent être affichés.
 - Ouvrir Amériques : les 15 niveaux doivent être affichés.
+- Ouvrir Océanie : les 15 niveaux doivent être affichés.
 - Seul le premier niveau doit être disponible au départ.
 - Terminer le premier niveau avec au moins une étoile.
 - Vérifier que le deuxième niveau se débloque.
 - Fermer et relancer l’application pour vérifier la sauvegarde.
 - Les expéditions historiques et les quatre tutoriels doivent toujours fonctionner.
+
+PROGRESSION OCÉANIE
+
+1. Découverte de l’Océanie
+2. Grands repères du Pacifique
+3. Cap sur la Mélanésie
+4. Les îles de Micronésie
+5. Voyage en Polynésie
+6. Drapeaux principaux
+7. Capitales principales
+8. Micro-États du Pacifique
+9. Territoires océaniens
+10. Silhouettes d’Océanie
+11. Épreuve mixte
+12. Révision GeoBrain
+13. Défi chronométré
+14. Examen océanien
+15. Maître de l’Océanie
 
 PROGRESSION AMÉRIQUES
 

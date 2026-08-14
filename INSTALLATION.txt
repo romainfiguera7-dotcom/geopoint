@@ -1,4 +1,4 @@
-GeoPoint - Phase 2 : Expédition Europe pilote
+GeoPoint - Phase 2 : Expéditions Europe et Afrique
 
 INSTALLATION
 
@@ -16,6 +16,7 @@ lib/game/continent/continent_expedition.dart
 lib/game/continent/europe_expedition.dart
 lib/game/continent/continent_progress.dart
 lib/game/continent/continent_storage.dart
+lib/game/continent/africa_expedition.dart
 
 FICHIERS MIS À JOUR
 
@@ -26,13 +27,32 @@ lib/game/game_screen.dart
 TEST RAPIDE
 
 - Ouvrir Expéditions.
-- Vérifier que la carte Europe apparaît sous Tutoriels de jeu.
+- Vérifier que les cartes Europe et Afrique apparaissent sous Tutoriels de jeu.
 - Ouvrir Europe : les 15 niveaux doivent être affichés.
+- Ouvrir Afrique : les 15 niveaux doivent être affichés.
 - Seul le premier niveau doit être disponible au départ.
 - Terminer le premier niveau avec au moins une étoile.
 - Vérifier que le deuxième niveau se débloque.
 - Fermer et relancer l’application pour vérifier la sauvegarde.
 - Les expéditions historiques et les quatre tutoriels doivent toujours fonctionner.
+
+PROGRESSION AFRIQUE
+
+1. Découverte de l’Afrique
+2. Les grands pays
+3. Pays faciles à reconnaître
+4. Voisins d’Afrique de l’Ouest
+5. Cap sur l’Afrique de l’Est
+6. Drapeaux principaux
+7. Capitales principales
+8. Petits pays africains
+9. Îles et territoires
+10. Silhouettes d’Afrique
+11. Épreuve mixte
+12. Révision GeoBrain
+13. Défi chronométré
+14. Examen africain
+15. Maître de l’Afrique
 
 PROGRESSION EUROPE
 

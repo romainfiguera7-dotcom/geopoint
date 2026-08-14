@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../game/continent/africa_expedition.dart';
+import '../../game/continent/continent_expedition.dart';
 import '../../game/continent/europe_expedition.dart';
 import '../../game/expedition/expedition_mission.dart';
 import '../../game/expedition/expedition_progress.dart';
@@ -129,6 +131,12 @@ class _ExpeditionList extends StatelessWidget {
   final ExpeditionProgress progress;
   final VoidCallback onProgressChanged;
 
+  static const List<ContinentExpedition>
+      _continentExpeditions = <ContinentExpedition>[
+    EuropeExpeditionCatalog.europe,
+    AfricaExpeditionCatalog.africa,
+  ];
+
   Future<void> _openTutorials(
     BuildContext context,
   ) async {
@@ -172,7 +180,8 @@ class _ExpeditionList extends StatelessWidget {
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 32),
-      itemCount: difficulties.length + 2,
+      itemCount:
+          difficulties.length + 1 + _continentExpeditions.length,
       separatorBuilder: (BuildContext context, int index) {
         return const SizedBox(height: 15);
       },
@@ -185,15 +194,19 @@ class _ExpeditionList extends StatelessWidget {
           );
         }
 
-        if (index == 1) {
-          return _EuropePilotCard(
+        if (index <= _continentExpeditions.length) {
+          final ContinentExpedition expedition =
+              _continentExpeditions[index - 1];
+
+          return _ContinentExpeditionCard(
+            expedition: expedition,
             onPressed: () async {
               await Navigator.of(context).push<void>(
                 MaterialPageRoute<void>(
                   builder: (BuildContext context) {
                     return ContinentExpeditionScreen(
                       controller: controller,
-                      expedition: EuropeExpeditionCatalog.europe,
+                      expedition: expedition,
                     );
                   },
                 ),
@@ -203,7 +216,7 @@ class _ExpeditionList extends StatelessWidget {
         }
 
         final int difficultyIndex =
-            index - 2;
+            index - 1 - _continentExpeditions.length;
 
         final GameDifficulty difficulty =
             difficulties[difficultyIndex];
@@ -372,12 +385,30 @@ class _TutorialCard extends StatelessWidget {
   }
 }
 
-class _EuropePilotCard extends StatelessWidget {
-  const _EuropePilotCard({
+class _ContinentExpeditionCard extends StatelessWidget {
+  const _ContinentExpeditionCard({
+    required this.expedition,
     required this.onPressed,
   });
 
+  final ContinentExpedition expedition;
   final VoidCallback onPressed;
+
+  List<Color> get _colors {
+    switch (expedition.id) {
+      case 'africa':
+        return const <Color>[
+          Color(0xFFF39C3D),
+          Color(0xFF9A4E16),
+        ];
+      case 'europe':
+      default:
+        return const <Color>[
+          Color(0xFF176BFF),
+          Color(0xFF0C3C8C),
+        ];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -390,13 +421,10 @@ class _EuropePilotCard extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.all(19),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: <Color>[
-                Color(0xFF176BFF),
-                Color(0xFF0C3C8C),
-              ],
+              colors: _colors,
             ),
             borderRadius: BorderRadius.circular(25),
             border: Border.all(
@@ -404,8 +432,7 @@ class _EuropePilotCard extends StatelessWidget {
             ),
             boxShadow: <BoxShadow>[
               BoxShadow(
-                color: const Color(0xFF176BFF)
-                    .withValues(alpha: 0.20),
+                color: _colors.first.withValues(alpha: 0.20),
                 blurRadius: 18,
                 offset: const Offset(0, 8),
               ),
@@ -432,7 +459,7 @@ class _EuropePilotCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'EXPÉDITION PILOTE',
+                      'EXPÉDITION CONTINENTALE',
                       style: GoogleFonts.nunitoSans(
                         color: const Color(0xFFFFD166),
                         fontSize: 10,
@@ -441,7 +468,7 @@ class _EuropePilotCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Europe',
+                      expedition.name,
                       style: GoogleFonts.fredoka(
                         color: Colors.white,
                         fontSize: 23,
@@ -450,8 +477,7 @@ class _EuropePilotCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Une progression complète des grands pays '
-                      'jusqu’au niveau Maître.',
+                      expedition.subtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.nunitoSans(
@@ -462,7 +488,8 @@ class _EuropePilotCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 9),
                     Text(
-                      '15 NIVEAUX • 45 ÉTOILES',
+                      '${expedition.levels.length} NIVEAUX '
+                      '• ${expedition.maximumStars} ÉTOILES',
                       style: GoogleFonts.nunitoSans(
                         color: const Color(0xFFFFD166),
                         fontSize: 11,

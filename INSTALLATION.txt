@@ -1,4 +1,4 @@
-GeoPoint - Phase 2 : Expéditions Europe et Afrique
+GeoPoint - Phase 2 : Expéditions Europe, Afrique et Asie
 
 INSTALLATION
 
@@ -17,6 +17,7 @@ lib/game/continent/europe_expedition.dart
 lib/game/continent/continent_progress.dart
 lib/game/continent/continent_storage.dart
 lib/game/continent/africa_expedition.dart
+lib/game/continent/asia_expedition.dart
 
 FICHIERS MIS À JOUR
 
@@ -27,14 +28,33 @@ lib/game/game_screen.dart
 TEST RAPIDE
 
 - Ouvrir Expéditions.
-- Vérifier que les cartes Europe et Afrique apparaissent sous Tutoriels de jeu.
+- Vérifier que les cartes Europe, Afrique et Asie apparaissent sous Tutoriels de jeu.
 - Ouvrir Europe : les 15 niveaux doivent être affichés.
 - Ouvrir Afrique : les 15 niveaux doivent être affichés.
+- Ouvrir Asie : les 15 niveaux doivent être affichés.
 - Seul le premier niveau doit être disponible au départ.
 - Terminer le premier niveau avec au moins une étoile.
 - Vérifier que le deuxième niveau se débloque.
 - Fermer et relancer l’application pour vérifier la sauvegarde.
 - Les expéditions historiques et les quatre tutoriels doivent toujours fonctionner.
+
+PROGRESSION ASIE
+
+1. Découverte de l’Asie
+2. Les grands pays
+3. Pays faciles à reconnaître
+4. Voisins du Moyen-Orient
+5. Nouvelles routes d’Asie
+6. Drapeaux principaux
+7. Capitales principales
+8. Petits pays asiatiques
+9. Îles et régions spéciales
+10. Silhouettes d’Asie
+11. Épreuve mixte
+12. Révision GeoBrain
+13. Défi chronométré
+14. Examen asiatique
+15. Maître de l’Asie
 
 PROGRESSION AFRIQUE
 

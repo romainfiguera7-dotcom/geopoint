@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../game/continent/africa_expedition.dart';
+import '../../game/continent/asia_expedition.dart';
 import '../../game/continent/continent_expedition.dart';
 import '../../game/continent/europe_expedition.dart';
 import '../../game/expedition/expedition_mission.dart';
@@ -135,6 +136,7 @@ class _ExpeditionList extends StatelessWidget {
       _continentExpeditions = <ContinentExpedition>[
     EuropeExpeditionCatalog.europe,
     AfricaExpeditionCatalog.africa,
+    AsiaExpeditionCatalog.asia,
   ];
 
   Future<void> _openTutorials(
@@ -396,6 +398,11 @@ class _ContinentExpeditionCard extends StatelessWidget {
 
   List<Color> get _colors {
     switch (expedition.id) {
+      case 'asia':
+        return const <Color>[
+          Color(0xFFE05252),
+          Color(0xFF8D2438),
+        ];
       case 'africa':
         return const <Color>[
           Color(0xFFF39C3D),

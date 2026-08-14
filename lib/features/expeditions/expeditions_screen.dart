@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../game/continent/europe_expedition.dart';
 import '../../game/expedition/expedition_mission.dart';
 import '../../game/expedition/expedition_progress.dart';
 import '../../game/expedition/expedition_storage.dart';
@@ -8,7 +9,9 @@ import '../../game/game_controller.dart';
 import '../../game/game_difficulty.dart';
 import '../../game/game_difficulty_loader.dart';
 import '../../game/game_screen.dart';
+import '../../game/learning/guided_level.dart';
 import '../../game/ultimate/ultimate_game_screen.dart';
+import 'continent_expedition_screen.dart';
 
 class ExpeditionsScreen extends StatefulWidget {
   const ExpeditionsScreen({required this.controller, super.key});
@@ -126,6 +129,41 @@ class _ExpeditionList extends StatelessWidget {
   final ExpeditionProgress progress;
   final VoidCallback onProgressChanged;
 
+  Future<void> _openTutorials(
+    BuildContext context,
+  ) async {
+    final GuidedLevel? selectedTutorial =
+        await showModalBottomSheet<GuidedLevel>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return const _TutorialSelectorSheet();
+      },
+    );
+
+    if (selectedTutorial == null ||
+        !context.mounted) {
+      return;
+    }
+
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          return GameScreen(
+            controller: controller,
+            modeId: selectedTutorial.modeId,
+            difficultyId: 'discovery',
+            missionTitle: selectedTutorial.title,
+            guidedLevel: selectedTutorial,
+          );
+        },
+      ),
+    );
+
+    onProgressChanged();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (difficulties.isEmpty) {
@@ -134,16 +172,48 @@ class _ExpeditionList extends StatelessWidget {
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 32),
-      itemCount: difficulties.length,
+      itemCount: difficulties.length + 2,
       separatorBuilder: (BuildContext context, int index) {
         return const SizedBox(height: 15);
       },
       itemBuilder: (BuildContext context, int index) {
-        final GameDifficulty difficulty = difficulties[index];
+        if (index == 0) {
+          return _TutorialCard(
+            onPressed: () async {
+              await _openTutorials(context);
+            },
+          );
+        }
 
-        final String? previousDifficultyId = index == 0
+        if (index == 1) {
+          return _EuropePilotCard(
+            onPressed: () async {
+              await Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) {
+                    return ContinentExpeditionScreen(
+                      controller: controller,
+                      expedition: EuropeExpeditionCatalog.europe,
+                    );
+                  },
+                ),
+              );
+            },
+          );
+        }
+
+        final int difficultyIndex =
+            index - 2;
+
+        final GameDifficulty difficulty =
+            difficulties[difficultyIndex];
+
+        final String? previousDifficultyId =
+            difficultyIndex == 0
             ? null
-            : difficulties[index - 1].id;
+            : difficulties[
+                difficultyIndex - 1
+              ].id;
 
         final bool isUnlocked = progress.isExpeditionUnlocked(
           difficultyId: difficulty.id,
@@ -175,6 +245,393 @@ class _ExpeditionList extends StatelessWidget {
               : null,
         );
       },
+    );
+  }
+}
+
+class _TutorialCard extends StatelessWidget {
+  const _TutorialCard({
+    required this.onPressed,
+  });
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(25),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(25),
+        child: Ink(
+          padding: const EdgeInsets.all(19),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: <Color>[
+                Color(0xFF20C997),
+                Color(0xFF087A67),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(
+              color: Colors.white.withValues(
+                alpha: 0.28,
+              ),
+            ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: const Color(0xFF20C997)
+                    .withValues(alpha: 0.18),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 65,
+                height: 65,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(
+                    alpha: 0.18,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  Icons.school_rounded,
+                  color: Colors.white,
+                  size: 35,
+                ),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Text(
+                          'RECOMMANDÉ',
+                          style: GoogleFonts.nunitoSans(
+                            color: const Color(0xFFFFD166),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'Tutoriels de jeu',
+                      style: GoogleFonts.fredoka(
+                        color: Colors.white,
+                        fontSize: 21,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Une courte session sans chronomètre '
+                      'pour chaque mode de jeu.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.nunitoSans(
+                        color: Colors.white.withValues(
+                          alpha: 0.75,
+                        ),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 9),
+                    Text(
+                      '4 MODES • 3 QUESTIONS CHACUN',
+                      style: GoogleFonts.nunitoSans(
+                        color: const Color(0xFFFFD166),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.white70,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EuropePilotCard extends StatelessWidget {
+  const _EuropePilotCard({
+    required this.onPressed,
+  });
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(25),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(25),
+        child: Ink(
+          padding: const EdgeInsets.all(19),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: <Color>[
+                Color(0xFF176BFF),
+                Color(0xFF0C3C8C),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.26),
+            ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: const Color(0xFF176BFF)
+                    .withValues(alpha: 0.20),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 65,
+                height: 65,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  Icons.map_rounded,
+                  color: Colors.white,
+                  size: 35,
+                ),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'EXPÉDITION PILOTE',
+                      style: GoogleFonts.nunitoSans(
+                        color: const Color(0xFFFFD166),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    Text(
+                      'Europe',
+                      style: GoogleFonts.fredoka(
+                        color: Colors.white,
+                        fontSize: 23,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Une progression complète des grands pays '
+                      'jusqu’au niveau Maître.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.nunitoSans(
+                        color: Colors.white.withValues(alpha: 0.74),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 9),
+                    Text(
+                      '15 NIVEAUX • 45 ÉTOILES',
+                      style: GoogleFonts.nunitoSans(
+                        color: const Color(0xFFFFD166),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.white70,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TutorialSelectorSheet extends StatelessWidget {
+  const _TutorialSelectorSheet();
+
+  IconData _iconForMode(String modeId) {
+    switch (modeId) {
+      case 'find_capital':
+        return Icons.location_city_rounded;
+      case 'find_flag':
+        return Icons.flag_rounded;
+      case 'mixed':
+        return Icons.shuffle_rounded;
+      case 'find_country':
+      default:
+        return Icons.public_rounded;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.78,
+        ),
+        padding: const EdgeInsets.fromLTRB(18, 12, 18, 22),
+        decoration: const BoxDecoration(
+          color: Color(0xFF102A50),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(28),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Container(
+              width: 44,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(height: 15),
+            Text(
+              'CHOISIS UN TUTORIEL',
+              style: GoogleFonts.fredoka(
+                color: Colors.white,
+                fontSize: 21,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Chaque tutoriel contient seulement trois questions.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunitoSans(
+                color: Colors.white70,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: GuidedLevelCatalog.tutorials.length,
+                separatorBuilder: (
+                  BuildContext context,
+                  int index,
+                ) {
+                  return const SizedBox(height: 10);
+                },
+                itemBuilder: (
+                  BuildContext context,
+                  int index,
+                ) {
+                  final GuidedLevel tutorial =
+                      GuidedLevelCatalog.tutorials[index];
+
+                  return Material(
+                    color: Colors.white.withValues(alpha: 0.09),
+                    borderRadius: BorderRadius.circular(18),
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).pop(tutorial);
+                      },
+                      borderRadius: BorderRadius.circular(18),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Row(
+                          children: <Widget>[
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF28C2FF)
+                                    .withValues(alpha: 0.18),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Icon(
+                                _iconForMode(tutorial.modeId),
+                                color: const Color(0xFF53D8FF),
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 13),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    tutorial.title,
+                                    style: GoogleFonts.fredoka(
+                                      color: Colors.white,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    tutorial.description,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.nunitoSans(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(
+                              Icons.chevron_right_rounded,
+                              color: Colors.white54,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

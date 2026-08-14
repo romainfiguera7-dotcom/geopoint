@@ -1,0 +1,53 @@
+GeoPoint - Phase 2 : Expédition Europe pilote
+
+INSTALLATION
+
+1. Fermer l’application si elle est lancée.
+2. Copier le dossier lib de cette archive à la racine du projet GeoPoint.
+3. Accepter la fusion des dossiers et le remplacement des fichiers existants.
+4. Ne pas placer le dossier lib à l’intérieur d’un autre dossier lib.
+5. Depuis la racine du projet, lancer : flutter analyze
+6. Si l’analyse ne signale aucune erreur, lancer : flutter run
+
+NOUVEAUX FICHIERS
+
+lib/features/expeditions/continent_expedition_screen.dart
+lib/game/continent/continent_expedition.dart
+lib/game/continent/europe_expedition.dart
+lib/game/continent/continent_progress.dart
+lib/game/continent/continent_storage.dart
+
+FICHIERS MIS À JOUR
+
+lib/features/expeditions/expeditions_screen.dart
+lib/game/game_controller.dart
+lib/game/game_screen.dart
+
+TEST RAPIDE
+
+- Ouvrir Expéditions.
+- Vérifier que la carte Europe apparaît sous Tutoriels de jeu.
+- Ouvrir Europe : les 15 niveaux doivent être affichés.
+- Seul le premier niveau doit être disponible au départ.
+- Terminer le premier niveau avec au moins une étoile.
+- Vérifier que le deuxième niveau se débloque.
+- Fermer et relancer l’application pour vérifier la sauvegarde.
+- Les expéditions historiques et les quatre tutoriels doivent toujours fonctionner.
+
+PROGRESSION EUROPE
+
+1. Découverte de l’Europe
+2. Les grands pays
+3. Pays faciles à reconnaître
+4. Pays voisins
+5. Nouveaux pays
+6. Drapeaux principaux
+7. Capitales principales
+8. Petits pays
+9. Territoires européens
+10. Silhouettes d’Europe
+11. Épreuve mixte
+12. Révision GeoBrain
+13. Défi chronométré
+14. Examen européen
+15. Maître de l’Europe

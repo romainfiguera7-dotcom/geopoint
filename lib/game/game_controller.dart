@@ -14,12 +14,14 @@ import '../player/level_result.dart';
 import '../player/player_profile.dart';
 import '../player/player_storage.dart';
 import '../player/xp_system.dart';
+import 'continent/continent_expedition.dart';
 import 'country_difficulty_loader.dart';
 import 'game_difficulty.dart';
 import 'game_difficulty_loader.dart';
 import 'game_engine.dart';
 import 'game_question.dart';
 import 'game_session.dart';
+import 'learning/guided_level.dart';
 import 'passport/passport_engine.dart';
 import 'passport/passport_result.dart';
 import 'passport/passport_service.dart';
@@ -82,6 +84,13 @@ class GameController extends ChangeNotifier {
 
   List<GeoCountry> _missionCountries =
       const <GeoCountry>[];
+
+  GuidedLevel? _currentGuidedLevel;
+
+  ContinentLevel? _currentContinentLevel;
+
+  final List<GeoCountry> _guidedQuestionQueue =
+      <GeoCountry>[];
 
   String _currentDifficultyId =
       'discovery';
@@ -148,12 +157,115 @@ class GameController extends ChangeNotifier {
   String get currentModeId =>
       _currentModeId;
 
+  GuidedLevel? get currentGuidedLevel =>
+      _currentGuidedLevel;
+
+  ContinentLevel? get currentContinentLevel =>
+      _currentContinentLevel;
+
+  bool get isGuidedMission =>
+      _currentGuidedLevel != null;
+
+  bool get guidedMissionHasTimer =>
+      _currentGuidedLevel?.hasTimer ?? true;
+
+  String? get guidedInstruction {
+    final GuidedLevel? level =
+        _currentGuidedLevel;
+
+    if (level == null || hasAnswered) {
+      return null;
+    }
+
+    switch (_session.currentQuestion?.modeId) {
+      case 'find_capital':
+        return 'Touche la zone bleue autour de la capitale';
+
+      case 'find_flag':
+        return 'Repère le drapeau puis touche le pays bleu';
+
+      case 'find_country':
+        return 'Touche le pays coloré en bleu';
+
+      default:
+        return level.instruction;
+    }
+  }
+
+  String? get guidedHintCountryId {
+    if (hasAnswered ||
+        _currentGuidedLevel == null) {
+      return null;
+    }
+
+    final GameQuestion? question =
+        _session.currentQuestion;
+
+    if (question == null) {
+      return null;
+    }
+
+    if (question.modeId == 'find_capital') {
+      return null;
+    }
+
+    return question.countryId;
+  }
+
+  LatLng? get guidedHintPoint {
+    if (hasAnswered ||
+        _currentGuidedLevel == null) {
+      return null;
+    }
+
+    final GameQuestion? question =
+        _session.currentQuestion;
+
+    if (question == null ||
+        question.modeId != 'find_capital') {
+      return null;
+    }
+
+    final GeoCountry? country =
+        _findCountryById(question.countryId);
+
+    if (country == null) {
+      return null;
+    }
+
+    return _findCapital(country)?.position;
+  }
+
+  double? get guidedHintRadiusInKilometers {
+    if (guidedHintPoint == null) {
+      return null;
+    }
+
+    return _capitalValidationRadiusKm();
+  }
+
   double get currentInitialZoom =>
+      _currentGuidedLevel?.initialZoom ??
+      _currentContinentLevel?.initialZoom ??
       _difficulties[_currentDifficultyId]
           ?.initialZoom ??
       2.0;
 
   LatLng get currentInitialCenter {
+    final GuidedLevel? guidedLevel =
+        _currentGuidedLevel;
+
+    if (guidedLevel != null) {
+      return guidedLevel.initialCenter;
+    }
+
+    final ContinentLevel? continentLevel =
+        _currentContinentLevel;
+
+    if (continentLevel != null) {
+      return continentLevel.initialCenter;
+    }
+
     /*
      * La camera ne doit jamais utiliser la capitale,
      * le point de reference ou le centre du pays a
@@ -507,6 +619,10 @@ class GameController extends ChangeNotifier {
   }) {
     _stopTimer();
 
+    _currentGuidedLevel = null;
+    _currentContinentLevel = null;
+    _guidedQuestionQueue.clear();
+
     _currentModeId =
         _normalizeModeId(
       modeId,
@@ -530,6 +646,80 @@ class GameController extends ChangeNotifier {
     startNextQuestion();
   }
 
+  void startGuidedMission(
+    GuidedLevel level,
+  ) {
+    _stopTimer();
+
+    _currentGuidedLevel = level;
+    _currentContinentLevel = null;
+    _currentModeId = _normalizeModeId(
+      level.modeId,
+    );
+    _currentDifficultyId = 'discovery';
+
+    _applyGuidedConfiguration(level);
+
+    _gameEngine.reset();
+    _guidedQuestionQueue
+      ..clear()
+      ..addAll(_missionCountries);
+
+    _session = GameSession.initial(
+      questionDurationSeconds:
+          level.hasTimer
+              ? level.questionDurationSeconds
+              : 3600,
+      totalQuestions: level.questionCount,
+    );
+
+    _lastPassportResult = null;
+    _lastLevelResult = null;
+    _passportResultRegisteredForCurrentGame =
+        false;
+
+    _clearAnswer();
+    startNextQuestion();
+  }
+
+  void startContinentMission(
+    ContinentLevel level,
+  ) {
+    _stopTimer();
+
+    _currentGuidedLevel = null;
+    _currentContinentLevel = level;
+    _guidedQuestionQueue.clear();
+
+    _currentModeId = _normalizeModeId(
+      level.modeId,
+    );
+
+    final String requestedDifficultyId =
+        level.difficultyId.trim().toLowerCase();
+
+    _currentDifficultyId =
+        _difficulties.containsKey(requestedDifficultyId)
+            ? requestedDifficultyId
+            : 'discovery';
+
+    _applyContinentConfiguration(level);
+
+    _gameEngine.reset();
+    _session = GameSession.initial(
+      questionDurationSeconds:
+          level.questionDurationSeconds,
+      totalQuestions: level.questionCount,
+    );
+
+    _lastPassportResult = null;
+    _lastLevelResult = null;
+    _passportResultRegisteredForCurrentGame = false;
+
+    _clearAnswer();
+    startNextQuestion();
+  }
+
   void startNextQuestion() {
     if (_missionCountries.isEmpty ||
         !_session.canStartNextQuestion) {
@@ -539,11 +729,12 @@ class GameController extends ChangeNotifier {
     _stopTimer();
 
     final GameQuestion? question =
-        _gameEngine.createNextQuestion(
-      _missionCountries,
-      modeId:
-          _currentModeId,
-    );
+        _currentGuidedLevel == null
+            ? _gameEngine.createNextQuestion(
+                _missionCountries,
+                modeId: _currentModeId,
+              )
+            : _createNextGuidedQuestion();
 
     if (question == null) {
       return;
@@ -693,10 +884,11 @@ class GameController extends ChangeNotifier {
               !isCorrectCountry,
     );
 
-    if (questionModeId ==
+    if (_currentGuidedLevel == null &&
+        (questionModeId ==
             'find_country' ||
         questionModeId ==
-            'find_flag') {
+            'find_flag')) {
       unawaited(
         _registerGeoBrainAnswer(
           countryId:
@@ -734,8 +926,28 @@ class GameController extends ChangeNotifier {
   void resetGame() {
     _stopTimer();
 
+    final GuidedLevel? guidedLevel =
+        _currentGuidedLevel;
+
     _gameEngine.reset();
-    _session = _createInitialSession();
+
+    if (guidedLevel == null) {
+      _session = _createInitialSession();
+    } else {
+      _guidedQuestionQueue
+        ..clear()
+        ..addAll(_missionCountries);
+
+      _session = GameSession.initial(
+        questionDurationSeconds:
+            guidedLevel.hasTimer
+                ? guidedLevel
+                    .questionDurationSeconds
+                : 3600,
+        totalQuestions:
+            guidedLevel.questionCount,
+      );
+    }
 
     _lastPassportResult = null;
     _lastLevelResult = null;
@@ -794,9 +1006,25 @@ class GameController extends ChangeNotifier {
   Future<void> clearSavedGeoBrain() async {
     await _geoBrainService.clear();
 
-    _applyMissionConfiguration(
-      _currentDifficultyId,
-    );
+    final GuidedLevel? guidedLevel =
+        _currentGuidedLevel;
+
+    final ContinentLevel? continentLevel =
+        _currentContinentLevel;
+
+    if (guidedLevel != null) {
+      _applyGuidedConfiguration(
+        guidedLevel,
+      );
+    } else if (continentLevel != null) {
+      _applyContinentConfiguration(
+        continentLevel,
+      );
+    } else {
+      _applyMissionConfiguration(
+        _currentDifficultyId,
+      );
+    }
 
     debugPrint(
       'GeoPoint GeoBrain : progression réinitialisée.',
@@ -889,7 +1117,8 @@ class GameController extends ChangeNotifier {
     _session =
         _session.timeout();
 
-    if (answerCountry != null &&
+    if (_currentGuidedLevel == null &&
+        answerCountry != null &&
         (
           questionModeId ==
                   'find_country' ||
@@ -911,6 +1140,18 @@ class GameController extends ChangeNotifier {
   void _registerCompletedGame() {
     if (!_session.isGameOver ||
         _passportResultRegisteredForCurrentGame) {
+      return;
+    }
+
+    if (_currentGuidedLevel != null) {
+      _passportResultRegisteredForCurrentGame =
+          true;
+
+      debugPrint(
+        'GeoPoint : tutoriel terminé, '
+        'progression joueur inchangée.',
+      );
+
       return;
     }
 
@@ -1081,6 +1322,18 @@ class GameController extends ChangeNotifier {
   }
 
   GameSession _createInitialSession() {
+    final ContinentLevel? continentLevel =
+        _currentContinentLevel;
+
+    if (continentLevel != null) {
+      return GameSession.initial(
+        questionDurationSeconds:
+            continentLevel.questionDurationSeconds,
+        totalQuestions:
+            continentLevel.questionCount,
+      );
+    }
+
     final GameDifficulty? difficulty =
         _difficulties[
           _currentDifficultyId
@@ -1227,6 +1480,177 @@ class GameController extends ChangeNotifier {
       'mode $_currentModeId, '
       'difficulté maximale '
       '$maximumDifficulty.',
+    );
+  }
+
+  void _applyContinentConfiguration(
+    ContinentLevel level,
+  ) {
+    final List<String> normalizedCatalogIds =
+        level.countryIds.map<String>((String id) {
+      return id.trim().toUpperCase();
+    }).toList(growable: false);
+
+    final Set<String> requestedIds =
+        normalizedCatalogIds.toSet();
+
+    final bool requiresCapital =
+        _currentModeId == 'find_capital' ||
+            _currentModeId == 'mixed';
+
+    final bool requiresFlag =
+        _currentModeId == 'find_flag' ||
+            _currentModeId == 'mixed';
+
+    final List<GeoCountry> selected =
+        _countries.where((GeoCountry country) {
+      final String countryId =
+          country.id.trim().toUpperCase();
+
+      if (!requestedIds.contains(countryId) ||
+          _isExcludedFromQuestions(country)) {
+        return false;
+      }
+
+      final bool usesTerritorialReference =
+          _findReferenceOverride(country) != null;
+
+      final bool hasRequiredCapital =
+          !requiresCapital ||
+              (!usesTerritorialReference &&
+                  _findCapital(country) != null);
+
+      final bool hasRequiredFlag =
+          !requiresFlag ||
+              (!usesTerritorialReference &&
+                  RegExp(r'^[A-Z]{2}$').hasMatch(
+                    country.isoA2.trim().toUpperCase(),
+                  ));
+
+      return hasRequiredCapital && hasRequiredFlag;
+    }).toList();
+
+    selected.sort((GeoCountry first, GeoCountry second) {
+      return normalizedCatalogIds
+          .indexOf(first.id.trim().toUpperCase())
+          .compareTo(
+            normalizedCatalogIds.indexOf(
+              second.id.trim().toUpperCase(),
+            ),
+          );
+    });
+
+    final List<GeoCountry> missionCountries =
+        level.useGeoBrain && selected.isNotEmpty
+            ? _countrySelector.selectCountries(
+                availableCountries: selected,
+                questionCount: level.questionCount,
+              )
+            : selected;
+
+    _missionCountries = List<GeoCountry>.unmodifiable(
+      missionCountries,
+    );
+
+    debugPrint(
+      'GeoPoint : niveau continental ${level.id} → '
+      '${_missionCountries.length} pays disponibles, '
+      '${level.questionCount} questions, mode $_currentModeId.',
+    );
+  }
+
+  void _applyGuidedConfiguration(
+    GuidedLevel level,
+  ) {
+    final Set<String> requestedIds =
+        level.countryIds
+            .map<String>(
+              (String id) =>
+                  id.trim().toUpperCase(),
+            )
+            .toSet();
+
+    final List<GeoCountry> selected =
+        _countries.where(
+      (GeoCountry country) {
+        return requestedIds.contains(
+              country.id
+                  .trim()
+                  .toUpperCase(),
+            ) &&
+            !_isExcludedFromQuestions(
+              country,
+            );
+      },
+    ).toList();
+
+    selected.sort(
+      (
+        GeoCountry first,
+        GeoCountry second,
+      ) {
+        final int firstCatalogIndex =
+            level.countryIds.indexOf(
+          first.id.trim().toUpperCase(),
+        );
+
+        final int secondCatalogIndex =
+            level.countryIds.indexOf(
+          second.id.trim().toUpperCase(),
+        );
+
+        return firstCatalogIndex.compareTo(
+          secondCatalogIndex,
+        );
+      },
+    );
+
+    _missionCountries =
+        List<GeoCountry>.unmodifiable(
+      selected,
+    );
+
+    debugPrint(
+      'GeoPoint : parcours guidé ${level.id} → '
+      '${_missionCountries.length} pays, '
+      '${level.questionCount} questions.',
+    );
+  }
+
+  GameQuestion? _createNextGuidedQuestion() {
+    if (_missionCountries.isEmpty) {
+      return null;
+    }
+
+    if (_guidedQuestionQueue.isEmpty) {
+      _guidedQuestionQueue.addAll(
+        _missionCountries,
+      );
+    }
+
+    final GeoCountry country =
+        _guidedQuestionQueue.removeAt(0);
+
+    final GuidedLevel? level =
+        _currentGuidedLevel;
+
+    final int questionIndex =
+        _session.questionNumber;
+
+    final String questionModeId =
+        level?.modeIdForQuestion(
+              questionIndex,
+            ) ??
+            'find_country';
+
+    return GameQuestion(
+      modeId: _normalizeModeId(
+        questionModeId,
+      ),
+      countryId: country.id,
+      countryName: country.name,
+      isoA2: country.isoA2,
+      continent: country.continent,
     );
   }
 

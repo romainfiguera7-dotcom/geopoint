@@ -16,6 +16,9 @@ class GeoPointMap extends StatefulWidget {
     this.answerCountry,
     this.preferProvidedAnswerCountry = false,
     this.resultRadiusInKilometers,
+    this.hintCountryId,
+    this.hintPoint,
+    this.hintRadiusInKilometers,
     this.resultPanelCollapsed = false,
     this.onTap,
     this.onCountrySelected,
@@ -39,6 +42,16 @@ class GeoPointMap extends StatefulWidget {
   final bool preferProvidedAnswerCountry;
 
   final double? resultRadiusInKilometers;
+
+  /// Pays coloré en bleu avant la réponse pendant
+  /// le tutoriel. Le contour réel est utilisé afin
+  /// d'éviter les erreurs liées aux îles éloignées.
+  final String? hintCountryId;
+
+  /// Zone exacte mise en évidence avant la réponse
+  /// dans le tutoriel Capitales.
+  final LatLng? hintPoint;
+  final double? hintRadiusInKilometers;
 
   /// Indique que la fiche de résultat est repliée.
   ///
@@ -1399,6 +1412,10 @@ class _GeoPointMapState extends State<GeoPointMap>
         <Polygon<Object>>[];
 
     final List<Polygon<Object>>
+        hintPolygons =
+        <Polygon<Object>>[];
+
+    final List<Polygon<Object>>
         answerPolygons =
         <Polygon<Object>>[];
 
@@ -1418,6 +1435,20 @@ class _GeoPointMapState extends State<GeoPointMap>
         country,
         effectiveAnswer,
       );
+
+      final String normalizedHintId =
+          widget.hintCountryId
+                  ?.trim()
+                  .toUpperCase() ??
+              '';
+
+      final bool isHintCountry =
+          !_isAnswerRevealed &&
+              normalizedHintId.isNotEmpty &&
+              country.id
+                      .trim()
+                      .toUpperCase() ==
+                  normalizedHintId;
 
       final bool isWrongSelectedCountry =
           _isAnswerRevealed &&
@@ -1526,6 +1557,21 @@ class _GeoPointMapState extends State<GeoPointMap>
           continue;
         }
 
+        if (isHintCountry) {
+          hintPolygons.add(
+            Polygon<Object>(
+              points: countryPolygon,
+              color: const Color(0xFF2C9CFF)
+                  .withValues(alpha: 0.72),
+              borderColor:
+                  const Color(0xFF064FAD),
+              borderStrokeWidth: 2.8,
+            ),
+          );
+
+          continue;
+        }
+
         normalPolygons.add(
           Polygon<Object>(
             points: countryPolygon,
@@ -1545,8 +1591,37 @@ class _GeoPointMapState extends State<GeoPointMap>
 
     return <Polygon<Object>>[
       ...normalPolygons,
+      ...hintPolygons,
       ...selectedPolygons,
       ...answerPolygons,
+    ];
+  }
+
+  List<CircleMarker<Object>>
+      _buildHintCircles() {
+    final LatLng? hintPoint =
+        widget.hintPoint;
+
+    final double? radiusInKilometers =
+        widget.hintRadiusInKilometers;
+
+    if (_isAnswerRevealed ||
+        hintPoint == null ||
+        radiusInKilometers == null ||
+        radiusInKilometers <= 0) {
+      return const <CircleMarker<Object>>[];
+    }
+
+    return <CircleMarker<Object>>[
+      CircleMarker<Object>(
+        point: hintPoint,
+        radius: radiusInKilometers * 1000,
+        useRadiusInMeter: true,
+        color: const Color(0xFF2C9CFF)
+            .withValues(alpha: 0.42),
+        borderColor: const Color(0xFF064FAD),
+        borderStrokeWidth: 2.8,
+      ),
     ];
   }
 
@@ -1744,6 +1819,10 @@ class _GeoPointMapState extends State<GeoPointMap>
             _buildAnswerLines();
 
         final List<CircleMarker<Object>>
+            hintCircles =
+            _buildHintCircles();
+
+        final List<CircleMarker<Object>>
             resultCircles =
             _buildResultCircles();
 
@@ -1810,7 +1889,10 @@ class _GeoPointMapState extends State<GeoPointMap>
                       ),
                     ),
                     CircleLayer<Object>(
-                      circles: resultCircles,
+                      circles: <CircleMarker<Object>>[
+                        ...hintCircles,
+                        ...resultCircles,
+                      ],
                     ),
                     PolylineLayer<Object>(
                       polylines: answerLines,

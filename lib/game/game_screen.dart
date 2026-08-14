@@ -8,10 +8,14 @@ import '../geo_engine/country_info_loader.dart';
 import '../geo_engine/flag_emoji.dart';
 import '../geo_engine/geo_country.dart';
 import '../geo_engine/geopoint_map.dart';
+import 'continent/continent_expedition.dart';
+import 'continent/continent_progress.dart';
+import 'continent/continent_storage.dart';
 import 'expedition/expedition_progress.dart';
 import 'expedition/expedition_storage.dart';
 import 'game_controller.dart';
 import 'game_question.dart';
+import 'learning/guided_level.dart';
 import 'passport/passport_result.dart';
 import 'passport/passport_stamp.dart';
 
@@ -21,6 +25,10 @@ class GameScreen extends StatefulWidget {
     this.modeId = 'find_country',
     this.difficultyId = 'discovery',
     this.missionTitle = 'Trouver le pays',
+    this.guidedLevel,
+    this.continentExpeditionId,
+    this.continentExpeditionName,
+    this.continentLevel,
     super.key,
   });
 
@@ -34,6 +42,12 @@ class GameScreen extends StatefulWidget {
 
   /// Nom visible de la mission.
   final String missionTitle;
+
+  final GuidedLevel? guidedLevel;
+
+  final String? continentExpeditionId;
+  final String? continentExpeditionName;
+  final ContinentLevel? continentLevel;
 
   @override
   State<GameScreen> createState() {
@@ -60,12 +74,28 @@ class _GameScreenState extends State<GameScreen> {
 
     _controller = widget.controller;
 
-    _controller.startMission(
-      difficultyId:
-          widget.difficultyId,
-      modeId:
-          widget.modeId,
-    );
+    final GuidedLevel? guidedLevel =
+        widget.guidedLevel;
+
+    final ContinentLevel? continentLevel =
+        widget.continentLevel;
+
+    if (guidedLevel != null) {
+      _controller.startGuidedMission(
+        guidedLevel,
+      );
+    } else if (continentLevel != null) {
+      _controller.startContinentMission(
+        continentLevel,
+      );
+    } else {
+      _controller.startMission(
+        difficultyId:
+            widget.difficultyId,
+        modeId:
+            widget.modeId,
+      );
+    }
 
     _showGameOverPanel = false;
     _missionProgressSaved = false;
@@ -81,9 +111,42 @@ class _GameScreenState extends State<GameScreen> {
     _controller.addListener(
       _handleControllerChanged,
     );
+
   }
 
   Future<void> _loadMissionRecord() async {
+    if (widget.guidedLevel != null) {
+      _missionRecordLoaded = true;
+      return;
+    }
+
+    final ContinentLevel? continentLevel =
+        widget.continentLevel;
+
+    final String? continentExpeditionId =
+        widget.continentExpeditionId;
+
+    if (continentLevel != null &&
+        continentExpeditionId != null) {
+      final ContinentProgress progress =
+          await ContinentStorage.load();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _previousMissionRecord =
+            progress.bestScoreFor(
+          expeditionId: continentExpeditionId,
+          levelId: continentLevel.id,
+        );
+        _missionRecordLoaded = true;
+      });
+
+      return;
+    }
+
     final ExpeditionProgress progress =
         await ExpeditionStorage.load();
 
@@ -172,7 +235,9 @@ class _GameScreenState extends State<GameScreen> {
 
     if (_controller.session.isLastQuestion &&
         _controller.hasAnswered) {
-      await _saveMissionProgress();
+      if (widget.guidedLevel == null) {
+        await _saveMissionProgress();
+      }
 
       if (!mounted) {
         return;
@@ -196,6 +261,15 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   int _calculateEarnedStars() {
+    final ContinentLevel? continentLevel =
+        widget.continentLevel;
+
+    if (continentLevel != null) {
+      return continentLevel.starsForScore(
+        _controller.session.totalScore,
+      );
+    }
+
     final int maximumScore =
         _controller.session.maximumGameScore;
 
@@ -228,6 +302,51 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     _missionProgressSaved = true;
+
+    final ContinentLevel? continentLevel =
+        widget.continentLevel;
+
+    final String? continentExpeditionId =
+        widget.continentExpeditionId;
+
+    if (continentLevel != null &&
+        continentExpeditionId != null) {
+      final ContinentProgress currentProgress =
+          await ContinentStorage.load();
+
+      final int previousRecord =
+          currentProgress.bestScoreFor(
+        expeditionId: continentExpeditionId,
+        levelId: continentLevel.id,
+      );
+
+      final ContinentProgress updatedProgress =
+          currentProgress.registerLevelResult(
+        expeditionId: continentExpeditionId,
+        levelId: continentLevel.id,
+        stars: _calculateEarnedStars(),
+        score: _controller.session.totalScore,
+      );
+
+      final bool saved =
+          await ContinentStorage.save(
+        updatedProgress,
+      );
+
+      if (!saved) {
+        _missionProgressSaved = false;
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          _previousMissionRecord = previousRecord;
+          _missionRecordLoaded = true;
+        });
+      }
+
+      return;
+    }
 
     final ExpeditionProgress currentProgress =
         await ExpeditionStorage.load();
@@ -276,6 +395,18 @@ class _GameScreenState extends State<GameScreen> {
   String _expeditionLabel(
     String difficultyId,
   ) {
+    if (widget.guidedLevel != null) {
+      return 'Tutoriel';
+    }
+
+    final String? continentExpeditionName =
+        widget.continentExpeditionName;
+
+    if (continentExpeditionName != null &&
+        continentExpeditionName.trim().isNotEmpty) {
+      return continentExpeditionName;
+    }
+
     switch (difficultyId) {
       case 'discovery':
         return 'Initiation';
@@ -401,6 +532,15 @@ class _GameScreenState extends State<GameScreen> {
                     _controller.currentInitialCenter,
                 maximumZoom:
                     _maximumMapZoom(),
+                hintCountryId:
+                    _controller
+                        .guidedHintCountryId,
+                hintPoint:
+                    _controller
+                        .guidedHintPoint,
+                hintRadiusInKilometers:
+                    _controller
+                        .guidedHintRadiusInKilometers,
                 answerPoint:
                     _controller.answerPoint,
                 answerCountry:
@@ -449,10 +589,53 @@ class _GameScreenState extends State<GameScreen> {
                 secondsRemaining:
                     _controller
                         .secondsRemaining,
+                showTimer:
+                    _controller
+                        .guidedMissionHasTimer,
                 onClose:
                     _handleBackToHome,
               ),
             ),
+
+            if (widget.guidedLevel != null &&
+                !_controller.hasAnswered &&
+                _controller.guidedInstruction != null)
+              Positioned(
+                top:
+                    MediaQuery.paddingOf(context)
+                            .top +
+                        145,
+                left: 20,
+                right: 20,
+                child: IgnorePointer(
+                  child: Center(
+                    child: Container(
+                      padding:
+                          const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0A3973)
+                            .withValues(alpha: 0.90),
+                        borderRadius:
+                            BorderRadius.circular(18),
+                        border: Border.all(
+                          color: const Color(0xFF53D8FF),
+                        ),
+                      ),
+                      child: Text(
+                        _controller.guidedInstruction!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
 
             if (_controller.hasAnswered &&
                 !_showGameOverPanel)
@@ -463,7 +646,26 @@ class _GameScreenState extends State<GameScreen> {
                     MediaQuery.paddingOf(context)
                             .bottom +
                         12,
-                child: _ResultPanel(
+                child: widget.guidedLevel != null
+                    ? _TutorialResultPanel(
+                        modeId:
+                            question?.modeId ??
+                                widget.modeId,
+                        isCorrect: _controller
+                            .session
+                            .isCorrectCountry,
+                        answerCountry:
+                            _controller.answerCountry,
+                        answerCapitalName:
+                            _controller.answerCapitalName,
+                        isLastQuestion:
+                            _controller
+                                .session
+                                .isLastQuestion,
+                        onNext:
+                            _handleNextQuestion,
+                      )
+                    : _ResultPanel(
                   modeId:
                       question?.modeId ??
                           widget.modeId,
@@ -518,12 +720,16 @@ class _GameScreenState extends State<GameScreen> {
                       _toggleResultPanel,
                   onNext:
                       _handleNextQuestion,
-                ),
+                      ),
               ),
 
             if (_showGameOverPanel)
               Positioned.fill(
-                child: _GameOverPanel(
+                child: widget.guidedLevel != null
+                    ? _TutorialCompletePanel(
+                        onClose: _handleBackToHome,
+                      )
+                    : _GameOverPanel(
                   totalScore:
                       _controller
                           .session
@@ -581,7 +787,7 @@ class _GameScreenState extends State<GameScreen> {
                           .levelProgress,
                   onBackToHome:
                       _handleBackToHome,
-                ),
+                      ),
               ),
           ],
         ),
@@ -599,6 +805,7 @@ class _GameHeader extends StatelessWidget {
     required this.totalQuestions,
     required this.totalScore,
     required this.secondsRemaining,
+    required this.showTimer,
     required this.onClose,
   });
 
@@ -610,6 +817,7 @@ class _GameHeader extends StatelessWidget {
   final int totalQuestions;
   final int totalScore;
   final int secondsRemaining;
+  final bool showTimer;
 
   final VoidCallback onClose;
 
@@ -724,42 +932,39 @@ class _GameHeader extends StatelessWidget {
 
                 const SizedBox(width: 10),
 
-                Column(
-                  mainAxisSize:
-                      MainAxisSize.min,
-                  children: <Widget>[
-                    Icon(
-                      Icons.timer_outlined,
-                      color: timerColor,
-                      size: 20,
-                    ),
-
-                    Text(
-                      '$secondsRemaining',
-                      style: TextStyle(
+                if (showTimer) ...<Widget>[
+                  Column(
+                    mainAxisSize:
+                        MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(
+                        Icons.timer_outlined,
                         color: timerColor,
-                        fontSize: 23,
-                        fontWeight:
-                            FontWeight.w900,
+                        size: 20,
                       ),
-                    ),
-
-                    Text(
-                      'SEC.',
-                      style: TextStyle(
-                        color: timerColor
-                            .withValues(
-                          alpha: 0.78,
+                      Text(
+                        '$secondsRemaining',
+                        style: TextStyle(
+                          color: timerColor,
+                          fontSize: 23,
+                          fontWeight:
+                              FontWeight.w900,
                         ),
-                        fontSize: 9,
-                        fontWeight:
-                            FontWeight.w700,
                       ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(width: 12),
+                      Text(
+                        'SEC.',
+                        style: TextStyle(
+                          color: timerColor
+                              .withValues(alpha: 0.78),
+                          fontSize: 9,
+                          fontWeight:
+                              FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                ],
 
                 Column(
                   mainAxisSize:
@@ -841,6 +1046,125 @@ class _GameHeader extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _TutorialResultPanel
+    extends StatelessWidget {
+  const _TutorialResultPanel({
+    required this.modeId,
+    required this.isCorrect,
+    required this.answerCountry,
+    required this.answerCapitalName,
+    required this.isLastQuestion,
+    required this.onNext,
+  });
+
+  final String modeId;
+  final bool isCorrect;
+  final GeoCountry? answerCountry;
+  final String? answerCapitalName;
+  final bool isLastQuestion;
+  final VoidCallback onNext;
+
+  String get _answerLabel {
+    if (modeId == 'find_capital' &&
+        answerCapitalName != null) {
+      return 'La capitale était : $answerCapitalName';
+    }
+
+    return 'La réponse était : ${answerCountry?.name ?? '—'}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10263E)
+            .withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isCorrect
+              ? const Color(0xFF63E276)
+              : const Color(0xFFFFD166),
+          width: 1.5,
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: 0.28,
+            ),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(
+                isCorrect
+                    ? Icons.check_circle_rounded
+                    : Icons.lightbulb_rounded,
+                color: isCorrect
+                    ? const Color(0xFF63E276)
+                    : const Color(0xFFFFD166),
+                size: 30,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      isCorrect
+                          ? 'Bravo !'
+                          : 'Ce n’est pas grave',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      _answerLabel,
+                      style: TextStyle(
+                        color: Colors.white.withValues(
+                          alpha: 0.72,
+                        ),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 13),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: onNext,
+              icon: Icon(
+                isLastQuestion
+                    ? Icons.check_rounded
+                    : Icons.arrow_forward_rounded,
+              ),
+              label: Text(
+                isLastQuestion
+                    ? 'TERMINER LE TUTORIEL'
+                    : 'QUESTION SUIVANTE',
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1707,6 +2031,87 @@ class _ResultInformationRow
   }
 }
 
+class _TutorialCompletePanel
+    extends StatelessWidget {
+  const _TutorialCompletePanel({
+    required this.onClose,
+  });
+
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Colors.black.withValues(alpha: 0.74),
+      child: SafeArea(
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(
+              maxWidth: 430,
+            ),
+            margin: const EdgeInsets.all(22),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF10263E),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: const Color(0xFF63E276),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: Color(0xFF63E276),
+                  size: 62,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'TUTORIEL TERMINÉ !',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 25,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Tu sais maintenant déplacer la carte, '
+                  'zoomer et placer ta réponse.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withValues(
+                      alpha: 0.76,
+                    ),
+                    fontSize: 15,
+                    height: 1.4,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: onClose,
+                    icon: const Icon(
+                      Icons.rocket_launch_rounded,
+                    ),
+                    label: const Text(
+                      'CHOISIR UNE EXPÉDITION',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _GameOverPanel extends StatelessWidget {
   const _GameOverPanel({
     required this.missionTitle,
@@ -1875,9 +2280,7 @@ class _GameOverPanel extends StatelessWidget {
                 children: <Widget>[
                   Icon(
                     _getRankIcon(),
-                    color: const Color(
-                      0xFFFFD166,
-                    ),
+                    color: const Color(0xFFFFD166),
                     size: 58,
                   ),
 
@@ -1937,10 +2340,8 @@ class _GameOverPanel extends StatelessWidget {
                     rank,
                     textAlign:
                         TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(
-                        0xFF80ED99,
-                      ),
+                    style: TextStyle(
+                      color: const Color(0xFF80ED99),
                       fontSize: 19,
                       fontWeight:
                           FontWeight.w800,

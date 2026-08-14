@@ -1,4 +1,4 @@
-GeoPoint - Phase 2 : Expéditions Europe, Afrique, Asie, Amériques et Océanie
+GeoPoint - Phase 2 : Expédition Monde et titre Maître cartographe
 
 INSTALLATION
 
@@ -20,27 +20,50 @@ lib/game/continent/africa_expedition.dart
 lib/game/continent/asia_expedition.dart
 lib/game/continent/americas_expedition.dart
 lib/game/continent/oceania_expedition.dart
+lib/game/continent/world_expedition.dart
 
 FICHIERS MIS À JOUR
 
 lib/features/expeditions/expeditions_screen.dart
+lib/features/expeditions/continent_expedition_screen.dart
 lib/game/game_controller.dart
 lib/game/game_screen.dart
 
 TEST RAPIDE
 
 - Ouvrir Expéditions.
-- Vérifier que les cartes Europe, Afrique, Asie, Amériques et Océanie apparaissent sous Tutoriels de jeu.
+- Vérifier que les cartes Europe, Afrique, Asie, Amériques, Océanie et Monde apparaissent sous Tutoriels de jeu.
 - Ouvrir Europe : les 15 niveaux doivent être affichés.
 - Ouvrir Afrique : les 15 niveaux doivent être affichés.
 - Ouvrir Asie : les 15 niveaux doivent être affichés.
 - Ouvrir Amériques : les 15 niveaux doivent être affichés.
 - Ouvrir Océanie : les 15 niveaux doivent être affichés.
+- Vérifier que Monde est verrouillée tant que les cinq continents ne sont pas terminés.
+- Toucher la carte Monde verrouillée : un message doit expliquer la condition de déblocage.
+- Une fois les cinq expéditions terminées, Monde doit afficher ses 15 niveaux.
 - Seul le premier niveau doit être disponible au départ.
 - Terminer le premier niveau avec au moins une étoile.
 - Vérifier que le deuxième niveau se débloque.
 - Fermer et relancer l’application pour vérifier la sauvegarde.
 - Les expéditions historiques et les quatre tutoriels doivent toujours fonctionner.
+
+PROGRESSION MONDE
+
+1. Grands repères du monde
+2. Les géants de la planète
+3. Formes du bout du monde
+4. Îles autour du monde
+5. Frontières du monde
+6. Drapeaux du monde
+7. Capitales du monde
+8. Micro-États de la planète
+9. Territoires polaires et isolés
+10. Silhouettes mondiales
+11. Tour du monde mixte
+12. Révision GeoBrain mondiale
+13. Défi mondial chronométré
+14. Examen mondial
+15. Maître cartographe
 
 PROGRESSION OCÉANIE
 

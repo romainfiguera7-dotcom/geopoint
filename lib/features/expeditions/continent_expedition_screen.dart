@@ -59,9 +59,10 @@ class _ContinentExpeditionScreenState
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Aucun pays européen disponible pour les silhouettes.',
+              'Aucun pays disponible pour les silhouettes de '
+              '${widget.expedition.name}.',
             ),
           ),
         );

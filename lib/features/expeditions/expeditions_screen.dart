@@ -5,8 +5,11 @@ import '../../game/continent/africa_expedition.dart';
 import '../../game/continent/americas_expedition.dart';
 import '../../game/continent/asia_expedition.dart';
 import '../../game/continent/continent_expedition.dart';
+import '../../game/continent/continent_progress.dart';
+import '../../game/continent/continent_storage.dart';
 import '../../game/continent/europe_expedition.dart';
 import '../../game/continent/oceania_expedition.dart';
+import '../../game/continent/world_expedition.dart';
 import '../../game/expedition/expedition_mission.dart';
 import '../../game/expedition/expedition_progress.dart';
 import '../../game/expedition/expedition_storage.dart';
@@ -34,6 +37,8 @@ class _ExpeditionsScreenState extends State<ExpeditionsScreen> {
 
   late Future<ExpeditionProgress> _progressFuture;
 
+  late Future<ContinentProgress> _continentProgressFuture;
+
   @override
   void initState() {
     super.initState();
@@ -41,11 +46,15 @@ class _ExpeditionsScreenState extends State<ExpeditionsScreen> {
     _difficultiesFuture = GameDifficultyLoader.loadDifficulties();
 
     _progressFuture = ExpeditionStorage.load();
+
+    _continentProgressFuture = ContinentStorage.load();
   }
 
   void _reloadProgress() {
     setState(() {
       _progressFuture = ExpeditionStorage.load();
+
+      _continentProgressFuture = ContinentStorage.load();
     });
   }
 
@@ -105,11 +114,32 @@ class _ExpeditionsScreenState extends State<ExpeditionsScreen> {
                               progressSnapshot.data ??
                               ExpeditionProgress.initial();
 
-                          return _ExpeditionList(
-                            controller: widget.controller,
-                            difficulties: difficulties,
-                            progress: progress,
-                            onProgressChanged: _reloadProgress,
+                          return FutureBuilder<ContinentProgress>(
+                            future: _continentProgressFuture,
+                            builder: (
+                              BuildContext context,
+                              AsyncSnapshot<ContinentProgress>
+                                  continentProgressSnapshot,
+                            ) {
+                              if (continentProgressSnapshot.connectionState !=
+                                  ConnectionState.done) {
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }
+
+                              final ContinentProgress continentProgress =
+                                  continentProgressSnapshot.data ??
+                                      ContinentProgress.initial();
+
+                              return _ExpeditionList(
+                                controller: widget.controller,
+                                difficulties: difficulties,
+                                progress: progress,
+                                continentProgress: continentProgress,
+                                onProgressChanged: _reloadProgress,
+                              );
+                            },
                           );
                         },
                   );
@@ -126,12 +156,14 @@ class _ExpeditionList extends StatelessWidget {
     required this.controller,
     required this.difficulties,
     required this.progress,
+    required this.continentProgress,
     required this.onProgressChanged,
   });
 
   final GameController controller;
   final List<GameDifficulty> difficulties;
   final ExpeditionProgress progress;
+  final ContinentProgress continentProgress;
   final VoidCallback onProgressChanged;
 
   static const List<ContinentExpedition>
@@ -141,7 +173,27 @@ class _ExpeditionList extends StatelessWidget {
     AsiaExpeditionCatalog.asia,
     AmericasExpeditionCatalog.americas,
     OceaniaExpeditionCatalog.oceania,
+    WorldExpeditionCatalog.world,
   ];
+
+  static const List<ContinentExpedition>
+      _worldRequirements = <ContinentExpedition>[
+    EuropeExpeditionCatalog.europe,
+    AfricaExpeditionCatalog.africa,
+    AsiaExpeditionCatalog.asia,
+    AmericasExpeditionCatalog.americas,
+    OceaniaExpeditionCatalog.oceania,
+  ];
+
+  int get _completedWorldRequirements {
+    return _worldRequirements.where((ContinentExpedition expedition) {
+      return continentProgress.isExpeditionCompleted(expedition);
+    }).length;
+  }
+
+  bool get _isWorldUnlocked {
+    return _completedWorldRequirements == _worldRequirements.length;
+  }
 
   Future<void> _openTutorials(
     BuildContext context,
@@ -204,9 +256,31 @@ class _ExpeditionList extends StatelessWidget {
           final ContinentExpedition expedition =
               _continentExpeditions[index - 1];
 
+          final bool isWorld =
+              expedition.id == WorldExpeditionCatalog.world.id;
+
+          final bool isUnlocked = !isWorld || _isWorldUnlocked;
+
           return _ContinentExpeditionCard(
             expedition: expedition,
+            isLocked: !isUnlocked,
+            prerequisiteLabel: isWorld
+                ? '$_completedWorldRequirements/'
+                    '${_worldRequirements.length} CONTINENTS TERMINÉS'
+                : null,
             onPressed: () async {
+              if (!isUnlocked) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Termine les cinq expéditions continentales '
+                      'pour débloquer l’expédition Monde.',
+                    ),
+                  ),
+                );
+                return;
+              }
+
               await Navigator.of(context).push<void>(
                 MaterialPageRoute<void>(
                   builder: (BuildContext context) {
@@ -217,6 +291,8 @@ class _ExpeditionList extends StatelessWidget {
                   },
                 ),
               );
+
+              onProgressChanged();
             },
           );
         }
@@ -394,14 +470,23 @@ class _TutorialCard extends StatelessWidget {
 class _ContinentExpeditionCard extends StatelessWidget {
   const _ContinentExpeditionCard({
     required this.expedition,
+    required this.isLocked,
+    required this.prerequisiteLabel,
     required this.onPressed,
   });
 
   final ContinentExpedition expedition;
+  final bool isLocked;
+  final String? prerequisiteLabel;
   final VoidCallback onPressed;
 
   List<Color> get _colors {
     switch (expedition.id) {
+      case 'world':
+        return const <Color>[
+          Color(0xFFFFB347),
+          Color(0xFF9A5700),
+        ];
       case 'oceania':
         return const <Color>[
           Color(0xFF8C67D9),
@@ -433,98 +518,113 @@ class _ContinentExpeditionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(25),
-      child: InkWell(
-        onTap: onPressed,
+    final bool isWorld = expedition.id == 'world';
+
+    return Opacity(
+      opacity: isLocked ? 0.68 : 1,
+      child: Material(
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(25),
-        child: Ink(
-          padding: const EdgeInsets.all(19),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: _colors,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(25),
+          child: Ink(
+            padding: const EdgeInsets.all(19),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: _colors,
+              ),
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.26),
+              ),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: _colors.first.withValues(alpha: 0.20),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.26),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: 65,
+                  height: 65,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    isLocked
+                        ? Icons.lock_rounded
+                        : isWorld
+                            ? Icons.public_rounded
+                            : Icons.map_rounded,
+                    color: Colors.white,
+                    size: 35,
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        isWorld
+                            ? 'EXPÉDITION FINALE'
+                            : 'EXPÉDITION CONTINENTALE',
+                        style: GoogleFonts.nunitoSans(
+                          color: const Color(0xFFFFD166),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      Text(
+                        expedition.name,
+                        style: GoogleFonts.fredoka(
+                          color: Colors.white,
+                          fontSize: 23,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        expedition.subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.nunitoSans(
+                          color: Colors.white.withValues(alpha: 0.74),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 9),
+                      Text(
+                        isLocked && prerequisiteLabel != null
+                            ? '$prerequisiteLabel • VERROUILLÉ'
+                            : '${expedition.levels.length} NIVEAUX '
+                                '• ${expedition.maximumStars} ÉTOILES',
+                        style: GoogleFonts.nunitoSans(
+                          color: const Color(0xFFFFD166),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  isLocked
+                      ? Icons.lock_outline_rounded
+                      : Icons.chevron_right_rounded,
+                  color: Colors.white70,
+                ),
+              ],
             ),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: _colors.first.withValues(alpha: 0.20),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            children: <Widget>[
-              Container(
-                width: 65,
-                height: 65,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Icon(
-                  Icons.map_rounded,
-                  color: Colors.white,
-                  size: 35,
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'EXPÉDITION CONTINENTALE',
-                      style: GoogleFonts.nunitoSans(
-                        color: const Color(0xFFFFD166),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    Text(
-                      expedition.name,
-                      style: GoogleFonts.fredoka(
-                        color: Colors.white,
-                        fontSize: 23,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      expedition.subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.nunitoSans(
-                        color: Colors.white.withValues(alpha: 0.74),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 9),
-                    Text(
-                      '${expedition.levels.length} NIVEAUX '
-                      '• ${expedition.maximumStars} ÉTOILES',
-                      style: GoogleFonts.nunitoSans(
-                        color: const Color(0xFFFFD166),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.white70,
-              ),
-            ],
           ),
         ),
       ),

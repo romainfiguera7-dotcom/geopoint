@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../game/game_controller.dart';
 import '../../geo_engine/geo_country.dart';
 import '../../geo_engine/geojson_loader.dart';
+import '../atlas/atlas_screen.dart';
 import '../expeditions/expeditions_screen.dart';
 import '../passport/passport_screen.dart';
 import '../settings/settings_screen.dart';
@@ -117,15 +118,49 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _openDiscovery() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Découverte du monde sera '
-          'disponible prochainement.',
+  Future<void> _openAtlas() async {
+    if (_isPreparingGame) {
+      return;
+    }
+
+    setState(() {
+      _isPreparingGame = true;
+    });
+
+    try {
+      final GameController controller = await _getGameController();
+
+      if (!mounted) {
+        return;
+      }
+
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) {
+            return AtlasScreen(controller: controller);
+          },
         ),
-      ),
-    );
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Erreur pendant l’ouverture de l’Atlas : $error');
+      debugPrintStack(stackTrace: stackTrace);
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Impossible d’ouvrir l’Atlas.\n$error'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPreparingGame = false;
+        });
+      }
+    }
   }
 
   void _openChildMode() {
@@ -312,9 +347,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: _GameModeCard(
                               icon: Icons.travel_explore,
                               iconColor: const Color(0xFF57E389),
-                              title: 'Découverte',
-                              subtitle: 'Explore librement',
-                              onPressed: _openDiscovery,
+                              title: 'Atlas',
+                              subtitle: 'Explore le monde',
+                              onPressed: _openAtlas,
                             ),
                           ),
                         ],

@@ -15,7 +15,6 @@ import '../../game/expedition/expedition_progress.dart';
 import '../../game/expedition/expedition_storage.dart';
 import '../../game/game_controller.dart';
 import '../../game/game_difficulty.dart';
-import '../../game/game_difficulty_loader.dart';
 import '../../game/game_screen.dart';
 import '../../game/learning/guided_level.dart';
 import '../../game/ultimate/ultimate_game_screen.dart';
@@ -33,27 +32,17 @@ class ExpeditionsScreen extends StatefulWidget {
 }
 
 class _ExpeditionsScreenState extends State<ExpeditionsScreen> {
-  late Future<List<GameDifficulty>> _difficultiesFuture;
-
-  late Future<ExpeditionProgress> _progressFuture;
-
   late Future<ContinentProgress> _continentProgressFuture;
 
   @override
   void initState() {
     super.initState();
 
-    _difficultiesFuture = GameDifficultyLoader.loadDifficulties();
-
-    _progressFuture = ExpeditionStorage.load();
-
     _continentProgressFuture = ContinentStorage.load();
   }
 
   void _reloadProgress() {
     setState(() {
-      _progressFuture = ExpeditionStorage.load();
-
       _continentProgressFuture = ContinentStorage.load();
     });
   }
@@ -77,73 +66,27 @@ class _ExpeditionsScreenState extends State<ExpeditionsScreen> {
       body: Stack(
         children: <Widget>[
           const Positioned.fill(child: _ExpeditionBackground()),
-          FutureBuilder<List<GameDifficulty>>(
-            future: _difficultiesFuture,
-            builder:
-                (
-                  BuildContext context,
-                  AsyncSnapshot<List<GameDifficulty>> difficultiesSnapshot,
-                ) {
-                  if (difficultiesSnapshot.connectionState !=
-                      ConnectionState.done) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+          FutureBuilder<ContinentProgress>(
+            future: _continentProgressFuture,
+            builder: (
+              BuildContext context,
+              AsyncSnapshot<ContinentProgress> snapshot,
+            ) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
 
-                  if (difficultiesSnapshot.hasError) {
-                    return _ExpeditionError(error: difficultiesSnapshot.error);
-                  }
+              final ContinentProgress continentProgress =
+                  snapshot.data ?? ContinentProgress.initial();
 
-                  final List<GameDifficulty> difficulties =
-                      difficultiesSnapshot.data ?? const <GameDifficulty>[];
-
-                  return FutureBuilder<ExpeditionProgress>(
-                    future: _progressFuture,
-                    builder:
-                        (
-                          BuildContext context,
-                          AsyncSnapshot<ExpeditionProgress> progressSnapshot,
-                        ) {
-                          if (progressSnapshot.connectionState !=
-                              ConnectionState.done) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-
-                          final ExpeditionProgress progress =
-                              progressSnapshot.data ??
-                              ExpeditionProgress.initial();
-
-                          return FutureBuilder<ContinentProgress>(
-                            future: _continentProgressFuture,
-                            builder: (
-                              BuildContext context,
-                              AsyncSnapshot<ContinentProgress>
-                                  continentProgressSnapshot,
-                            ) {
-                              if (continentProgressSnapshot.connectionState !=
-                                  ConnectionState.done) {
-                                return const Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              }
-
-                              final ContinentProgress continentProgress =
-                                  continentProgressSnapshot.data ??
-                                      ContinentProgress.initial();
-
-                              return _ExpeditionList(
-                                controller: widget.controller,
-                                difficulties: difficulties,
-                                progress: progress,
-                                continentProgress: continentProgress,
-                                onProgressChanged: _reloadProgress,
-                              );
-                            },
-                          );
-                        },
-                  );
-                },
+              return _ExpeditionList(
+                controller: widget.controller,
+                continentProgress: continentProgress,
+                onProgressChanged: _reloadProgress,
+              );
+            },
           ),
         ],
       ),
@@ -154,15 +97,11 @@ class _ExpeditionsScreenState extends State<ExpeditionsScreen> {
 class _ExpeditionList extends StatelessWidget {
   const _ExpeditionList({
     required this.controller,
-    required this.difficulties,
-    required this.progress,
     required this.continentProgress,
     required this.onProgressChanged,
   });
 
   final GameController controller;
-  final List<GameDifficulty> difficulties;
-  final ExpeditionProgress progress;
   final ContinentProgress continentProgress;
   final VoidCallback onProgressChanged;
 
@@ -232,14 +171,9 @@ class _ExpeditionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (difficulties.isEmpty) {
-      return const _ExpeditionError(error: 'Aucune expédition disponible.');
-    }
-
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 32),
-      itemCount:
-          difficulties.length + 1 + _continentExpeditions.length,
+      itemCount: 1 + _continentExpeditions.length,
       separatorBuilder: (BuildContext context, int index) {
         return const SizedBox(height: 15);
       },
@@ -297,48 +231,7 @@ class _ExpeditionList extends StatelessWidget {
           );
         }
 
-        final int difficultyIndex =
-            index - 1 - _continentExpeditions.length;
-
-        final GameDifficulty difficulty =
-            difficulties[difficultyIndex];
-
-        final String? previousDifficultyId =
-            difficultyIndex == 0
-            ? null
-            : difficulties[
-                difficultyIndex - 1
-              ].id;
-
-        final bool isUnlocked = progress.isExpeditionUnlocked(
-          difficultyId: difficulty.id,
-          previousDifficultyId: previousDifficultyId,
-        );
-
-        final int earnedStars = progress.totalStarsFor(difficulty.id);
-
-        return _ExpeditionCard(
-          difficulty: difficulty,
-          isUnlocked: isUnlocked,
-          earnedStars: earnedStars,
-          maximumStars: 15,
-          onPressed: isUnlocked
-              ? () async {
-                  await Navigator.of(context).push<void>(
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext context) {
-                        return ExpeditionDetailScreen(
-                          controller: controller,
-                          difficulty: difficulty,
-                        );
-                      },
-                    ),
-                  );
-
-                  onProgressChanged();
-                }
-              : null,
-        );
+        return const SizedBox.shrink();
       },
     );
   }
@@ -1004,146 +897,6 @@ class _ExpeditionDetailScreenState extends State<ExpeditionDetailScreen> {
   }
 }
 
-class _ExpeditionCard extends StatelessWidget {
-  const _ExpeditionCard({
-    required this.difficulty,
-    required this.isUnlocked,
-    required this.earnedStars,
-    required this.maximumStars,
-    required this.onPressed,
-  });
-
-  final GameDifficulty difficulty;
-  final bool isUnlocked;
-  final int earnedStars;
-  final int maximumStars;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final List<Color> colors = _colorsForDifficulty(difficulty.id);
-
-    final double progress = maximumStars <= 0 ? 0 : earnedStars / maximumStars;
-
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(25),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(25),
-        child: Ink(
-          padding: const EdgeInsets.all(19),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isUnlocked
-                  ? colors
-                  : const <Color>[Color(0xFF27364A), Color(0xFF152235)],
-            ),
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: isUnlocked ? 0.25 : 0.10),
-            ),
-          ),
-          child: Row(
-            children: <Widget>[
-              Container(
-                width: 65,
-                height: 65,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(
-                    alpha: isUnlocked ? 0.18 : 0.08,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Icon(
-                  isUnlocked
-                      ? _iconForDifficulty(difficulty.id)
-                      : Icons.lock_rounded,
-                  color: Colors.white,
-                  size: 34,
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      _expeditionName(difficulty),
-                      style: GoogleFonts.fredoka(
-                        color: Colors.white,
-                        fontSize: 21,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      isUnlocked
-                          ? difficulty.description
-                          : 'Termine l’expédition '
-                                'précédente pour la débloquer.',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.nunitoSans(
-                        color: Colors.white.withValues(alpha: 0.72),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: LinearProgressIndicator(
-                              value: isUnlocked ? progress : 0,
-                              minHeight: 8,
-                              backgroundColor: Colors.white.withValues(
-                                alpha: 0.18,
-                              ),
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                Color(0xFFFFD166),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          isUnlocked
-                              ? '$earnedStars / '
-                                    '$maximumStars ⭐'
-                              : 'VERROUILLÉE',
-                          style: GoogleFonts.nunitoSans(
-                            color: isUnlocked
-                                ? const Color(0xFFFFD166)
-                                : Colors.white54,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                isUnlocked
-                    ? Icons.chevron_right_rounded
-                    : Icons.lock_outline_rounded,
-                color: Colors.white.withValues(alpha: 0.75),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _ExpeditionHeader extends StatelessWidget {
   const _ExpeditionHeader({
     required this.difficulty,
@@ -1369,27 +1122,6 @@ class _ExpeditionBackground extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: <Color>[Color(0xFF071B3A), Color(0xFF0D3B78)],
-        ),
-      ),
-    );
-  }
-}
-
-class _ExpeditionError extends StatelessWidget {
-  const _ExpeditionError({required this.error});
-
-  final Object? error;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          'Impossible de charger '
-          'les expéditions.\n$error',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.nunitoSans(color: Colors.white70, fontSize: 14),
         ),
       ),
     );

@@ -1,156 +1,58 @@
-GeoPoint - Phase 2 : Expédition Monde et titre Maître cartographe
+GeoPoint - Phase 2B : Atlas fluide V12
 
 INSTALLATION
 
 1. Fermer l’application si elle est lancée.
-2. Copier le dossier lib de cette archive à la racine du projet GeoPoint.
-3. Accepter la fusion des dossiers et le remplacement des fichiers existants.
-4. Ne pas placer le dossier lib à l’intérieur d’un autre dossier lib.
+2. Copier les dossiers lib et assets de cette archive à la racine du projet GeoPoint.
+3. Accepter la fusion des dossiers et le remplacement de home_screen.dart.
+4. Ne pas créer un deuxième dossier lib ou assets à l’intérieur des dossiers existants.
 5. Depuis la racine du projet, lancer : flutter analyze
 6. Si l’analyse ne signale aucune erreur, lancer : flutter run
 
 NOUVEAUX FICHIERS
 
-lib/features/expeditions/continent_expedition_screen.dart
-lib/game/continent/continent_expedition.dart
-lib/game/continent/europe_expedition.dart
-lib/game/continent/continent_progress.dart
-lib/game/continent/continent_storage.dart
-lib/game/continent/africa_expedition.dart
-lib/game/continent/asia_expedition.dart
-lib/game/continent/americas_expedition.dart
-lib/game/continent/oceania_expedition.dart
-lib/game/continent/world_expedition.dart
+lib/features/atlas/atlas_screen.dart
+lib/features/atlas/atlas_map.dart
+lib/features/atlas/atlas_city.dart
+lib/features/atlas/atlas_city_loader.dart
+lib/features/atlas/country_atlas_sheet.dart
+assets/data/atlas_cities.json
 
-FICHIERS MIS À JOUR
+FICHIER MIS À JOUR
 
-lib/features/expeditions/expeditions_screen.dart
-lib/features/expeditions/continent_expedition_screen.dart
-lib/game/game_controller.dart
-lib/game/game_screen.dart
+lib/features/home/home_screen.dart
+
+CONTENU DE CETTE VERSION FLUIDE
+
+- La carte du jeu reste inchangée et sans noms.
+- La carte Atlas affiche les noms des pays.
+- 5 821 villes de 100 000 habitants ou plus sont intégrées.
+- La vue mondiale n’affiche plus aucune ville afin de rester claire et fluide.
+- Les villes apparaissent uniquement après la sélection de leur pays.
+- Toutes les villes utiles sont dessinées sous forme de points légers.
+- Seuls les principaux noms suffisamment espacés sont affichés.
+- Davantage de noms apparaissent en zoomant, sans chevauchement.
+- Un toucher près d’un point ouvre la fiche de la ville correspondante.
+- Les polygones sont mis en cache pour éviter les recalculs pendant la navigation.
+- Les codes ISO partagés avec un territoire ne remplacent plus le pays principal.
+- Montpellier et les autres villes françaises ouvrent désormais la fiche France, jamais Clipperton.
+- La recherche accepte les noms de pays et de villes.
+- Les filtres couvrent Europe, Afrique, Asie, Amériques, Océanie et Antarctique.
+- Un toucher sur un pays le sélectionne, le zoome et ouvre sa fiche Atlas.
+- La fiche contient capitale, population, superficie, monnaie, langues, anecdote, histoire, densité et principales villes.
+- Le bouton « Explorer les villes sur la carte » ferme la fiche et révèle uniquement les villes de ce pays.
+- Un toucher sur une ville affiche sa population et permet d’ouvrir la fiche de son pays.
 
 TEST RAPIDE
 
-- Ouvrir Expéditions.
-- Vérifier que les cartes Europe, Afrique, Asie, Amériques, Océanie et Monde apparaissent sous Tutoriels de jeu.
-- Ouvrir Europe : les 15 niveaux doivent être affichés.
-- Ouvrir Afrique : les 15 niveaux doivent être affichés.
-- Ouvrir Asie : les 15 niveaux doivent être affichés.
-- Ouvrir Amériques : les 15 niveaux doivent être affichés.
-- Ouvrir Océanie : les 15 niveaux doivent être affichés.
-- Vérifier que Monde est verrouillée tant que les cinq continents ne sont pas terminés.
-- Toucher la carte Monde verrouillée : un message doit expliquer la condition de déblocage.
-- Une fois les cinq expéditions terminées, Monde doit afficher ses 15 niveaux.
-- Seul le premier niveau doit être disponible au départ.
-- Terminer le premier niveau avec au moins une étoile.
-- Vérifier que le deuxième niveau se débloque.
-- Fermer et relancer l’application pour vérifier la sauvegarde.
-- Les expéditions historiques et les quatre tutoriels doivent toujours fonctionner.
-
-PROGRESSION MONDE
-
-1. Grands repères du monde
-2. Les géants de la planète
-3. Formes du bout du monde
-4. Îles autour du monde
-5. Frontières du monde
-6. Drapeaux du monde
-7. Capitales du monde
-8. Micro-États de la planète
-9. Territoires polaires et isolés
-10. Silhouettes mondiales
-11. Tour du monde mixte
-12. Révision GeoBrain mondiale
-13. Défi mondial chronométré
-14. Examen mondial
-15. Maître cartographe
-
-PROGRESSION OCÉANIE
-
-1. Découverte de l’Océanie
-2. Grands repères du Pacifique
-3. Cap sur la Mélanésie
-4. Les îles de Micronésie
-5. Voyage en Polynésie
-6. Drapeaux principaux
-7. Capitales principales
-8. Micro-États du Pacifique
-9. Territoires océaniens
-10. Silhouettes d’Océanie
-11. Épreuve mixte
-12. Révision GeoBrain
-13. Défi chronométré
-14. Examen océanien
-15. Maître de l’Océanie
-
-PROGRESSION AMÉRIQUES
-
-1. Découverte des Amériques
-2. Les grands pays
-3. Pays faciles à reconnaître
-4. Du Nord à l’Amérique centrale
-5. Cap sur l’Amérique du Sud
-6. Archipel des Caraïbes
-7. Drapeaux principaux
-8. Capitales principales
-9. Territoires américains
-10. Silhouettes des Amériques
-11. Épreuve mixte
-12. Révision GeoBrain
-13. Défi chronométré
-14. Examen des Amériques
-15. Maître des Amériques
-
-PROGRESSION ASIE
-
-1. Découverte de l’Asie
-2. Les grands pays
-3. Pays faciles à reconnaître
-4. Voisins du Moyen-Orient
-5. Nouvelles routes d’Asie
-6. Drapeaux principaux
-7. Capitales principales
-8. Petits pays asiatiques
-9. Îles et régions spéciales
-10. Silhouettes d’Asie
-11. Épreuve mixte
-12. Révision GeoBrain
-13. Défi chronométré
-14. Examen asiatique
-15. Maître de l’Asie
-
-PROGRESSION AFRIQUE
-
-1. Découverte de l’Afrique
-2. Les grands pays
-3. Pays faciles à reconnaître
-4. Voisins d’Afrique de l’Ouest
-5. Cap sur l’Afrique de l’Est
-6. Drapeaux principaux
-7. Capitales principales
-8. Petits pays africains
-9. Îles et territoires
-10. Silhouettes d’Afrique
-11. Épreuve mixte
-12. Révision GeoBrain
-13. Défi chronométré
-14. Examen africain
-15. Maître de l’Afrique
-
-PROGRESSION EUROPE
-
-1. Découverte de l’Europe
-2. Les grands pays
-3. Pays faciles à reconnaître
-4. Pays voisins
-5. Nouveaux pays
-6. Drapeaux principaux
-7. Capitales principales
-8. Petits pays
-9. Territoires européens
-10. Silhouettes d’Europe
-11. Épreuve mixte
-12. Révision GeoBrain
-13. Défi chronométré
-14. Examen européen
-15. Maître de l’Europe
+- Sur l’accueil, vérifier que la carte Découverte est devenue Atlas.
+- Ouvrir Atlas et vérifier que les noms des grands pays apparaissent.
+- Déplacer et zoomer la vue mondiale : aucune ville ne doit apparaître et la carte doit rester fluide.
+- Rechercher France puis Paris.
+- Tester le filtre Europe puis le filtre Amériques.
+- Toucher la France, vérifier la fiche puis choisir « Explorer les villes sur la carte ».
+- Vérifier que seules les villes françaises apparaissent sous forme de points.
+- Vérifier que les noms ne se chevauchent plus autour de Paris et Marseille.
+- Toucher Montpellier et vérifier que le bouton propose la fiche de la France.
+- Toucher une ville et vérifier sa mini-fiche.
+- Revenir au jeu et confirmer que les noms et les villes ne sont pas visibles sur la carte des questions.

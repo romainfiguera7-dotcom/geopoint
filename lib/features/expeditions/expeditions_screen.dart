@@ -134,6 +134,63 @@ class _ExpeditionList extends StatelessWidget {
     return _completedWorldRequirements == _worldRequirements.length;
   }
 
+  int get _completedLevelCount {
+    return _worldRequirements.fold<int>(
+      0,
+      (int total, ContinentExpedition expedition) =>
+          total + continentProgress.completedLevelsFor(expedition),
+    );
+  }
+
+  int get _totalLevelCount {
+    return _worldRequirements.fold<int>(
+      0,
+      (int total, ContinentExpedition expedition) =>
+          total + expedition.levels.length,
+    );
+  }
+
+  int get _totalStars {
+    return _worldRequirements.fold<int>(
+      0,
+      (int total, ContinentExpedition expedition) =>
+          total + continentProgress.totalStarsFor(expedition),
+    );
+  }
+
+  Future<void> _openExpedition(
+    BuildContext context,
+    ContinentExpedition expedition,
+  ) async {
+    final bool isWorld = expedition.id == WorldExpeditionCatalog.world.id;
+    final bool isUnlocked = !isWorld || _isWorldUnlocked;
+
+    if (!isUnlocked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Termine les cinq expéditions continentales '
+            'pour débloquer l’expédition Monde.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          return ContinentExpeditionScreen(
+            controller: controller,
+            expedition: expedition,
+          );
+        },
+      ),
+    );
+
+    onProgressChanged();
+  }
+
   Future<void> _openTutorials(
     BuildContext context,
   ) async {
@@ -171,68 +228,116 @@ class _ExpeditionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
+    final List<ContinentExpedition> continents =
+        _continentExpeditions.take(5).toList(growable: false);
+    final ContinentExpedition world = _continentExpeditions.last;
+
+    return ListView(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 32),
-      itemCount: 1 + _continentExpeditions.length,
-      separatorBuilder: (BuildContext context, int index) {
-        return const SizedBox(height: 15);
-      },
-      itemBuilder: (BuildContext context, int index) {
-        if (index == 0) {
-          return _TutorialCard(
+      children: <Widget>[
+        _SelectionProgressSummary(
+          completedLevels: _completedLevelCount,
+          totalLevels: _totalLevelCount,
+          totalStars: _totalStars,
+        ),
+        const SizedBox(height: 16),
+        _TutorialCard(
+          onPressed: () async {
+            await _openTutorials(context);
+          },
+        ),
+        const SizedBox(height: 16),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: continents.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.93,
+          ),
+          itemBuilder: (BuildContext context, int index) {
+            final ContinentExpedition expedition = continents[index];
+            return _ContinentExpeditionCard(
+              expedition: expedition,
+              completedLevels:
+                  continentProgress.completedLevelsFor(expedition),
+              isLocked: false,
+              prerequisiteLabel: null,
+              onPressed: () async {
+                await _openExpedition(context, expedition);
+              },
+            );
+          },
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          height: 165,
+          child: _ContinentExpeditionCard(
+            expedition: world,
+            completedLevels: continentProgress.completedLevelsFor(world),
+            isLocked: !_isWorldUnlocked,
+            prerequisiteLabel: '$_completedWorldRequirements/'
+                '${_worldRequirements.length} continents terminés',
             onPressed: () async {
-              await _openTutorials(context);
+              await _openExpedition(context, world);
             },
-          );
-        }
+          ),
+        ),
+      ],
+    );
+  }
+}
 
-        if (index <= _continentExpeditions.length) {
-          final ContinentExpedition expedition =
-              _continentExpeditions[index - 1];
+class _SelectionProgressSummary extends StatelessWidget {
+  const _SelectionProgressSummary({
+    required this.completedLevels,
+    required this.totalLevels,
+    required this.totalStars,
+  });
 
-          final bool isWorld =
-              expedition.id == WorldExpeditionCatalog.world.id;
+  final int completedLevels;
+  final int totalLevels;
+  final int totalStars;
 
-          final bool isUnlocked = !isWorld || _isWorldUnlocked;
-
-          return _ContinentExpeditionCard(
-            expedition: expedition,
-            isLocked: !isUnlocked,
-            prerequisiteLabel: isWorld
-                ? '$_completedWorldRequirements/'
-                    '${_worldRequirements.length} CONTINENTS TERMINÉS'
-                : null,
-            onPressed: () async {
-              if (!isUnlocked) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Termine les cinq expéditions continentales '
-                      'pour débloquer l’expédition Monde.',
-                    ),
-                  ),
-                );
-                return;
-              }
-
-              await Navigator.of(context).push<void>(
-                MaterialPageRoute<void>(
-                  builder: (BuildContext context) {
-                    return ContinentExpeditionScreen(
-                      controller: controller,
-                      expedition: expedition,
-                    );
-                  },
-                ),
-              );
-
-              onProgressChanged();
-            },
-          );
-        }
-
-        return const SizedBox.shrink();
-      },
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(
+        children: <Widget>[
+          const Icon(Icons.flag_rounded, color: Color(0xFF55D6A6)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '$completedLevels / $totalLevels niveaux',
+              style: GoogleFonts.nunitoSans(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          Container(width: 1, height: 25, color: Colors.white12),
+          const SizedBox(width: 13),
+          const Icon(Icons.star_rounded, color: Color(0xFFFFCE59)),
+          const SizedBox(width: 6),
+          Text(
+            '$totalStars étoiles',
+            style: GoogleFonts.nunitoSans(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -363,12 +468,14 @@ class _TutorialCard extends StatelessWidget {
 class _ContinentExpeditionCard extends StatelessWidget {
   const _ContinentExpeditionCard({
     required this.expedition,
+    required this.completedLevels,
     required this.isLocked,
     required this.prerequisiteLabel,
     required this.onPressed,
   });
 
   final ContinentExpedition expedition;
+  final int completedLevels;
   final bool isLocked;
   final String? prerequisiteLabel;
   final VoidCallback onPressed;
@@ -377,34 +484,34 @@ class _ContinentExpeditionCard extends StatelessWidget {
     switch (expedition.id) {
       case 'world':
         return const <Color>[
-          Color(0xFFFFB347),
-          Color(0xFF9A5700),
+          Color(0xFF102F62),
+          Color(0xFF071B3A),
         ];
       case 'oceania':
         return const <Color>[
-          Color(0xFF8C67D9),
-          Color(0xFF4C2D86),
+          Color(0xFF29A9E8),
+          Color(0xFF1674B7),
         ];
       case 'americas':
         return const <Color>[
-          Color(0xFF22B98D),
-          Color(0xFF086B63),
+          Color(0xFF43C7B0),
+          Color(0xFF15927F),
         ];
       case 'asia':
         return const <Color>[
-          Color(0xFFE05252),
-          Color(0xFF8D2438),
+          Color(0xFFFF756B),
+          Color(0xFFD94E4B),
         ];
       case 'africa':
         return const <Color>[
-          Color(0xFFF39C3D),
-          Color(0xFF9A4E16),
+          Color(0xFFFFBE3D),
+          Color(0xFFE59122),
         ];
       case 'europe':
       default:
         return const <Color>[
-          Color(0xFF176BFF),
-          Color(0xFF0C3C8C),
+          Color(0xFF55D6A6),
+          Color(0xFF279D7B),
         ];
     }
   }
@@ -414,107 +521,168 @@ class _ContinentExpeditionCard extends StatelessWidget {
     final bool isWorld = expedition.id == 'world';
 
     return Opacity(
-      opacity: isLocked ? 0.68 : 1,
+      opacity: isLocked ? 0.72 : 1,
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(22),
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(22),
           child: Ink(
-            padding: const EdgeInsets.all(19),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: _colors,
               ),
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(22),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.26),
+                color: isWorld
+                    ? const Color(0xFFFFCE59).withValues(alpha: 0.70)
+                    : Colors.white.withValues(alpha: 0.30),
               ),
               boxShadow: <BoxShadow>[
                 BoxShadow(
-                  color: _colors.first.withValues(alpha: 0.20),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 13,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
-            child: Row(
+            child: Stack(
               children: <Widget>[
-                Container(
-                  width: 65,
-                  height: 65,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(
-                    isLocked
-                        ? Icons.lock_rounded
-                        : isWorld
-                            ? Icons.public_rounded
-                            : Icons.map_rounded,
-                    color: Colors.white,
-                    size: 35,
+                Positioned(
+                  right: -22,
+                  bottom: -20,
+                  child: _ContinentArt(
+                    id: expedition.id,
+                    size: 145,
+                    color: Colors.white.withValues(alpha: 0.11),
                   ),
                 ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        isWorld
-                            ? 'EXPÉDITION FINALE'
-                            : 'EXPÉDITION CONTINENTALE',
-                        style: GoogleFonts.nunitoSans(
-                          color: const Color(0xFFFFD166),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.8,
+                Positioned.fill(
+                  child: LayoutBuilder(
+                    builder: (BuildContext context, BoxConstraints constraints) {
+                final bool wide = constraints.maxWidth > 330;
+
+                final Widget symbol = Container(
+                  width: wide ? 76 : 58,
+                  height: wide ? 76 : 58,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(wide ? 22 : 17),
+                  ),
+                  child: isLocked
+                      ? Icon(
+                          Icons.lock_rounded,
+                          color: isWorld
+                              ? const Color(0xFFFFCE59)
+                              : Colors.white,
+                          size: wide ? 39 : 31,
+                        )
+                      : Padding(
+                          padding: EdgeInsets.all(wide ? 14 : 11),
+                          child: _ContinentArt(
+                            id: expedition.id,
+                            size: wide ? 48 : 37,
+                            color: isWorld
+                                ? const Color(0xFFFFCE59)
+                                : Colors.white,
+                          ),
                         ),
+                );
+
+                final Widget information = Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      expedition.name.toUpperCase(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.fredoka(
+                        color: isWorld
+                            ? const Color(0xFFFFCE59)
+                            : Colors.white,
+                        fontSize: wide ? 25 : 19,
+                        fontWeight: FontWeight.w700,
                       ),
-                      Text(
-                        expedition.name,
-                        style: GoogleFonts.fredoka(
-                          color: Colors.white,
-                          fontSize: 23,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                    ),
+                    if (wide) ...<Widget>[
                       const SizedBox(height: 4),
                       Text(
                         expedition.subtitle,
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.nunitoSans(
-                          color: Colors.white.withValues(alpha: 0.74),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 9),
-                      Text(
-                        isLocked && prerequisiteLabel != null
-                            ? '$prerequisiteLabel • VERROUILLÉ'
-                            : '${expedition.levels.length} NIVEAUX '
-                                '• ${expedition.maximumStars} ÉTOILES',
-                        style: GoogleFonts.nunitoSans(
-                          color: const Color(0xFFFFD166),
+                          color: Colors.white70,
                           fontSize: 11,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      child: Text(
+                        isLocked && prerequisiteLabel != null
+                            ? prerequisiteLabel!
+                            : '$completedLevels/${expedition.levels.length}',
+                        style: GoogleFonts.nunitoSans(
+                          color: Colors.white,
+                          fontSize: wide ? 11 : 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+
+                return Padding(
+                  padding: EdgeInsets.all(wide ? 18 : 15),
+                  child: wide
+                      ? Row(
+                          children: <Widget>[
+                            symbol,
+                            const SizedBox(width: 16),
+                            Expanded(child: information),
+                            Icon(
+                              isLocked
+                                  ? Icons.lock_outline_rounded
+                                  : Icons.chevron_right_rounded,
+                              color: Colors.white70,
+                            ),
+                          ],
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                symbol,
+                                const Spacer(),
+                                Icon(
+                                  isLocked
+                                      ? Icons.lock_outline_rounded
+                                      : Icons.arrow_outward_rounded,
+                                  color: Colors.white70,
+                                ),
+                              ],
+                            ),
+                            const Spacer(),
+                            information,
+                          ],
+                        ),
+                );
+                    },
                   ),
-                ),
-                Icon(
-                  isLocked
-                      ? Icons.lock_outline_rounded
-                      : Icons.chevron_right_rounded,
-                  color: Colors.white70,
                 ),
               ],
             ),
@@ -522,6 +690,155 @@ class _ContinentExpeditionCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _ContinentArt extends StatelessWidget {
+  const _ContinentArt({
+    required this.id,
+    required this.size,
+    required this.color,
+  });
+
+  final String id;
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: size,
+      child: CustomPaint(
+        painter: _ContinentArtPainter(id: id, color: color),
+      ),
+    );
+  }
+}
+
+class _ContinentArtPainter extends CustomPainter {
+  const _ContinentArtPainter({required this.id, required this.color});
+
+  final String id;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint fill = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill
+      ..strokeJoin = StrokeJoin.round;
+    final Paint stroke = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.shortestSide * 0.045
+      ..strokeCap = StrokeCap.round;
+
+    if (id == 'world') {
+      final Offset center = size.center(Offset.zero);
+      final double radius = size.shortestSide * 0.40;
+      canvas.drawCircle(center, radius, stroke);
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: center,
+          width: radius * 0.92,
+          height: radius * 2,
+        ),
+        stroke,
+      );
+      canvas.drawLine(
+        Offset(center.dx - radius, center.dy),
+        Offset(center.dx + radius, center.dy),
+        stroke,
+      );
+      return;
+    }
+
+    final Path path = Path();
+    switch (id) {
+      case 'africa':
+        path
+          ..moveTo(0.24, 0.18)
+          ..lineTo(0.55, 0.08)
+          ..lineTo(0.82, 0.25)
+          ..lineTo(0.73, 0.52)
+          ..lineTo(0.56, 0.70)
+          ..lineTo(0.46, 0.94)
+          ..lineTo(0.30, 0.68)
+          ..lineTo(0.18, 0.42)
+          ..close();
+        break;
+      case 'americas':
+        path
+          ..moveTo(0.20, 0.08)
+          ..lineTo(0.55, 0.13)
+          ..lineTo(0.68, 0.30)
+          ..lineTo(0.48, 0.43)
+          ..lineTo(0.55, 0.56)
+          ..lineTo(0.43, 0.64)
+          ..lineTo(0.52, 0.78)
+          ..lineTo(0.36, 0.96)
+          ..lineTo(0.24, 0.71)
+          ..lineTo(0.31, 0.51)
+          ..lineTo(0.12, 0.34)
+          ..close();
+        break;
+      case 'asia':
+        path
+          ..moveTo(0.08, 0.34)
+          ..lineTo(0.24, 0.13)
+          ..lineTo(0.50, 0.18)
+          ..lineTo(0.66, 0.08)
+          ..lineTo(0.92, 0.24)
+          ..lineTo(0.80, 0.45)
+          ..lineTo(0.91, 0.58)
+          ..lineTo(0.66, 0.63)
+          ..lineTo(0.54, 0.86)
+          ..lineTo(0.39, 0.65)
+          ..lineTo(0.20, 0.58)
+          ..close();
+        break;
+      case 'oceania':
+        path
+          ..moveTo(0.12, 0.43)
+          ..lineTo(0.33, 0.25)
+          ..lineTo(0.62, 0.31)
+          ..lineTo(0.79, 0.51)
+          ..lineTo(0.67, 0.74)
+          ..lineTo(0.35, 0.80)
+          ..lineTo(0.16, 0.63)
+          ..close();
+        canvas.drawCircle(
+          Offset(size.width * 0.87, size.height * 0.72),
+          size.shortestSide * 0.065,
+          fill,
+        );
+        break;
+      case 'europe':
+      default:
+        path
+          ..moveTo(0.15, 0.34)
+          ..lineTo(0.31, 0.16)
+          ..lineTo(0.46, 0.27)
+          ..lineTo(0.58, 0.10)
+          ..lineTo(0.80, 0.23)
+          ..lineTo(0.89, 0.43)
+          ..lineTo(0.70, 0.48)
+          ..lineTo(0.63, 0.68)
+          ..lineTo(0.46, 0.58)
+          ..lineTo(0.33, 0.80)
+          ..lineTo(0.22, 0.59)
+          ..close();
+        break;
+    }
+
+    final Matrix4 transform = Matrix4.identity()
+      ..scale(size.width, size.height);
+    canvas.drawPath(path.transform(transform.storage), fill);
+  }
+
+  @override
+  bool shouldRepaint(covariant _ContinentArtPainter oldDelegate) {
+    return oldDelegate.id != id || oldDelegate.color != color;
   }
 }
 

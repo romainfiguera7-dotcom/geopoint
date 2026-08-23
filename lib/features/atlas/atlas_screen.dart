@@ -9,6 +9,8 @@ import '../../geo_engine/geo_country.dart';
 import 'atlas_city.dart';
 import 'atlas_city_loader.dart';
 import 'atlas_map.dart';
+import 'atlas_personal_progress.dart';
+import 'atlas_personal_storage.dart';
 import 'country_atlas_sheet.dart';
 
 class AtlasScreen extends StatefulWidget {
@@ -40,6 +42,8 @@ class _AtlasScreenState extends State<AtlasScreen> {
   String _selectedContinent = 'Tous';
   String _searchQuery = '';
   GeoCountry? _selectedCountry;
+  AtlasPersonalProgress _personalProgress =
+      AtlasPersonalProgress.initial();
 
   @override
   void initState() {
@@ -58,7 +62,10 @@ class _AtlasScreenState extends State<AtlasScreen> {
     final List<Object> loaded = await Future.wait<Object>(<Future<Object>>[
       CountryInfoLoader.loadCountryInfos(),
       AtlasCityLoader.loadCities(),
+      AtlasPersonalStorage.load(),
     ]);
+
+    _personalProgress = loaded[2] as AtlasPersonalProgress;
 
     return _AtlasData(
       countries: List<GeoCountry>.unmodifiable(widget.controller.countries),
@@ -103,6 +110,9 @@ class _AtlasScreenState extends State<AtlasScreen> {
           info: data.countryInfos[country.id],
           capital: data.capitals[country.id],
           cities: countryCities,
+          initialStatus: _personalProgress.statusFor(country.id),
+          onToggleVisited: () => _toggleVisited(country),
+          onToggleWishlist: () => _toggleWishlist(country),
           onExploreCities: () => Navigator.of(context).pop(),
         );
       },
@@ -201,6 +211,45 @@ class _AtlasScreenState extends State<AtlasScreen> {
     );
   }
 
+  Future<AtlasCountryStatus> _toggleVisited(GeoCountry country) async {
+    final AtlasPersonalProgress next =
+        _personalProgress.toggleVisited(country.id);
+    return _savePersonalProgress(next, country.id);
+  }
+
+  Future<AtlasCountryStatus> _toggleWishlist(GeoCountry country) async {
+    final AtlasPersonalProgress next =
+        _personalProgress.toggleWishlist(country.id);
+    return _savePersonalProgress(next, country.id);
+  }
+
+  Future<AtlasCountryStatus> _savePersonalProgress(
+    AtlasPersonalProgress next,
+    String countryId,
+  ) async {
+    final bool saved = await AtlasPersonalStorage.save(next);
+
+    if (!mounted) {
+      return saved
+          ? next.statusFor(countryId)
+          : _personalProgress.statusFor(countryId);
+    }
+
+    if (saved) {
+      setState(() {
+        _personalProgress = next;
+      });
+      return next.statusFor(countryId);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Impossible de sauvegarder ce pays pour le moment.'),
+      ),
+    );
+    return _personalProgress.statusFor(countryId);
+  }
+
   void _selectContinent(String continent) {
     _searchFocusNode.unfocus();
 
@@ -282,6 +331,10 @@ class _AtlasScreenState extends State<AtlasScreen> {
                   countryInfos: data.countryInfos,
                   selectedContinent: _selectedContinent,
                   selectedCountry: _selectedCountry,
+                  visitedCountryIds:
+                      _personalProgress.visitedCountryIds,
+                  wishlistCountryIds:
+                      _personalProgress.wishlistCountryIds,
                   onCountrySelected: (GeoCountry country) {
                     _openCountrySheet(data, country, focusCountry: true);
                   },
@@ -458,6 +511,22 @@ class _AtlasScreenState extends State<AtlasScreen> {
           continent.contains('amerique du sud') ||
           continent == 'north america' ||
           continent == 'south america';
+    }
+
+    if (filter == 'afrique') {
+      return continent == 'afrique' || continent == 'africa';
+    }
+
+    if (filter == 'asie') {
+      return continent == 'asie' || continent == 'asia';
+    }
+
+    if (filter == 'oceanie') {
+      return continent == 'oceanie' || continent == 'oceania';
+    }
+
+    if (filter == 'antarctique') {
+      return continent.startsWith('antarct');
     }
 
     return continent == filter;

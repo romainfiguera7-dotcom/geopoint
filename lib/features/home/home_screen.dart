@@ -1,130 +1,87 @@
+import 'dart:async';
+import 'dart:ui' show PathMetric, Tangent;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../game/game_controller.dart';
 import '../../geo_engine/geo_country.dart';
 import '../../geo_engine/geojson_loader.dart';
-import '../atlas/atlas_screen.dart';
-import '../expeditions/expeditions_screen.dart';
-import '../passport/passport_screen.dart';
+import '../atlas/atlas_hub_screen.dart';
+import '../design/geopoint_design.dart';
+import '../passport/passport_hub_screen.dart';
+import '../play/play_hub_screen.dart';
 import '../settings/settings_screen.dart';
-import '../statistics/statistics_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() {
-    return _HomeScreenState();
-  }
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   GameController? _gameController;
+  Future<GameController>? _controllerFuture;
+  bool _isPreparing = false;
 
-  bool _isPreparingGame = false;
-  bool _hasOpenedAdventure = false;
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_preloadPlayer());
+  }
+
+  Future<void> _preloadPlayer() async {
+    try {
+      await _getGameController();
+
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (error, stackTrace) {
+      debugPrint('Préchargement du profil impossible : $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
 
   Future<GameController> _getGameController() async {
-    final GameController? existingController = _gameController;
+    final GameController? existing = _gameController;
 
-    if (existingController != null) {
-      return existingController;
+    if (existing != null) {
+      return existing;
     }
 
-    final GameController controller = GameController();
+    final Future<GameController> future =
+        _controllerFuture ??= _createGameController();
 
+    try {
+      return await future;
+    } catch (_) {
+      _controllerFuture = null;
+      rethrow;
+    }
+  }
+
+  Future<GameController> _createGameController() async {
+    final GameController controller = GameController();
     final List<GeoCountry> countries = await GeoJsonLoader.loadCountries();
 
     await controller.initialize(countries);
-
     _gameController = controller;
 
     return controller;
   }
 
-  Future<void> _openAdventure() async {
-    if (_isPreparingGame) {
+  Future<void> _openDestination({
+    required String destinationName,
+    required Widget Function(GameController controller) builder,
+  }) async {
+    if (_isPreparing) {
       return;
     }
 
     setState(() {
-      _isPreparingGame = true;
-    });
-
-    try {
-      /*
-       * On initialise le contrôleur avant d’ouvrir
-       * les expéditions afin de charger le profil,
-       * le Passeport et la progression sauvegardée.
-       */
-      await _getGameController();
-
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _hasOpenedAdventure = true;
-      });
-
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) {
-            return ExpeditionsScreen(controller: _gameController!);
-          },
-        ),
-      );
-
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (error, stackTrace) {
-      debugPrint(
-        'Erreur pendant l’ouverture '
-        'des expéditions : $error',
-      );
-
-      debugPrintStack(stackTrace: stackTrace);
-
-      if (!mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Impossible d’ouvrir les expéditions.\n'
-            '$error',
-          ),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isPreparingGame = false;
-        });
-      }
-    }
-  }
-
-  void _openPassport() {
-    Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (BuildContext context) {
-          return PassportScreen(controller: _gameController);
-        },
-      ),
-    );
-  }
-
-  Future<void> _openAtlas() async {
-    if (_isPreparingGame) {
-      return;
-    }
-
-    setState(() {
-      _isPreparingGame = true;
+      _isPreparing = true;
     });
 
     try {
@@ -136,65 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       await Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
-          builder: (BuildContext context) {
-            return AtlasScreen(controller: controller);
-          },
-        ),
-      );
-    } catch (error, stackTrace) {
-      debugPrint('Erreur pendant l’ouverture de l’Atlas : $error');
-      debugPrintStack(stackTrace: stackTrace);
-
-      if (!mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Impossible d’ouvrir l’Atlas.\n$error'),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isPreparingGame = false;
-        });
-      }
-    }
-  }
-
-  void _openChildMode() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Le mode enfant sera '
-          'disponible prochainement.',
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openStatistics() async {
-    if (_isPreparingGame) {
-      return;
-    }
-
-    setState(() {
-      _isPreparingGame = true;
-    });
-
-    try {
-      final GameController controller = await _getGameController();
-
-      if (!mounted) {
-        return;
-      }
-
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) {
-            return StatisticsScreen(controller: controller);
-          },
+          builder: (BuildContext context) => builder(controller),
         ),
       );
 
@@ -202,40 +101,58 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {});
       }
     } catch (error, stackTrace) {
-      debugPrint(
-        'Erreur pendant l’ouverture '
-        'des statistiques : $error',
-      );
-
+      debugPrint('Erreur pendant l’ouverture de $destinationName : $error');
       debugPrintStack(stackTrace: stackTrace);
 
-      if (!mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Impossible d’ouvrir les statistiques.\n'
-            '$error',
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Impossible d’ouvrir $destinationName.\n$error',
+            ),
           ),
-        ),
-      );
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {
-          _isPreparingGame = false;
+          _isPreparing = false;
         });
       }
     }
+  }
+
+  Future<void> _openPlay() {
+    return _openDestination(
+      destinationName: 'Jouer',
+      builder: (GameController controller) {
+        return PlayHubScreen(controller: controller);
+      },
+    );
+  }
+
+  Future<void> _openAtlas() {
+    return _openDestination(
+      destinationName: 'l’Atlas',
+      builder: (GameController controller) {
+        return AtlasHubScreen(controller: controller);
+      },
+    );
+  }
+
+  Future<void> _openPassport() {
+    return _openDestination(
+      destinationName: 'le Passeport',
+      builder: (GameController controller) {
+        return PassportHubScreen(controller: controller);
+      },
+    );
   }
 
   void _openSettings() {
     Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (BuildContext context) {
-          return const SettingsScreen();
-        },
+        builder: (BuildContext context) => const SettingsScreen(),
       ),
     );
   }
@@ -249,144 +166,68 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final GameController? controller = _gameController;
-
-    final bool hasStarted =
-        _hasOpenedAdventure || controller?.passport.hasStarted == true;
-
-    final String adventureTitle = hasStarted
-        ? 'CONTINUER L’AVENTURE'
-        : 'COMMENCER L’AVENTURE';
-
-    final String adventureSubtitle = hasStarted
-        ? 'Reprends ton exploration'
-        : 'Obtiens ton premier tampon';
-
-    final int validatedStamps = controller?.passport.validatedStampCount ?? 0;
-
-    final int totalStamps =
-        controller?.passportEngine.stamps.values
-            .where((stamp) => stamp.isEnabled)
-            .length ??
-        4;
-
-    final double progress = totalStamps <= 0
-        ? 0
-        : validatedStamps / totalStamps;
+    final int stampCount = controller?.passport.validatedStampCount ?? 0;
+    final int gameCount = controller?.passport.totalAttempts ?? 0;
+    final String playerName = controller?.passport.displayName ?? 'Voyageur';
 
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          const Positioned.fill(child: _GameBackground()),
-
+          const Positioned.fill(child: GeoAdventureBackground()),
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
+            child: AbsorbPointer(
+              absorbing: _isPreparing,
               child: Center(
                 child: Container(
-                  constraints: const BoxConstraints(maxWidth: 520),
-                  child: Column(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(18, 10, 18, 28),
                     children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          const _PlayerBadge(),
-
-                          const Spacer(),
-
-                          IconButton(
-                            onPressed: _openSettings,
-                            tooltip: 'Paramètres',
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.white.withValues(
-                                alpha: 0.12,
-                              ),
-                              foregroundColor: Colors.white,
-                              minimumSize: const Size(46, 46),
-                            ),
-                            icon: const Icon(Icons.settings_outlined),
-                          ),
-                        ],
+                      _HomeTopBar(
+                        playerName: playerName,
+                        onSettings: _openSettings,
                       ),
-
-                      const SizedBox(height: 18),
-
-                      const _GeoPointLogo(),
-
-                      const SizedBox(height: 28),
-
-                      _AdventureCard(
-                        title: adventureTitle,
-                        subtitle: adventureSubtitle,
-                        progress: progress,
-                        validatedStamps: validatedStamps,
-                        totalStamps: totalStamps,
-                        isLoading: _isPreparingGame,
-                        hasStarted: hasStarted,
-                        onPressed: _isPreparingGame ? null : _openAdventure,
+                      const SizedBox(height: 25),
+                      const _CompactLogo(),
+                      const SizedBox(height: 19),
+                      _PlayerSummary(
+                        stampCount: stampCount,
+                        gameCount: gameCount,
                       ),
-
-                      const SizedBox(height: 18),
-
+                      const SizedBox(height: 22),
+                      _PlayCard(onPressed: _openPlay),
+                      const SizedBox(height: 14),
                       Row(
                         children: <Widget>[
                           Expanded(
-                            child: _GameModeCard(
-                              icon: Icons.badge_outlined,
-                              iconColor: const Color(0xFFFFC857),
-                              title: 'Passeport',
-                              subtitle: controller == null
-                                  ? 'Ton aventure'
-                                  : '$validatedStamps '
-                                        'tampon(s)',
-                              onPressed: _openPassport,
-                            ),
-                          ),
-
-                          const SizedBox(width: 14),
-
-                          Expanded(
-                            child: _GameModeCard(
-                              icon: Icons.travel_explore,
-                              iconColor: const Color(0xFF57E389),
-                              title: 'Atlas',
+                            child: _HomeDestinationCard(
+                              icon: Icons.map_rounded,
+                              title: 'ATLAS',
                               subtitle: 'Explore le monde',
+                              color: GeoColors.mint,
                               onPressed: _openAtlas,
                             ),
                           ),
+                          const SizedBox(width: 13),
+                          Expanded(
+                            child: _HomeDestinationCard(
+                              icon: Icons.menu_book_rounded,
+                              title: 'MON PASSEPORT',
+                              subtitle: 'Ta collection',
+                              color: GeoColors.purple,
+                              onPressed: _openPassport,
+                            ),
+                          ),
                         ],
                       ),
-
-                      const SizedBox(height: 14),
-
-                      _WideModeCard(
-                        icon: Icons.query_stats_rounded,
-                        title: 'Statistiques',
-                        subtitle: 'Suis tes progrès par mode',
-                        badgeText: 'NOUVEAU',
-                        onPressed: _openStatistics,
-                      ),
-
-                      const SizedBox(height: 14),
-
-                      _WideModeCard(
-                        icon: Icons.child_care,
-                        title: 'Mode enfant',
-                        subtitle: 'Apprendre sans chronomètre',
-                        badgeText: 'BIENTÔT',
-                        onPressed: _openChildMode,
-                      ),
-
-                      const SizedBox(height: 22),
-
-                      const _DailyChallengeCard(),
-
-                      const SizedBox(height: 22),
-
+                      const SizedBox(height: 24),
                       Text(
-                        'GEOPOINT • VERSION 1.0.0',
+                        'GEOPOINT • EXPLORE, JOUE, APPRENDS',
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.nunitoSans(
                           color: Colors.white.withValues(alpha: 0.38),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
                           letterSpacing: 1,
                         ),
                       ),
@@ -396,208 +237,105 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+          if (_isPreparing)
+            Positioned.fill(
+              child: ColoredBox(
+                color: GeoColors.navy.withValues(alpha: 0.70),
+                child: const Center(child: _LoadingCard()),
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-class _GameBackground extends StatelessWidget {
-  const _GameBackground();
+class _HomeTopBar extends StatelessWidget {
+  const _HomeTopBar({
+    required this.playerName,
+    required this.onSettings,
+  });
+
+  final String playerName;
+  final VoidCallback onSettings;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: <Color>[
-            Color(0xFF071B3A),
-            Color(0xFF0D3B78),
-            Color(0xFF176BFF),
-          ],
-          stops: <double>[0, 0.60, 1],
+    return Row(
+      children: <Widget>[
+        Container(
+          padding: const EdgeInsets.fromLTRB(7, 6, 13, 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(99),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const GeoCompassLogo(size: 35, showShadow: false),
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 150),
+                child: Text(
+                  playerName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.fredoka(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Stack(
-        children: <Widget>[
-          Positioned(
-            top: 76,
-            left: -50,
-            child: _GlowCircle(size: 190, color: Color(0xFF28C2FF)),
-          ),
-
-          Positioned(
-            right: -70,
-            top: 250,
-            child: _GlowCircle(size: 210, color: Color(0xFF57E389)),
-          ),
-
-          Positioned(
-            left: 32,
-            bottom: 120,
-            child: Icon(Icons.location_on, size: 54, color: Colors.white24),
-          ),
-
-          Positioned(
-            right: 32,
-            top: 126,
-            child: Transform.rotate(
-              angle: 0.20,
-              child: Icon(Icons.explore, size: 54, color: Colors.white24),
-            ),
-          ),
-
-          Positioned(
-            left: 24,
-            top: 280,
-            child: Text(
-              '✦',
-              style: TextStyle(color: Colors.white30, fontSize: 30),
-            ),
-          ),
-
-          Positioned(
-            right: 80,
-            bottom: 250,
-            child: Text(
-              '✦',
-              style: TextStyle(color: Colors.white30, fontSize: 24),
-            ),
-          ),
-        ],
-      ),
+        const Spacer(),
+        GeoRoundAction(
+          icon: Icons.settings_rounded,
+          tooltip: 'Paramètres',
+          onPressed: onSettings,
+        ),
+      ],
     );
   }
 }
 
-class _GlowCircle extends StatelessWidget {
-  const _GlowCircle({required this.size, required this.color});
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color.withValues(alpha: 0.10),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: color.withValues(alpha: 0.18),
-            blurRadius: 80,
-            spreadRadius: 25,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PlayerBadge extends StatelessWidget {
-  const _PlayerBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.11),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          const Icon(Icons.explore, color: Color(0xFFFFC857), size: 21),
-          const SizedBox(width: 7),
-          Text(
-            'VOYAGEUR',
-            style: GoogleFonts.fredoka(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.7,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GeoPointLogo extends StatelessWidget {
-  const _GeoPointLogo();
+class _CompactLogo extends StatelessWidget {
+  const _CompactLogo();
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        const _GeoPointLogoMark(),
-
-        const SizedBox(height: 17),
-
+        const GeoCompassLogo(size: 92),
+        const SizedBox(height: 13),
         FittedBox(
           fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                'GEO',
-                style: GoogleFonts.fredoka(
-                  color: Colors.white,
-                  fontSize: 43,
-                  fontWeight: FontWeight.w700,
-                  height: 0.95,
-                  letterSpacing: 1.2,
-                  shadows: <Shadow>[
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.28),
-                      blurRadius: 12,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
+          child: RichText(
+            text: TextSpan(
+              children: <InlineSpan>[
+                TextSpan(
+                  text: 'GEO',
+                  style: GoogleFonts.fredoka(
+                    color: Colors.white,
+                    fontSize: 36,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1,
+                  ),
                 ),
-              ),
-              Text(
-                'POINT',
-                style: GoogleFonts.fredoka(
-                  color: const Color(0xFF53D8FF),
-                  fontSize: 43,
-                  fontWeight: FontWeight.w700,
-                  height: 0.95,
-                  letterSpacing: 1.2,
-                  shadows: <Shadow>[
-                    Shadow(
-                      color: const Color(0xFF28C2FF).withValues(alpha: 0.38),
-                      blurRadius: 16,
-                    ),
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                TextSpan(
+                  text: 'POINT',
+                  style: GoogleFonts.fredoka(
+                    color: GeoColors.sky,
+                    fontSize: 36,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 9),
-
-        Text(
-          'EXPLORE • JOUE • APPRENDS',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.nunitoSans(
-            color: Colors.white.withValues(alpha: 0.72),
-            fontSize: 11,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 2,
+              ],
+            ),
           ),
         ),
       ],
@@ -605,675 +343,431 @@ class _GeoPointLogo extends StatelessWidget {
   }
 }
 
-class _GeoPointLogoMark extends StatelessWidget {
-  const _GeoPointLogoMark();
+class _PlayerSummary extends StatelessWidget {
+  const _PlayerSummary({
+    required this.stampCount,
+    required this.gameCount,
+  });
+
+  final int stampCount;
+  final int gameCount;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      clipBehavior: Clip.none,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Container(
-          width: 136,
-          height: 136,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: <Color>[
-                const Color(0xFF28C2FF).withValues(alpha: 0.25),
-                const Color(0xFF176BFF).withValues(alpha: 0.04),
-              ],
-            ),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: const Color(0xFF28C2FF).withValues(alpha: 0.28),
-                blurRadius: 36,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
+        _SummaryPill(
+          icon: Icons.approval_rounded,
+          value: '$stampCount',
+          label: 'tampons',
+          color: GeoColors.gold,
         ),
-
-        Container(
-          width: 116,
-          height: 116,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: <Color>[
-                Color(0xFF38D4FF),
-                Color(0xFF176BFF),
-                Color(0xFF0A3A91),
-              ],
-            ),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.68),
-              width: 3,
-            ),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 18,
-                offset: const Offset(0, 9),
-              ),
-            ],
-          ),
-          child: const Padding(
-            padding: EdgeInsets.all(14),
-            child: CustomPaint(painter: _GeoPointGlobePainter()),
-          ),
-        ),
-
-        Positioned(
-          right: -2,
-          bottom: -1,
-          child: Container(
-            width: 45,
-            height: 45,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: <Color>[Color(0xFFFF8A73), Color(0xFFFF4F64)],
-              ),
-              border: Border.all(color: Colors.white, width: 3),
-              boxShadow: <BoxShadow>[
-                BoxShadow(
-                  color: const Color(0xFFFF4F64).withValues(alpha: 0.44),
-                  blurRadius: 15,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.location_on_rounded,
-              color: Colors.white,
-              size: 29,
-            ),
-          ),
-        ),
-
-        Positioned(
-          left: -7,
-          top: 12,
-          child: Transform.rotate(
-            angle: -0.18,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFC857),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: <BoxShadow>[
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
-                    blurRadius: 8,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.explore_rounded,
-                color: Color(0xFF4A2B00),
-                size: 20,
-              ),
-            ),
-          ),
+        const SizedBox(width: 9),
+        _SummaryPill(
+          icon: Icons.sports_esports_rounded,
+          value: '$gameCount',
+          label: 'parties',
+          color: GeoColors.mint,
         ),
       ],
     );
   }
 }
 
-class _GeoPointGlobePainter extends CustomPainter {
-  const _GeoPointGlobePainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Offset center = Offset(size.width / 2, size.height / 2);
-
-    final double radius = size.shortestSide / 2;
-
-    final Paint linePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.72)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round;
-
-    final Paint continentPaint = Paint()
-      ..color = const Color(0xFF71EDA7).withValues(alpha: 0.88)
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(center, radius - 2, linePaint);
-
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center,
-        width: radius * 0.92,
-        height: radius * 1.90,
-      ),
-      linePaint,
-    );
-
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center,
-        width: radius * 1.48,
-        height: radius * 1.90,
-      ),
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.38)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.2,
-    );
-
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center,
-        width: radius * 1.86,
-        height: radius * 0.66,
-      ),
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.66)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.2,
-    );
-
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center,
-        width: radius * 1.62,
-        height: radius * 1.20,
-      ),
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.30)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.2,
-    );
-
-    final Path leftContinent = Path()
-      ..moveTo(size.width * 0.18, size.height * 0.32)
-      ..quadraticBezierTo(
-        size.width * 0.28,
-        size.height * 0.18,
-        size.width * 0.42,
-        size.height * 0.28,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.49,
-        size.height * 0.38,
-        size.width * 0.38,
-        size.height * 0.46,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.29,
-        size.height * 0.51,
-        size.width * 0.32,
-        size.height * 0.64,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.27,
-        size.height * 0.73,
-        size.width * 0.20,
-        size.height * 0.59,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.10,
-        size.height * 0.47,
-        size.width * 0.18,
-        size.height * 0.32,
-      )
-      ..close();
-
-    canvas.drawPath(leftContinent, continentPaint);
-
-    final Path rightContinent = Path()
-      ..moveTo(size.width * 0.54, size.height * 0.22)
-      ..quadraticBezierTo(
-        size.width * 0.70,
-        size.height * 0.13,
-        size.width * 0.84,
-        size.height * 0.30,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.91,
-        size.height * 0.42,
-        size.width * 0.75,
-        size.height * 0.46,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.67,
-        size.height * 0.48,
-        size.width * 0.70,
-        size.height * 0.62,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.65,
-        size.height * 0.77,
-        size.width * 0.56,
-        size.height * 0.65,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.47,
-        size.height * 0.54,
-        size.width * 0.57,
-        size.height * 0.43,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.46,
-        size.height * 0.33,
-        size.width * 0.54,
-        size.height * 0.22,
-      )
-      ..close();
-
-    canvas.drawPath(rightContinent, continentPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
-  }
-}
-
-class _AdventureCard extends StatelessWidget {
-  const _AdventureCard({
-    required this.title,
-    required this.subtitle,
-    required this.progress,
-    required this.validatedStamps,
-    required this.totalStamps,
-    required this.isLoading,
-    required this.hasStarted,
-    required this.onPressed,
-  });
-
-  final String title;
-  final String subtitle;
-
-  final double progress;
-  final int validatedStamps;
-  final int totalStamps;
-
-  final bool isLoading;
-  final bool hasStarted;
-
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(26),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(26),
-        child: Ink(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: <Color>[Color(0xFFFFD166), Color(0xFFFF8A4C)],
-            ),
-            borderRadius: BorderRadius.circular(26),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: const Color(0xFFFF8A4C).withValues(alpha: 0.35),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Container(
-                    width: 58,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.20),
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: isLoading
-                        ? const Padding(
-                            padding: EdgeInsets.all(17),
-                            child: CircularProgressIndicator(
-                              strokeWidth: 3,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Icon(
-                            hasStarted
-                                ? Icons.play_arrow_rounded
-                                : Icons.explore_rounded,
-                            color: Colors.white,
-                            size: 35,
-                          ),
-                  ),
-
-                  const SizedBox(width: 15),
-
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          isLoading ? 'CHARGEMENT...' : title,
-                          style: GoogleFonts.fredoka(
-                            color: const Color(0xFF392108),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          subtitle,
-                          style: GoogleFonts.nunitoSans(
-                            color: const Color(
-                              0xFF392108,
-                            ).withValues(alpha: 0.72),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: Color(0xFF392108),
-                    size: 32,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 17),
-
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 9,
-                        backgroundColor: Colors.white.withValues(alpha: 0.28),
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  Text(
-                    '$validatedStamps / '
-                    '$totalStamps tampons',
-                    style: GoogleFonts.nunitoSans(
-                      color: const Color(0xFF392108),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _GameModeCard extends StatelessWidget {
-  const _GameModeCard({
+class _SummaryPill extends StatelessWidget {
+  const _SummaryPill({
     required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
-    required this.onPressed,
+    required this.value,
+    required this.label,
+    required this.color,
   });
 
   final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.12),
-      borderRadius: BorderRadius.circular(22),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(22),
-        child: Container(
-          height: 150,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                width: 49,
-                height: 49,
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Icon(icon, color: iconColor, size: 28),
-              ),
-
-              const Spacer(),
-
-              Text(
-                title,
-                style: GoogleFonts.fredoka(
-                  color: Colors.white,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-
-              const SizedBox(height: 3),
-
-              Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.nunitoSans(
-                  color: Colors.white.withValues(alpha: 0.65),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _WideModeCard extends StatelessWidget {
-  const _WideModeCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.badgeText,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String badgeText;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.11),
-      borderRadius: BorderRadius.circular(22),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(22),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
-          ),
-          child: Row(
-            children: <Widget>[
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: <Color>[Color(0xFFB983FF), Color(0xFFFF6BCE)],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(icon, color: Colors.white, size: 29),
-              ),
-
-              const SizedBox(width: 14),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      title,
-                      style: GoogleFonts.fredoka(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      style: GoogleFonts.nunitoSans(
-                        color: Colors.white.withValues(alpha: 0.64),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFC857).withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  badgeText,
-                  style: GoogleFonts.nunitoSans(
-                    color: const Color(0xFFFFC857),
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.7,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DailyChallengeCard extends StatelessWidget {
-  const _DailyChallengeCard();
+  final String value;
+  final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: const Color(0xFF071B3A).withValues(alpha: 0.46),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.13)),
+        color: Colors.white.withValues(alpha: 0.11),
+        borderRadius: BorderRadius.circular(99),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Container(
-            width: 49,
-            height: 49,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFF6B6B).withValues(alpha: 0.17),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: const Icon(
-              Icons.local_fire_department,
-              color: Color(0xFFFF6B6B),
-              size: 28,
+          Icon(icon, color: color, size: 17),
+          const SizedBox(width: 6),
+          Text(
+            '$value $label',
+            style: GoogleFonts.nunitoSans(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
 
-          const SizedBox(width: 14),
+class _PlayCard extends StatefulWidget {
+  const _PlayCard({required this.onPressed});
 
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  final VoidCallback onPressed;
+
+  @override
+  State<_PlayCard> createState() => _PlayCardState();
+}
+
+class _PlayCardState extends State<_PlayCard> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedScale(
+      scale: _isPressed ? 0.98 : 1,
+      duration: const Duration(milliseconds: 110),
+      curve: Curves.easeOut,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onPressed,
+          onHighlightChanged: (bool value) {
+            setState(() {
+              _isPressed = value;
+            });
+          },
+          borderRadius: BorderRadius.circular(29),
+          child: Ink(
+            height: 174,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[Color(0xFFFFD96A), Color(0xFFFFBE3D)],
+              ),
+              borderRadius: BorderRadius.circular(29),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.76),
+              ),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.16),
+                  blurRadius: _isPressed ? 9 : 15,
+                  offset: Offset(0, _isPressed ? 4 : 8),
+                ),
+              ],
+            ),
+            child: Stack(
               children: <Widget>[
-                Text(
-                  'DÉFI DU JOUR',
-                  style: GoogleFonts.nunitoSans(
-                    color: const Color(0xFFFF6B6B),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.8,
+                const Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(painter: _HomeRoutePainter()),
                   ),
                 ),
-
-                const SizedBox(height: 3),
-
-                Text(
-                  'Trouve 10 pays '
-                  'sans erreur',
-                  style: GoogleFonts.fredoka(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-
-                const SizedBox(height: 2),
-
-                Text(
-                  'Disponible prochainement',
-                  style: GoogleFonts.nunitoSans(
-                    color: Colors.white.withValues(alpha: 0.53),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                Padding(
+                  padding: const EdgeInsets.all(23),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'JOUER',
+                        style: GoogleFonts.fredoka(
+                          color: GeoColors.navy,
+                          fontSize: 34,
+                          fontWeight: FontWeight.w700,
+                          height: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 7),
+                      SizedBox(
+                        width: 235,
+                        child: Text(
+                          'Expéditions, défis, entraînement et modes spéciaux',
+                          style: GoogleFonts.nunitoSans(
+                            color: const Color(0xFF674400),
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w900,
+                            height: 1.25,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: Container(
+                          width: 43,
+                          height: 43,
+                          decoration: BoxDecoration(
+                            color: GeoColors.navy,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                            size: 25,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
 
-          Icon(Icons.lock_outline, color: Colors.white.withValues(alpha: 0.45)),
+class _HomeDestinationCard extends StatefulWidget {
+  const _HomeDestinationCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onPressed;
+
+  @override
+  State<_HomeDestinationCard> createState() =>
+      _HomeDestinationCardState();
+}
+
+class _HomeDestinationCardState extends State<_HomeDestinationCard> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color foreground =
+        ThemeData.estimateBrightnessForColor(widget.color) == Brightness.dark
+            ? Colors.white
+            : GeoColors.navy;
+
+    return AnimatedScale(
+      scale: _isPressed ? 0.975 : 1,
+      duration: const Duration(milliseconds: 110),
+      curve: Curves.easeOut,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onPressed,
+          onHighlightChanged: (bool value) {
+            setState(() {
+              _isPressed = value;
+            });
+          },
+          borderRadius: BorderRadius.circular(25),
+          child: Ink(
+            height: 157,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[
+                  Color.alphaBlend(
+                    Colors.white.withValues(alpha: 0.14),
+                    widget.color,
+                  ),
+                  widget.color,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.30),
+              ),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: _isPressed ? 8 : 14,
+                  offset: Offset(0, _isPressed ? 3 : 7),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: <Widget>[
+                Positioned(
+                  right: 10,
+                  bottom: 6,
+                  child: Container(
+                    width: 83,
+                    height: 83,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: GeoCardArtwork(
+                      primary: widget.icon,
+                      secondary: widget.title == 'ATLAS'
+                          ? Icons.location_on_rounded
+                          : Icons.approval_rounded,
+                      color: foreground.withValues(alpha: 0.90),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              widget.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.fredoka(
+                                color: foreground,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                height: 1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Container(
+                            width: 31,
+                            height: 31,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.18),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.arrow_outward_rounded,
+                              color: foreground,
+                              size: 19,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 5),
+                      SizedBox(
+                        width: 94,
+                        child: Text(
+                          widget.subtitle,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.nunitoSans(
+                            color: foreground.withValues(alpha: 0.70),
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeRoutePainter extends CustomPainter {
+  const _HomeRoutePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint contourPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.15)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (int index = 0; index < 4; index++) {
+      canvas.drawOval(
+        Rect.fromLTWH(
+          size.width * (0.46 + index * 0.05),
+          size.height * (0.07 + index * 0.06),
+          size.width * (0.52 - index * 0.06),
+          size.height * (0.72 - index * 0.08),
+        ),
+        contourPaint,
+      );
+    }
+
+    final Path route = Path()
+      ..moveTo(size.width * 0.58, size.height * 0.73)
+      ..cubicTo(
+        size.width * 0.69,
+        size.height * 0.52,
+        size.width * 0.76,
+        size.height * 0.82,
+        size.width * 0.88,
+        size.height * 0.36,
+      );
+    final Paint routePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.78)
+      ..style = PaintingStyle.fill;
+
+    for (final PathMetric metric in route.computeMetrics()) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final Tangent? tangent = metric.getTangentForOffset(distance);
+        if (tangent != null) {
+          canvas.drawCircle(tangent.position, 2.6, routePaint);
+        }
+        distance += 13;
+      }
+    }
+
+    final Offset destination = Offset(size.width * 0.88, size.height * 0.34);
+    canvas.drawCircle(destination, 7, Paint()..color = Colors.white);
+    canvas.drawCircle(destination, 4, Paint()..color = GeoColors.coral);
+  }
+
+  @override
+  bool shouldRepaint(covariant _HomeRoutePainter oldDelegate) => false;
+}
+
+class _LoadingCard extends StatelessWidget {
+  const _LoadingCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(28),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 21),
+      decoration: BoxDecoration(
+        color: GeoColors.cream,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const SizedBox(
+            width: 25,
+            height: 25,
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              color: GeoColors.blue,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Text(
+            'Préparation du voyage…',
+            style: GoogleFonts.fredoka(
+              color: GeoColors.ink,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );

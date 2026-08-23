@@ -5,14 +5,19 @@ import '../../geo_engine/capital.dart';
 import '../../geo_engine/country_info.dart';
 import '../../geo_engine/geo_country.dart';
 import 'atlas_city.dart';
+import 'atlas_personal_progress.dart';
 
-class CountryAtlasSheet extends StatelessWidget {
+class CountryAtlasSheet extends StatefulWidget {
   const CountryAtlasSheet({
     required this.country,
     required this.info,
     required this.capital,
     required this.cities,
+    required this.initialStatus,
+    required this.onToggleVisited,
+    required this.onToggleWishlist,
     required this.onExploreCities,
+    this.showExploreCitiesButton = true,
     super.key,
   });
 
@@ -20,11 +25,73 @@ class CountryAtlasSheet extends StatelessWidget {
   final CountryInfo? info;
   final Capital? capital;
   final List<AtlasCity> cities;
+  final AtlasCountryStatus initialStatus;
+  final Future<AtlasCountryStatus> Function() onToggleVisited;
+  final Future<AtlasCountryStatus> Function() onToggleWishlist;
   final VoidCallback onExploreCities;
+  final bool showExploreCitiesButton;
+
+  @override
+  State<CountryAtlasSheet> createState() => _CountryAtlasSheetState();
+}
+
+class _CountryAtlasSheetState extends State<CountryAtlasSheet> {
+  late AtlasCountryStatus _status;
+  bool _savingStatus = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _status = widget.initialStatus;
+  }
+
+  @override
+  void didUpdateWidget(covariant CountryAtlasSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (!_savingStatus && oldWidget.initialStatus != widget.initialStatus) {
+      _status = widget.initialStatus;
+    }
+  }
+
+  Future<void> _toggleVisited() async {
+    await _changeStatus(widget.onToggleVisited);
+  }
+
+  Future<void> _toggleWishlist() async {
+    await _changeStatus(widget.onToggleWishlist);
+  }
+
+  Future<void> _changeStatus(
+    Future<AtlasCountryStatus> Function() action,
+  ) async {
+    if (_savingStatus) {
+      return;
+    }
+
+    setState(() {
+      _savingStatus = true;
+    });
+
+    final AtlasCountryStatus status = await action();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _status = status;
+      _savingStatus = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final CountryInfo? countryInfo = info;
+    final GeoCountry country = widget.country;
+    final CountryInfo? countryInfo = widget.info;
+    final Capital? capital = widget.capital;
+    final List<AtlasCity> cities = widget.cities;
+    final VoidCallback onExploreCities = widget.onExploreCities;
     final String title = countryInfo?.title ?? country.name;
     final List<AtlasCity> mainCities = cities.take(8).toList(growable: false);
 
@@ -109,8 +176,16 @@ class CountryAtlasSheet extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+              _TravelActions(
+                status: _status,
+                busy: _savingStatus,
+                onToggleVisited: _toggleVisited,
+                onToggleWishlist: _toggleWishlist,
+              ),
               const SizedBox(height: 22),
-              if (cities.isNotEmpty) ...<Widget>[
+              if (cities.isNotEmpty &&
+                  widget.showExploreCitiesButton) ...<Widget>[
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
@@ -288,6 +363,113 @@ class CountryAtlasSheet extends StatelessWidget {
     }
 
     return result.toString();
+  }
+}
+
+class _TravelActions extends StatelessWidget {
+  const _TravelActions({
+    required this.status,
+    required this.busy,
+    required this.onToggleVisited,
+    required this.onToggleWishlist,
+  });
+
+  final AtlasCountryStatus status;
+  final bool busy;
+  final VoidCallback onToggleVisited;
+  final VoidCallback onToggleWishlist;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool visited = status == AtlasCountryStatus.visited;
+    final bool wishlist = status == AtlasCountryStatus.wishlist;
+
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: _TravelButton(
+            label: visited ? 'VISITÉ' : 'DÉJÀ VISITÉ',
+            icon: visited
+                ? Icons.check_circle_rounded
+                : Icons.flight_takeoff_rounded,
+            active: visited,
+            activeColor: const Color(0xFF43CFA0),
+            busy: busy,
+            onPressed: onToggleVisited,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _TravelButton(
+            label: wishlist ? 'À VISITER ✓' : 'À VISITER',
+            icon: wishlist
+                ? Icons.favorite_rounded
+                : Icons.favorite_border_rounded,
+            active: wishlist,
+            activeColor: const Color(0xFFFF756B),
+            busy: busy,
+            onPressed: onToggleWishlist,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TravelButton extends StatelessWidget {
+  const _TravelButton({
+    required this.label,
+    required this.icon,
+    required this.active,
+    required this.activeColor,
+    required this.busy,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool active;
+  final Color activeColor;
+  final bool busy;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.icon(
+      onPressed: busy ? null : onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: active ? activeColor : Colors.white,
+        foregroundColor:
+            active ? const Color(0xFF071B3A) : const Color(0xFF243C57),
+        disabledBackgroundColor:
+            active ? activeColor.withValues(alpha: 0.60) : Colors.white70,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 13),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: active ? activeColor : const Color(0xFFD3DFEB),
+            width: active ? 1.5 : 1,
+          ),
+        ),
+        elevation: active ? 2 : 0,
+      ),
+      icon: busy
+          ? const SizedBox(
+              width: 17,
+              height: 17,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(icon, size: 18),
+      label: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.nunitoSans(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
   }
 }
 

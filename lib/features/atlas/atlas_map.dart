@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -19,6 +18,8 @@ class AtlasMap extends StatefulWidget {
     required this.countryInfos,
     required this.selectedContinent,
     required this.selectedCountry,
+    required this.visitedCountryIds,
+    required this.wishlistCountryIds,
     required this.onCountrySelected,
     required this.onCitySelected,
     super.key,
@@ -29,6 +30,8 @@ class AtlasMap extends StatefulWidget {
   final Map<String, CountryInfo> countryInfos;
   final String selectedContinent;
   final GeoCountry? selectedCountry;
+  final Set<String> visitedCountryIds;
+  final Set<String> wishlistCountryIds;
   final ValueChanged<GeoCountry> onCountrySelected;
   final ValueChanged<AtlasCity> onCitySelected;
 
@@ -51,7 +54,6 @@ class AtlasMapState extends State<AtlasMap> {
   late Map<String, LatLng> _countryLabelPoints;
   late List<Polygon<Object>> _polygons;
 
-  Timer? _cameraTimer;
   bool _mapReady = false;
   double _zoom = 2.0;
   LatLngBounds? _visibleBounds;
@@ -69,7 +71,9 @@ class AtlasMapState extends State<AtlasMap> {
     if (!identical(oldWidget.countries, widget.countries)) {
       _prepareCountryCaches();
     } else if (oldWidget.selectedContinent != widget.selectedContinent ||
-        oldWidget.selectedCountry?.id != widget.selectedCountry?.id) {
+        oldWidget.selectedCountry?.id != widget.selectedCountry?.id ||
+        oldWidget.visitedCountryIds != widget.visitedCountryIds ||
+        oldWidget.wishlistCountryIds != widget.wishlistCountryIds) {
       _polygons = _buildPolygons();
     }
   }
@@ -87,7 +91,6 @@ class AtlasMapState extends State<AtlasMap> {
 
   @override
   void dispose() {
-    _cameraTimer?.cancel();
     _mapController.dispose();
     super.dispose();
   }
@@ -98,6 +101,7 @@ class AtlasMapState extends State<AtlasMap> {
     }
 
     _mapController.move(const LatLng(20, 0), 2.0);
+    _refreshCamera(_mapController.camera);
   }
 
   void focusCountry(GeoCountry country) {
@@ -125,6 +129,7 @@ class AtlasMapState extends State<AtlasMap> {
     }
 
     _mapController.move(frame.center, targetZoom);
+    _refreshCamera(_mapController.camera);
   }
 
   void focusCity(AtlasCity city) {
@@ -133,19 +138,36 @@ class AtlasMapState extends State<AtlasMap> {
     }
 
     _mapController.move(city.position, 6.0);
+    _refreshCamera(_mapController.camera);
   }
 
-  void _handleCameraChange(MapCamera camera, bool hasGesture) {
-    _cameraTimer?.cancel();
-    _cameraTimer = Timer(const Duration(milliseconds: 90), () {
-      if (!mounted) {
-        return;
-      }
+  void _handleMapEvent(MapEvent event) {
+    final bool movementEnded = event is MapEventMoveEnd ||
+        event is MapEventFlingAnimationEnd ||
+        event is MapEventFlingAnimationNotStarted ||
+        event is MapEventDoubleTapZoomEnd ||
+        event is MapEventRotateEnd;
 
-      setState(() {
-        _zoom = camera.zoom;
-        _visibleBounds = camera.visibleBounds;
-      });
+    if (movementEnded) {
+      _refreshCamera(event.camera);
+    }
+  }
+
+  void _refreshCamera(MapCamera camera) {
+    if (!mounted) {
+      return;
+    }
+
+    final bool zoomChanged = (camera.zoom - _zoom).abs() >= 0.01;
+    final bool boundsChanged = _visibleBounds != camera.visibleBounds;
+
+    if (!zoomChanged && !boundsChanged) {
+      return;
+    }
+
+    setState(() {
+      _zoom = camera.zoom;
+      _visibleBounds = camera.visibleBounds;
     });
   }
 
@@ -213,7 +235,35 @@ class AtlasMapState extends State<AtlasMap> {
           continent == 'south america';
     }
 
+    if (filter == 'afrique') {
+      return continent == 'afrique' || continent == 'africa';
+    }
+
+    if (filter == 'asie') {
+      return continent == 'asie' || continent == 'asia';
+    }
+
+    if (filter == 'oceanie') {
+      return continent == 'oceanie' || continent == 'oceania';
+    }
+
+    if (filter == 'antarctique') {
+      return continent.startsWith('antarct');
+    }
+
     return continent == filter;
+  }
+
+  bool _isVisited(GeoCountry country) {
+    return widget.visitedCountryIds.contains(
+      country.id.trim().toUpperCase(),
+    );
+  }
+
+  bool _isInWishlist(GeoCountry country) {
+    return widget.wishlistCountryIds.contains(
+      country.id.trim().toUpperCase(),
+    );
   }
 
   bool _isVisible(LatLng point) {
@@ -242,15 +292,23 @@ class AtlasMapState extends State<AtlasMap> {
       return true;
     }
 
-    final double? area =
-        widget.countryInfos[country.id]?.areaSquareKilometers;
+    if (_isVisited(country) || _isInWishlist(country)) {
+      return true;
+    }
+
+    final double area =
+        widget.countryInfos[country.id]?.areaSquareKilometers ?? 0;
 
     if (_zoom < 2.7) {
-      return area == null || area >= 200000;
+      return area >= 250000;
     }
 
     if (_zoom < 3.4) {
-      return area == null || area >= 30000;
+      return area >= 50000;
+    }
+
+    if (_zoom < 4.2) {
+      return area >= 8000;
     }
 
     return true;
@@ -262,11 +320,45 @@ class AtlasMapState extends State<AtlasMap> {
     for (final GeoCountry country in widget.countries) {
       final bool selected = widget.selectedCountry?.id == country.id;
       final bool included = _matchesContinent(country);
-      final Color countryColor = selected
-          ? const Color(0xFFFFD166)
-          : included
-              ? _colorForContinent(country.continent)
-              : const Color(0xFF617084);
+      final bool visited = included && _isVisited(country);
+      final bool wishlist = included && _isInWishlist(country);
+      final Color continentColor = _colorForContinent(country.continent);
+      final Color countryColor;
+
+      if (selected) {
+        countryColor = const Color(0xFFFFD166);
+      } else if (!included) {
+        countryColor = const Color(0xFF617084);
+      } else if (visited) {
+        countryColor = Color.lerp(
+          continentColor,
+          const Color(0xFF43CFA0),
+          0.58,
+        )!;
+      } else if (wishlist) {
+        countryColor = Color.lerp(
+          continentColor,
+          const Color(0xFFFF756B),
+          0.58,
+        )!;
+      } else {
+        countryColor = continentColor;
+      }
+
+      final Color borderColor = selected
+          ? const Color(0xFF7A4B00)
+          : visited
+              ? const Color(0xFF087A59)
+              : wishlist
+                  ? const Color(0xFFA82F3B)
+                  : Colors.white.withValues(
+                      alpha: included ? 0.72 : 0.25,
+                    );
+      final double borderWidth = selected
+          ? 2.3
+          : visited || wishlist
+              ? 1.65
+              : 0.65;
 
       for (final List<LatLng> points in country.polygons) {
         if (points.length < 3) {
@@ -277,10 +369,8 @@ class AtlasMapState extends State<AtlasMap> {
           Polygon<Object>(
             points: points,
             color: countryColor.withValues(alpha: included ? 0.92 : 0.40),
-            borderColor: selected
-                ? const Color(0xFF7A4B00)
-                : Colors.white.withValues(alpha: included ? 0.72 : 0.25),
-            borderStrokeWidth: selected ? 2.3 : 0.65,
+            borderColor: borderColor,
+            borderStrokeWidth: borderWidth,
           ),
         );
       }
@@ -303,10 +393,24 @@ class AtlasMapState extends State<AtlasMap> {
       }
 
       final bool selected = widget.selectedCountry?.id == country.id;
-      final String label =
+      final bool visited = _isVisited(country);
+      final bool wishlist = _isInWishlist(country);
+      final String countryLabel =
           widget.countryInfos[country.id]?.title ?? country.name;
+      final String label = visited
+          ? '✓ $countryLabel'
+          : wishlist
+              ? '♥ $countryLabel'
+              : countryLabel;
       final double width =
           (label.length * 7.0 + 18).clamp(48, 170).toDouble();
+      final Color? badgeColor = selected
+          ? const Color(0xFF071B3A).withValues(alpha: 0.92)
+          : visited
+              ? const Color(0xFF55D6A6).withValues(alpha: 0.94)
+              : wishlist
+                  ? const Color(0xFFFF8B82).withValues(alpha: 0.94)
+                  : null;
 
       markers.add(
         Marker(
@@ -320,10 +424,9 @@ class AtlasMapState extends State<AtlasMap> {
                   horizontal: 5,
                   vertical: 2,
                 ),
-                decoration: selected
+                decoration: badgeColor != null
                     ? BoxDecoration(
-                        color: const Color(0xFF071B3A)
-                            .withValues(alpha: 0.92),
+                        color: badgeColor,
                         borderRadius: BorderRadius.circular(8),
                       )
                     : null,
@@ -338,7 +441,7 @@ class AtlasMapState extends State<AtlasMap> {
                     fontSize: _zoom < 3 ? 9 : 10.5,
                     fontWeight: FontWeight.w900,
                     height: 1,
-                    shadows: selected
+                    shadows: badgeColor != null
                         ? null
                         : const <Shadow>[
                             Shadow(color: Colors.white, blurRadius: 2),
@@ -487,6 +590,18 @@ class AtlasMapState extends State<AtlasMap> {
     return 48;
   }
 
+  double get _polygonSimplificationTolerance {
+    if (_zoom < 3.2) {
+      return 0.65;
+    }
+
+    if (_zoom < 5.0) {
+      return 0.38;
+    }
+
+    return 0.18;
+  }
+
   @override
   Widget build(BuildContext context) {
     final List<Marker> countryLabels = _buildCountryLabels();
@@ -515,16 +630,21 @@ class AtlasMapState extends State<AtlasMap> {
                 ),
                 onMapReady: () {
                   _mapReady = true;
-                  setState(() {
-                    _zoom = _mapController.camera.zoom;
-                    _visibleBounds = _mapController.camera.visibleBounds;
-                  });
+                  _refreshCamera(_mapController.camera);
                 },
-                onPositionChanged: _handleCameraChange,
+                onMapEvent: _handleMapEvent,
                 onTap: _handleMapTap,
               ),
               children: <Widget>[
-                PolygonLayer<Object>(polygons: _polygons),
+                PolygonLayer<Object>(
+                  polygons: _polygons,
+                  useAltRendering: true,
+                  polygonCulling: true,
+                  polygonLabels: false,
+                  drawInSingleWorld: true,
+                  simplificationTolerance:
+                      _polygonSimplificationTolerance,
+                ),
                 MarkerLayer(markers: countryLabels),
                 CircleLayer<Object>(circles: cityDots),
                 MarkerLayer(markers: cityLabels),

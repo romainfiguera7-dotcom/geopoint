@@ -1,58 +1,133 @@
-GeoPoint - Phase 2B : Atlas fluide V12
+GeoPoint - Atlas personnel V21
 
 INSTALLATION
 
 1. Fermer l’application si elle est lancée.
 2. Copier les dossiers lib et assets de cette archive à la racine du projet GeoPoint.
-3. Accepter la fusion des dossiers et le remplacement de home_screen.dart.
-4. Ne pas créer un deuxième dossier lib ou assets à l’intérieur des dossiers existants.
+3. Accepter la fusion des dossiers et le remplacement des fichiers existants.
+4. Ne pas créer un second dossier lib ou assets dans les dossiers actuels.
 5. Depuis la racine du projet, lancer : flutter analyze
 6. Si l’analyse ne signale aucune erreur, lancer : flutter run
 
-NOUVEAUX FICHIERS
+DIRECTION GRAPHIQUE V17
 
-lib/features/atlas/atlas_screen.dart
-lib/features/atlas/atlas_map.dart
-lib/features/atlas/atlas_city.dart
-lib/features/atlas/atlas_city_loader.dart
-lib/features/atlas/country_atlas_sheet.dart
-assets/data/atlas_cities.json
+- Interface 2D/2.5D sobre et ludique.
+- Fond bleu profond avec courbes topographiques discrètes.
+- Cartes entièrement colorées, sans panneaux blancs ni reflets diagonaux.
+- Relief, ombres et animations tactiles volontairement modérés.
+- Palette commune : bleu, jaune, menthe, corail, cyan et violet.
+- Nouveau logo GeoCompass A3 dessiné directement par Flutter.
+- Logo GeoCompass A3 affiné : route en G plus lisible et emblème plus net.
+- Aucun lourd fichier d’image nécessaire pour le logo.
+- Titres longs adaptés automatiquement aux petits écrans, sans coupure disgracieuse.
+- Illustrations composées plus présentes à la place des icônes isolées.
 
-FICHIER MIS À JOUR
+OPTIMISATION ATLAS V18
 
-lib/features/home/home_screen.dart
+- La carte ne reconstruit plus ses libellés pendant chaque mouvement du doigt.
+- Les noms de pays, points et noms de villes ne sont pas recalculés pendant le déplacement.
+- Leur position et leur niveau de détail sont actualisés à la fin du mouvement.
+- Les frontières sont simplifiées progressivement selon le niveau de zoom.
+- Le rendu alternatif des polygones de flutter_map est activé.
+- Les polygones hors écran sont écartés du rendu.
+- Une seule copie du monde est dessinée.
+- La carte du jeu, ses couleurs et sa mécanique restent inchangées.
 
-CONTENU DE CETTE VERSION FLUIDE
+AJUSTEMENT VISUEL ATLAS V19
 
-- La carte du jeu reste inchangée et sans noms.
-- La carte Atlas affiche les noms des pays.
-- 5 821 villes de 100 000 habitants ou plus sont intégrées.
-- La vue mondiale n’affiche plus aucune ville afin de rester claire et fluide.
-- Les villes apparaissent uniquement après la sélection de leur pays.
-- Toutes les villes utiles sont dessinées sous forme de points légers.
-- Seuls les principaux noms suffisamment espacés sont affichés.
-- Davantage de noms apparaissent en zoomant, sans chevauchement.
-- Un toucher près d’un point ouvre la fiche de la ville correspondante.
-- Les polygones sont mis en cache pour éviter les recalculs pendant la navigation.
-- Les codes ISO partagés avec un territoire ne remplacent plus le pays principal.
-- Montpellier et les autres villes françaises ouvrent désormais la fiche France, jamais Clipperton.
-- La recherche accepte les noms de pays et de villes.
-- Les filtres couvrent Europe, Afrique, Asie, Amériques, Océanie et Antarctique.
-- Un toucher sur un pays le sélectionne, le zoome et ouvre sa fiche Atlas.
-- La fiche contient capitale, population, superficie, monnaie, langues, anecdote, histoire, densité et principales villes.
-- Le bouton « Explorer les villes sur la carte » ferme la fiche et révèle uniquement les villes de ce pays.
-- Un toucher sur une ville affiche sa population et permet d’ouvrir la fiche de son pays.
+- Les contours des pays conservent beaucoup plus de détails en vue mondiale.
+- La simplification des côtes a été réduite à tous les niveaux de zoom.
+- Les optimisations de fluidité de la V18 sont intégralement conservées.
+- Les noms et les villes restent visibles pendant le mouvement depuis la V20.
+- La carte principale du jeu et ses données sont toujours inchangées.
+
+CORRECTIONS ATLAS V20
+
+- Les noms des pays restent visibles pendant le zoom et le déplacement.
+- Les points et les noms de villes restent visibles pendant le mouvement.
+- Ces couches ne sont recalculées qu’à la fin du geste afin de préserver la fluidité.
+- Les filtres Afrique, Asie, Océanie et Antarctique reconnaissent maintenant
+  les noms de continents anglais utilisés par les données géographiques.
+- Les filtres Tous, Europe et Amériques restent inchangés.
+
+ATLAS PERSONNEL - POINT 16
+
+- Chaque fiche pays propose maintenant les actions « Déjà visité » et
+  « À visiter ».
+- Un pays ne peut avoir qu’un seul état personnel à la fois.
+- Les choix sont sauvegardés avec le stockage local versionné de GeoPoint.
+- Les pays visités apparaissent en menthe avec un repère de validation.
+- Les pays à visiter apparaissent en corail avec un repère en forme de cœur.
+- Les couleurs d’origine des continents restent visibles sous la teinte personnelle.
+- Les cartes Mes voyages et À visiter du hub Atlas sont maintenant fonctionnelles.
+- Chaque carte affiche son nombre de pays enregistrés.
+- Deux nouvelles listes permettent de retrouver les pays et de rouvrir leur fiche.
+- Retirer ou modifier un statut actualise automatiquement les listes et la carte.
+
+ACCUEIL ET MENUS
+
+- Accueil avec Jouer, Atlas et Mon Passeport.
+- Accueil recomposé avec une grande carte Jouer jaune, un Atlas menthe et un Passeport violet.
+- Menu Jouer composé de blocs jaune, corail, menthe, violet et cyan.
+- Atlas recomposé autour d’une grande carte du monde bleue.
+- Passeport recomposé avec des cartes de collection pleinement colorées.
+- Grandes illustrations vectorielles dessinées par Flutter, sans ajouter d’images lourdes.
+- Carte interactive Atlas et données des villes conservées.
+- Paramètres, statistiques et tampons restent accessibles.
+
+EXPÉDITIONS
+
+- Nouvelle sélection compacte des continents.
+- Affichage du nombre total de niveaux terminés et des étoiles.
+- Europe, Afrique, Asie, Amériques et Océanie présentées séparément.
+- Chaque continent possède désormais une silhouette graphique spécifique.
+- Expédition Monde toujours verrouillée jusqu’à la réussite des cinq continents.
+- Progression, records, étoiles et conditions de déblocage conservés.
+- Les niveaux continentaux forment désormais un véritable parcours sinueux alterné.
+- Route dorée plus visible, nœuds agrandis et fiches d’étape visuellement allégées.
+- Le niveau actuel, les niveaux réussis et les niveaux verrouillés sont différenciés.
+- Les anciennes longues fiches de niveau sont remplacées par des étapes compactes.
+
+ÉCRAN DE JEU
+
+- Bandeau de question harmonisé avec le nouveau logo et la nouvelle palette.
+- Fiche de résultat et écran de fin harmonisés.
+- Bandeau de question plus compact et typographies alignées sur les menus.
+- Fiche de résultat moins haute, avec identité colorée selon la réussite.
+- Fonction de réduction de la fiche pays conservée.
+- Aucune modification de la logique des questions, scores ou chronomètres.
+
+CARTE : ÉLÉMENTS STRICTEMENT CONSERVÉS
+
+- Le fichier lib/geo_engine/geopoint_map.dart est inchangé.
+- Les couleurs actuelles différentes selon les continents sont conservées.
+- Les noms restent masqués sur la carte du jeu.
+- Les zooms, centres initiaux et limites polaires sont conservés.
+- Le placement manuel du point reste l’essence du jeu.
+- La carte Atlas conserve ses noms, ses villes et ses fiches détaillées.
 
 TEST RAPIDE
 
-- Sur l’accueil, vérifier que la carte Découverte est devenue Atlas.
-- Ouvrir Atlas et vérifier que les noms des grands pays apparaissent.
-- Déplacer et zoomer la vue mondiale : aucune ville ne doit apparaître et la carte doit rester fluide.
-- Rechercher France puis Paris.
-- Tester le filtre Europe puis le filtre Amériques.
-- Toucher la France, vérifier la fiche puis choisir « Explorer les villes sur la carte ».
-- Vérifier que seules les villes françaises apparaissent sous forme de points.
-- Vérifier que les noms ne se chevauchent plus autour de Paris et Marseille.
-- Toucher Montpellier et vérifier que le bouton propose la fiche de la France.
-- Toucher une ville et vérifier sa mini-fiche.
-- Revenir au jeu et confirmer que les noms et les villes ne sont pas visibles sur la carte des questions.
+- Vérifier le nouveau logo sur l’accueil.
+- Ouvrir Jouer puis Expéditions.
+- Vérifier la grille colorée des continents et le verrouillage de l’expédition Monde.
+- Ouvrir l’expédition Europe et vérifier le parcours sinueux alterné.
+- Lancer un niveau et contrôler le bandeau de question.
+- Vérifier que chaque continent garde bien sa couleur actuelle sur la carte.
+- Répondre à une question puis réduire et rouvrir la fiche pays.
+- Terminer un niveau et vérifier les étoiles, l’XP et les statistiques.
+- Ouvrir Atlas et vérifier que la carte interactive reste fluide.
+- Ouvrir une fiche pays et la marquer comme visitée.
+- Vérifier sa teinte menthe et son repère sur la carte.
+- Passer ce pays dans À visiter et vérifier que l’ancien statut disparaît.
+- Revenir au hub Atlas et ouvrir Mes voyages puis À visiter.
+- Redémarrer l’application et confirmer que ces choix sont conservés.
+- Ouvrir Mon Passeport, Statistiques et Mes tampons.
+- Redémarrer l’application et confirmer que la progression est conservée.
+
+IMPORTANT
+
+Cette V21 reprend toute la V20 et termine le point 16 avec un Atlas personnel
+persistant, visible sur la carte et accessible depuis ses deux listes dédiées.
+Conserver le commit GitHub de la version précédente jusqu’à validation complète
+sur le téléphone.

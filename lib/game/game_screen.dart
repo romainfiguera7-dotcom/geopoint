@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../features/design/geopoint_design.dart';
 import '../geo_engine/country_info.dart';
 import '../geo_engine/country_info_loader.dart';
 import '../geo_engine/flag_emoji.dart';
@@ -846,19 +848,15 @@ class _GameHeader extends StatelessWidget {
           maxWidth: 560,
         ),
         padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 10,
+          horizontal: 10,
+          vertical: 8,
         ),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(
-            alpha: 0.76,
-          ),
+          color: GeoColors.navy.withValues(alpha: 0.94),
           borderRadius:
               BorderRadius.circular(18),
           border: Border.all(
-            color: Colors.white.withValues(
-              alpha: 0.28,
-            ),
+            color: GeoColors.blue.withValues(alpha: 0.58),
           ),
           boxShadow: <BoxShadow>[
             BoxShadow(
@@ -879,6 +877,7 @@ class _GameHeader extends StatelessWidget {
               children: <Widget>[
                 IconButton(
                   onPressed: onClose,
+                  visualDensity: VisualDensity.compact,
                   tooltip:
                       'Retour à l’accueil',
                   icon: const Icon(
@@ -887,7 +886,9 @@ class _GameHeader extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(width: 4),
+                const GeoCompassLogo(size: 35, showShadow: false),
+
+                const SizedBox(width: 9),
 
                 Expanded(
                   child: Column(
@@ -899,14 +900,11 @@ class _GameHeader extends StatelessWidget {
                       Text(
                         '${expeditionLabel.toUpperCase()} • '
                         '${missionTitle.toUpperCase()}',
-                        style: TextStyle(
-                          color: Colors.white
-                              .withValues(
-                            alpha: 0.66,
-                          ),
+                        style: GoogleFonts.nunitoSans(
+                          color: GeoColors.sky,
                           fontSize: 11,
                           fontWeight:
-                              FontWeight.w700,
+                              FontWeight.w900,
                         ),
                       ),
 
@@ -916,7 +914,7 @@ class _GameHeader extends StatelessWidget {
                         'QUESTION '
                         '$questionNumber / '
                         '$totalQuestions',
-                        style: TextStyle(
+                        style: GoogleFonts.nunitoSans(
                           color: Colors.white
                               .withValues(
                             alpha: 0.56,
@@ -944,7 +942,7 @@ class _GameHeader extends StatelessWidget {
                       ),
                       Text(
                         '$secondsRemaining',
-                        style: TextStyle(
+                        style: GoogleFonts.fredoka(
                           color: timerColor,
                           fontSize: 23,
                           fontWeight:
@@ -953,7 +951,7 @@ class _GameHeader extends StatelessWidget {
                       ),
                       Text(
                         'SEC.',
-                        style: TextStyle(
+                        style: GoogleFonts.nunitoSans(
                           color: timerColor
                               .withValues(alpha: 0.78),
                           fontSize: 9,
@@ -972,9 +970,8 @@ class _GameHeader extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       '$totalScore',
-                      style: const TextStyle(
-                        color:
-                            Color(0xFFFFD166),
+                      style: GoogleFonts.fredoka(
+                        color: GeoColors.gold,
                         fontSize: 21,
                         fontWeight:
                             FontWeight.w900,
@@ -983,7 +980,7 @@ class _GameHeader extends StatelessWidget {
 
                     Text(
                       'POINTS',
-                      style: TextStyle(
+                      style: GoogleFonts.nunitoSans(
                         color: Colors.white
                             .withValues(
                           alpha: 0.66,
@@ -1016,7 +1013,7 @@ class _GameHeader extends StatelessWidget {
                     child: Text(
                       questionPrompt.toUpperCase(),
                       softWrap: true,
-                      style: const TextStyle(
+                      style: GoogleFonts.fredoka(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight:
@@ -1036,7 +1033,7 @@ class _GameHeader extends StatelessWidget {
                 child: Text(
                   questionPrompt.toUpperCase(),
                   softWrap: true,
-                  style: const TextStyle(
+                  style: GoogleFonts.fredoka(
                     color: Colors.white,
                     fontSize: 18,
                     height: 1.15,
@@ -1345,8 +1342,8 @@ class _ResultPanel extends StatelessWidget {
 
     final double maxPanelHeight =
         (MediaQuery.sizeOf(context).height *
-                0.70)
-            .clamp(340.0, 610.0)
+                0.62)
+            .clamp(330.0, 550.0)
             .toDouble();
 
     if (isCollapsed) {
@@ -1362,15 +1359,11 @@ class _ResultPanel extends StatelessWidget {
             10,
           ),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(
-              alpha: 0.86,
-            ),
+            color: GeoColors.navy.withValues(alpha: 0.94),
             borderRadius:
-                BorderRadius.circular(18),
+                BorderRadius.circular(22),
             border: Border.all(
-              color: Colors.white.withValues(
-                alpha: 0.30,
-              ),
+              color: GeoColors.blue.withValues(alpha: 0.48),
             ),
             boxShadow: <BoxShadow>[
               BoxShadow(
@@ -1479,17 +1472,20 @@ class _ResultPanel extends StatelessWidget {
           maxWidth: 520,
           maxHeight: maxPanelHeight,
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(
-            alpha: 0.86,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: <Color>[
+              GeoColors.navy.withValues(alpha: 0.97),
+              const Color(0xFF0B2A55).withValues(alpha: 0.97),
+            ],
           ),
           borderRadius:
-              BorderRadius.circular(18),
+              BorderRadius.circular(26),
           border: Border.all(
-            color: Colors.white.withValues(
-              alpha: 0.30,
-            ),
+            color: resultColor.withValues(alpha: 0.54),
           ),
           boxShadow: <BoxShadow>[
             BoxShadow(
@@ -1507,14 +1503,34 @@ class _ResultPanel extends StatelessWidget {
           children: <Widget>[
             Row(
               children: <Widget>[
-                const SizedBox(width: 48),
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: resultColor.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: resultColor.withValues(alpha: 0.52),
+                    ),
+                  ),
+                  child: Icon(
+                    isCorrect
+                        ? Icons.check_rounded
+                        : isTimeUp
+                            ? Icons.timer_off_rounded
+                            : Icons.close_rounded,
+                    color: resultColor,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     resultTitle,
-                    textAlign: TextAlign.center,
+                    textAlign: TextAlign.left,
                     style: TextStyle(
                       color: resultColor,
-                      fontSize: 22,
+                      fontSize: 21,
                       fontWeight:
                           FontWeight.w900,
                     ),
@@ -2185,22 +2201,6 @@ class _GameOverPanel extends StatelessWidget {
     return 'Voyageur débutant';
   }
 
-  IconData _getRankIcon() {
-    if (totalScore >= 1151) {
-      return Icons.workspace_premium;
-    }
-
-    if (totalScore >= 801) {
-      return Icons.emoji_events;
-    }
-
-    if (totalScore >= 401) {
-      return Icons.public;
-    }
-
-    return Icons.explore;
-  }
-
   String _starText(
     int stars,
   ) {
@@ -2278,11 +2278,7 @@ class _GameOverPanel extends StatelessWidget {
                 mainAxisSize:
                     MainAxisSize.min,
                 children: <Widget>[
-                  Icon(
-                    _getRankIcon(),
-                    color: const Color(0xFFFFD166),
-                    size: 58,
-                  ),
+                  const GeoCompassLogo(size: 66),
 
                   const SizedBox(height: 8),
 

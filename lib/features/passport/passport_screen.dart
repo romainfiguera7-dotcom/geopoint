@@ -5,6 +5,7 @@ import '../../game/passport/passport_license.dart';
 import '../../game/passport/passport_stamp.dart';
 import '../../game/passport/player_passport.dart';
 import '../../game/passport/player_stamp_progress.dart';
+import '../design/geopoint_design.dart';
 
 class PassportScreen extends StatelessWidget {
   const PassportScreen({
@@ -21,11 +22,16 @@ class PassportScreen extends StatelessWidget {
 
     if (gameController == null) {
       return Scaffold(
+        backgroundColor: GeoColors.navy,
         appBar: AppBar(
+          backgroundColor: GeoColors.navy,
+          foregroundColor: Colors.white,
           title:
               const Text('Passeport'),
         ),
-        body: const Center(
+        body: const DefaultTextStyle(
+          style: TextStyle(color: Colors.white),
+          child: Center(
           child: Padding(
             padding: EdgeInsets.all(28),
             child: Column(
@@ -60,6 +66,7 @@ class PassportScreen extends StatelessWidget {
               ],
             ),
           ),
+          ),
         ),
       );
     }
@@ -85,7 +92,10 @@ class PassportScreen extends StatelessWidget {
             );
 
     return Scaffold(
+      backgroundColor: GeoColors.navy,
       appBar: AppBar(
+        backgroundColor: GeoColors.navy,
+        foregroundColor: Colors.white,
         title: const Text(
           'Passeport',
         ),

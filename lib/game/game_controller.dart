@@ -40,6 +40,13 @@ class GameController extends ChangeNotifier {
     'SOL',
   };
 
+  static const Set<String>
+      _completeTrainingExcludedEntityIds =
+      <String>{
+    'SMR',
+    'VAT',
+  };
+
   GameController({
     GameEngine? gameEngine,
     ScoreSystem? scoreSystem,
@@ -84,6 +91,15 @@ class GameController extends ChangeNotifier {
 
   List<GeoCountry> _missionCountries =
       const <GeoCountry>[];
+
+  final List<GeoCountry> _encounteredCountries = <GeoCountry>[];
+  final List<GeoCountry> _validatedCountries = <GeoCountry>[];
+
+  bool _isTrainingMission = false;
+  bool _isCompleteTraining = false;
+  int? _trainingQuestionCount;
+  String _trainingRegionId = 'world';
+  final List<GeoCountry> _completeTrainingQueue = <GeoCountry>[];
 
   GuidedLevel? _currentGuidedLevel;
 
@@ -162,6 +178,12 @@ class GameController extends ChangeNotifier {
 
   ContinentLevel? get currentContinentLevel =>
       _currentContinentLevel;
+
+  bool get isTrainingMission =>
+      _isTrainingMission;
+
+  bool get isCompleteTraining =>
+      _isCompleteTraining;
 
   bool get isGuidedMission =>
       _currentGuidedLevel != null;
@@ -361,6 +383,66 @@ class GameController extends ChangeNotifier {
 
   int get availableCountryCount =>
       _missionCountries.length;
+
+  List<GeoCountry> get encounteredCountries =>
+      List<GeoCountry>.unmodifiable(_encounteredCountries);
+
+  List<GeoCountry> get validatedCountries =>
+      List<GeoCountry>.unmodifiable(_validatedCountries);
+
+  int availableTrainingCountryCount({
+    required String difficultyId,
+    required String modeId,
+    required String regionId,
+    required bool completeRegion,
+  }) {
+    final String normalizedDifficulty = difficultyId.trim().toLowerCase();
+    final String resolvedDifficulty =
+        _difficulties.containsKey(normalizedDifficulty)
+            ? normalizedDifficulty
+            : 'easy';
+    final String resolvedMode = _normalizeModeId(modeId);
+    final String normalizedRegion =
+        _normalizeTrainingRegionId(regionId);
+    final int maximumDifficulty = completeRegion
+        ? resolvedDifficulty == 'expert'
+            ? 100
+            : 85
+        : _maximumCountryDifficultyFor(resolvedDifficulty);
+    final bool requiresCapital =
+        resolvedMode == 'find_capital' || resolvedMode == 'mixed';
+    final bool requiresFlag =
+        resolvedMode == 'find_flag' || resolvedMode == 'mixed';
+
+    return _countries.where((GeoCountry country) {
+      if (_isExcludedFromQuestions(country) ||
+          !_matchesTrainingRegion(country, regionId)) {
+        return false;
+      }
+
+      final String countryId = country.id.trim().toUpperCase();
+      if (completeRegion &&
+          _completeTrainingExcludedEntityIds.contains(countryId)) {
+        return false;
+      }
+
+      final int difficulty = _countryDifficulties[countryId] ?? 100;
+      final bool isPlayableAntarctica =
+          normalizedRegion == 'antarctica' && countryId == 'ATA';
+      final bool usesTerritorialReference =
+          _findReferenceOverride(country) != null;
+      final bool hasRequiredCapital = !requiresCapital ||
+          (!usesTerritorialReference && _findCapital(country) != null);
+      final bool hasRequiredFlag = !requiresFlag ||
+          (!usesTerritorialReference &&
+              RegExp(r'^[A-Z]{2}$')
+                  .hasMatch(country.isoA2.trim().toUpperCase()));
+
+      return (difficulty <= maximumDifficulty || isPlayableAntarctica) &&
+          hasRequiredCapital &&
+          hasRequiredFlag;
+    }).length;
+  }
 
   LatLng? get selectedPoint =>
       _selectedPoint;
@@ -607,6 +689,9 @@ class GameController extends ChangeNotifier {
 
     _gameEngine.reset();
     _session = _createInitialSession();
+    _encounteredCountries.clear();
+    _validatedCountries.clear();
+    _completeTrainingQueue.clear();
 
     _clearAnswer();
 
@@ -621,6 +706,11 @@ class GameController extends ChangeNotifier {
 
     _currentGuidedLevel = null;
     _currentContinentLevel = null;
+    _isTrainingMission = false;
+    _isCompleteTraining = false;
+    _trainingQuestionCount = null;
+    _trainingRegionId = 'world';
+    _completeTrainingQueue.clear();
     _guidedQuestionQueue.clear();
 
     _currentModeId =
@@ -634,6 +724,8 @@ class GameController extends ChangeNotifier {
 
     _gameEngine.reset();
     _session = _createInitialSession();
+    _encounteredCountries.clear();
+    _validatedCountries.clear();
 
     _lastPassportResult = null;
     _lastLevelResult = null;
@@ -653,6 +745,11 @@ class GameController extends ChangeNotifier {
 
     _currentGuidedLevel = level;
     _currentContinentLevel = null;
+    _isTrainingMission = false;
+    _isCompleteTraining = false;
+    _trainingQuestionCount = null;
+    _trainingRegionId = 'world';
+    _completeTrainingQueue.clear();
     _currentModeId = _normalizeModeId(
       level.modeId,
     );
@@ -661,6 +758,8 @@ class GameController extends ChangeNotifier {
     _applyGuidedConfiguration(level);
 
     _gameEngine.reset();
+    _encounteredCountries.clear();
+    _validatedCountries.clear();
     _guidedQuestionQueue
       ..clear()
       ..addAll(_missionCountries);
@@ -689,6 +788,11 @@ class GameController extends ChangeNotifier {
 
     _currentGuidedLevel = null;
     _currentContinentLevel = level;
+    _isTrainingMission = false;
+    _isCompleteTraining = false;
+    _trainingQuestionCount = null;
+    _trainingRegionId = 'world';
+    _completeTrainingQueue.clear();
     _guidedQuestionQueue.clear();
 
     _currentModeId = _normalizeModeId(
@@ -706,11 +810,71 @@ class GameController extends ChangeNotifier {
     _applyContinentConfiguration(level);
 
     _gameEngine.reset();
+    _encounteredCountries.clear();
+    _validatedCountries.clear();
     _session = GameSession.initial(
       questionDurationSeconds:
           level.questionDurationSeconds,
       totalQuestions: level.questionCount,
     );
+
+    _lastPassportResult = null;
+    _lastLevelResult = null;
+    _passportResultRegisteredForCurrentGame = false;
+
+    _clearAnswer();
+    startNextQuestion();
+  }
+
+  void startTrainingMission({
+    required String difficultyId,
+    required String modeId,
+    required int questionCount,
+    String regionId = 'world',
+    bool completeRegion = false,
+  }) {
+    _stopTimer();
+
+    final int resolvedQuestionCount = questionCount < 1
+        ? 1
+        : questionCount > 50
+            ? 50
+            : questionCount;
+
+    _currentGuidedLevel = null;
+    _currentContinentLevel = null;
+    _isTrainingMission = true;
+    _isCompleteTraining = completeRegion;
+    _trainingRegionId = _normalizeTrainingRegionId(regionId);
+    _guidedQuestionQueue.clear();
+    _completeTrainingQueue.clear();
+
+    _currentModeId = _normalizeModeId(modeId);
+
+    _applyMissionConfiguration(
+      difficultyId,
+      questionCountOverride: resolvedQuestionCount,
+      regionId: _trainingRegionId,
+      selectAllEligible: completeRegion,
+    );
+
+    final int availableCount = _missionCountries.length;
+    _trainingQuestionCount = completeRegion
+        ? availableCount
+        : resolvedQuestionCount > availableCount
+            ? availableCount
+            : resolvedQuestionCount;
+
+    if (completeRegion) {
+      _completeTrainingQueue
+        ..addAll(_missionCountries)
+        ..shuffle();
+    }
+
+    _gameEngine.reset();
+    _encounteredCountries.clear();
+    _validatedCountries.clear();
+    _session = _createInitialSession();
 
     _lastPassportResult = null;
     _lastLevelResult = null;
@@ -728,8 +892,9 @@ class GameController extends ChangeNotifier {
 
     _stopTimer();
 
-    final GameQuestion? question =
-        _currentGuidedLevel == null
+    final GameQuestion? question = _isCompleteTraining
+        ? _createNextCompleteTrainingQuestion()
+        : _currentGuidedLevel == null
             ? _gameEngine.createNextQuestion(
                 _missionCountries,
                 modeId: _currentModeId,
@@ -860,6 +1025,12 @@ class GameController extends ChangeNotifier {
     _answerCountry =
         answerCountry;
 
+    _recordEncounteredCountry(answerCountry);
+
+    if (isCorrectCountry) {
+      _recordValidatedCountry(answerCountry);
+    }
+
     _answerCapital =
         capital;
 
@@ -883,6 +1054,10 @@ class GameController extends ChangeNotifier {
                   'find_capital' ||
               !isCorrectCountry,
     );
+
+    if (_isCompleteTraining && !isCorrectCountry) {
+      _queueCompleteTrainingRetry(answerCountry);
+    }
 
     if (_currentGuidedLevel == null &&
         (questionModeId ==
@@ -930,6 +1105,15 @@ class GameController extends ChangeNotifier {
         _currentGuidedLevel;
 
     _gameEngine.reset();
+    _encounteredCountries.clear();
+    _validatedCountries.clear();
+
+    if (_isCompleteTraining) {
+      _completeTrainingQueue
+        ..clear()
+        ..addAll(_missionCountries)
+        ..shuffle();
+    }
 
     if (guidedLevel == null) {
       _session = _createInitialSession();
@@ -1020,6 +1204,13 @@ class GameController extends ChangeNotifier {
       _applyContinentConfiguration(
         continentLevel,
       );
+    } else if (_isTrainingMission) {
+      _applyMissionConfiguration(
+        _currentDifficultyId,
+        questionCountOverride: _trainingQuestionCount,
+        regionId: _trainingRegionId,
+        selectAllEligible: _isCompleteTraining,
+      );
     } else {
       _applyMissionConfiguration(
         _currentDifficultyId,
@@ -1092,6 +1283,8 @@ class GameController extends ChangeNotifier {
       _answerCountry =
           answerCountry;
 
+      _recordEncounteredCountry(answerCountry);
+
       _answerCapital =
           capital;
 
@@ -1116,6 +1309,10 @@ class GameController extends ChangeNotifier {
 
     _session =
         _session.timeout();
+
+    if (_isCompleteTraining && answerCountry != null) {
+      _queueCompleteTrainingRetry(answerCountry);
+    }
 
     if (_currentGuidedLevel == null &&
         answerCountry != null &&
@@ -1143,13 +1340,14 @@ class GameController extends ChangeNotifier {
       return;
     }
 
-    if (_currentGuidedLevel != null) {
+    if (_currentGuidedLevel != null || _isTrainingMission) {
       _passportResultRegisteredForCurrentGame =
           true;
 
       debugPrint(
-        'GeoPoint : tutoriel terminé, '
-        'progression joueur inchangée.',
+        _isTrainingMission
+            ? 'GeoPoint : entraînement terminé, progression inchangée.'
+            : 'GeoPoint : tutoriel terminé, progression joueur inchangée.',
       );
 
       return;
@@ -1345,14 +1543,18 @@ class GameController extends ChangeNotifier {
                   ?.questionDurationSeconds ??
               15,
       totalQuestions:
+          _trainingQuestionCount ??
           difficulty?.questionCount ??
               10,
     );
   }
 
   void _applyMissionConfiguration(
-    String difficultyId,
-  ) {
+    String difficultyId, {
+    int? questionCountOverride,
+    String regionId = 'world',
+    bool selectAllEligible = false,
+  }) {
     final String normalizedId =
         difficultyId
             .trim()
@@ -1368,10 +1570,13 @@ class GameController extends ChangeNotifier {
     _currentDifficultyId =
         resolvedId;
 
-    final int maximumDifficulty =
-        _maximumCountryDifficultyFor(
-      resolvedId,
-    );
+    final int maximumDifficulty = selectAllEligible
+        ? resolvedId == 'expert'
+            ? 100
+            : 85
+        : _maximumCountryDifficultyFor(resolvedId);
+    final String normalizedRegion =
+        _normalizeTrainingRegionId(regionId);
 
     final List<GeoCountry> playableCountries =
         _countries.where(
@@ -1392,11 +1597,18 @@ class GameController extends ChangeNotifier {
                 .trim()
                 .toUpperCase();
 
+        if (selectAllEligible &&
+            _completeTrainingExcludedEntityIds.contains(countryId)) {
+          return false;
+        }
+
         final int difficulty =
             _countryDifficulties[
               countryId
             ] ??
             100;
+        final bool isPlayableAntarctica =
+            normalizedRegion == 'antarctica' && countryId == 'ATA';
 
         final bool usesTerritorialReference =
             _findReferenceOverride(
@@ -1435,8 +1647,8 @@ class GameController extends ChangeNotifier {
                           .toUpperCase(),
                     ));
 
-        return difficulty <=
-                maximumDifficulty &&
+        return (difficulty <= maximumDifficulty ||
+                isPlayableAntarctica) &&
             hasRequiredCapital &&
             hasRequiredFlag;
       },
@@ -1444,24 +1656,31 @@ class GameController extends ChangeNotifier {
       growable: false,
     );
 
-    final List<GeoCountry> eligibleCountries =
+    final List<GeoCountry> difficultyEligibleCountries =
         filtered.isEmpty
             ? playableCountries
             : filtered;
 
+    final List<GeoCountry> regionalCountries =
+        difficultyEligibleCountries.where((GeoCountry country) {
+      return _matchesTrainingRegion(country, regionId);
+    }).toList(growable: false);
+
+    final List<GeoCountry> eligibleCountries = regionalCountries;
+
     final int requestedQuestionCount =
+        questionCountOverride ??
         _difficulties[
               _currentDifficultyId
             ]?.questionCount ??
             10;
 
-    final List<GeoCountry> selectedCountries =
-        _countrySelector.selectCountries(
-      availableCountries:
-          eligibleCountries,
-      questionCount:
-          requestedQuestionCount,
-    );
+    final List<GeoCountry> selectedCountries = selectAllEligible
+        ? eligibleCountries
+        : _countrySelector.selectCountries(
+            availableCountries: eligibleCountries,
+            questionCount: requestedQuestionCount,
+          );
 
     _missionCountries =
         List<GeoCountry>.unmodifiable(
@@ -1652,6 +1871,75 @@ class GameController extends ChangeNotifier {
       isoA2: country.isoA2,
       continent: country.continent,
     );
+  }
+
+  GameQuestion? _createNextCompleteTrainingQuestion() {
+    if (_completeTrainingQueue.isEmpty) {
+      return null;
+    }
+
+    final GeoCountry country = _completeTrainingQueue.removeAt(0);
+
+    return _gameEngine.createNextQuestion(
+      <GeoCountry>[country],
+      modeId: _currentModeId,
+    );
+  }
+
+  String _normalizeTrainingRegionId(String regionId) {
+    final String normalized = regionId.trim().toLowerCase();
+
+    switch (normalized) {
+      case 'europe':
+      case 'africa':
+      case 'asia':
+      case 'americas':
+      case 'oceania':
+      case 'antarctica':
+        return normalized;
+
+      default:
+        return 'world';
+    }
+  }
+
+  bool _matchesTrainingRegion(
+    GeoCountry country,
+    String regionId,
+  ) {
+    final String region = _normalizeTrainingRegionId(regionId);
+
+    if (region == 'world') {
+      return true;
+    }
+
+    final String continent = country.continent.trim().toLowerCase();
+
+    switch (region) {
+      case 'europe':
+        return continent.contains('europe');
+
+      case 'africa':
+        return continent.contains('africa') ||
+            continent.contains('afrique');
+
+      case 'asia':
+        return continent.contains('asia') || continent.contains('asie');
+
+      case 'americas':
+        return continent.contains('america') ||
+            continent.contains('amérique');
+
+      case 'oceania':
+        return continent.contains('oceania') ||
+            continent.contains('océanie');
+
+      case 'antarctica':
+        return continent.contains('antarct');
+
+      default:
+        return true;
+    }
   }
 
   String _normalizeModeId(
@@ -1933,6 +2221,53 @@ class GameController extends ChangeNotifier {
     _answerReferencePoint = null;
 
     _distanceInKilometers = null;
+  }
+
+  void _recordEncounteredCountry(GeoCountry country) {
+    final String countryId = country.id.trim().toUpperCase();
+
+    if (countryId.isEmpty ||
+        _encounteredCountries.any(
+          (GeoCountry existing) =>
+              existing.id.trim().toUpperCase() == countryId,
+        )) {
+      return;
+    }
+
+    _encounteredCountries.add(country);
+  }
+
+  void _recordValidatedCountry(GeoCountry country) {
+    final String countryId = country.id.trim().toUpperCase();
+
+    if (countryId.isEmpty ||
+        _validatedCountries.any(
+          (GeoCountry existing) =>
+              existing.id.trim().toUpperCase() == countryId,
+        )) {
+      return;
+    }
+
+    _validatedCountries.add(country);
+  }
+
+  void _queueCompleteTrainingRetry(GeoCountry country) {
+    final String countryId = country.id.trim().toUpperCase();
+
+    if (countryId.isEmpty ||
+        _validatedCountries.any(
+          (GeoCountry existing) =>
+              existing.id.trim().toUpperCase() == countryId,
+        ) ||
+        _completeTrainingQueue.any(
+          (GeoCountry queued) =>
+              queued.id.trim().toUpperCase() == countryId,
+        )) {
+      return;
+    }
+
+    _completeTrainingQueue.add(country);
+    _session = _session.addRetryQuestion();
   }
 
   void _stopTimer() {

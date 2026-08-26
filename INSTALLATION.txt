@@ -1,4 +1,4 @@
-GeoPoint - Atlas personnel V21
+GeoPoint - Mode Entraînement V23
 
 INSTALLATION
 
@@ -63,6 +63,26 @@ ATLAS PERSONNEL - POINT 16
 - Chaque carte affiche son nombre de pays enregistrés.
 - Deux nouvelles listes permettent de retrouver les pays et de rouvrir leur fiche.
 - Retirer ou modifier un statut actualise automatiquement les listes et la carte.
+- La fiche affichée après chaque question propose aussi « Visité » et « À visiter ».
+- Le résultat final d’une expédition liste les pays rencontrés et permet de les
+  ajouter directement aux deux listes personnelles.
+- Le tutoriel propose les mêmes actions après ses questions.
+- Le hub Atlas affiche maintenant le nombre de pays visités, le nombre de pays
+  à visiter, le nombre de continents visités et le pourcentage du monde découvert.
+- Les listes personnelles donnent un accès direct à la carte personnelle des voyages.
+
+MODE ENTRAÎNEMENT V23
+
+- La carte Entraînement du menu Jouer est maintenant disponible.
+- Le joueur choisit son mode : Pays, Capitales, Drapeaux ou Mixte.
+- Le joueur choisit sa difficulté : Facile, Normal, Difficile ou Expert.
+- Le joueur choisit une session de 10, 20, 30 ou 50 questions.
+- La durée de chaque question reste automatiquement adaptée à la difficulté.
+- Les sessions libres n’accordent aucune étoile, aucun tampon, aucun XP et ne
+  débloquent aucun niveau d’expédition.
+- Les réponses continuent d’alimenter l’apprentissage GeoBrain.
+- Les fiches après-question et les listes personnelles du point 16 restent actives.
+- Le résultat final présente les statistiques de la session et les pays rencontrés.
 
 ACCUEIL ET MENUS
 
@@ -110,24 +130,33 @@ TEST RAPIDE
 
 - Vérifier le nouveau logo sur l’accueil.
 - Ouvrir Jouer puis Expéditions.
+- Ouvrir Jouer puis Entraînement et vérifier que la carte est disponible.
+- Sélectionner Pays, Normal et 10 questions, puis lancer la partie.
+- Vérifier que le compteur affiche bien 10 questions et terminer la session.
+- Vérifier que l’écran final n’affiche ni étoiles ni XP d’expédition.
+- Refaire un essai avec Drapeaux, Expert et 20 questions.
 - Vérifier la grille colorée des continents et le verrouillage de l’expédition Monde.
 - Ouvrir l’expédition Europe et vérifier le parcours sinueux alterné.
 - Lancer un niveau et contrôler le bandeau de question.
 - Vérifier que chaque continent garde bien sa couleur actuelle sur la carte.
 - Répondre à une question puis réduire et rouvrir la fiche pays.
+- Depuis cette fiche, marquer le pays comme visité ou à visiter.
 - Terminer un niveau et vérifier les étoiles, l’XP et les statistiques.
+- Dans le résultat final, modifier le statut de plusieurs pays rencontrés.
 - Ouvrir Atlas et vérifier que la carte interactive reste fluide.
 - Ouvrir une fiche pays et la marquer comme visitée.
 - Vérifier sa teinte menthe et son repère sur la carte.
 - Passer ce pays dans À visiter et vérifier que l’ancien statut disparaît.
 - Revenir au hub Atlas et ouvrir Mes voyages puis À visiter.
+- Vérifier les quatre statistiques personnelles du hub Atlas.
+- Depuis une liste, ouvrir « Voir ma carte personnelle » et contrôler les repères.
 - Redémarrer l’application et confirmer que ces choix sont conservés.
 - Ouvrir Mon Passeport, Statistiques et Mes tampons.
 - Redémarrer l’application et confirmer que la progression est conservée.
 
 IMPORTANT
 
-Cette V21 reprend toute la V20 et termine le point 16 avec un Atlas personnel
-persistant, visible sur la carte et accessible depuis ses deux listes dédiées.
+Cette V23 reprend toute la V22, conserve le point 16 complet et ajoute le mode
+Entraînement personnalisable avant le lancement du point 17.
 Conserver le commit GitHub de la version précédente jusqu’à validation complète
 sur le téléphone.

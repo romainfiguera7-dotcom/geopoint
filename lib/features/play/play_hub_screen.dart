@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../game/game_controller.dart';
 import '../design/geopoint_design.dart';
 import '../expeditions/expeditions_screen.dart';
+import '../training/training_screen.dart';
 
 class PlayHubScreen extends StatelessWidget {
   const PlayHubScreen({required this.controller, super.key});
@@ -14,6 +15,16 @@ class PlayHubScreen extends StatelessWidget {
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return ExpeditionsScreen(controller: controller);
+        },
+      ),
+    );
+  }
+
+  void _openTraining(BuildContext context) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          return TrainingScreen(controller: controller);
         },
       ),
     );
@@ -70,6 +81,24 @@ class PlayHubScreen extends StatelessWidget {
                       onPressed: () => _openExpeditions(context),
                     ),
                     const SizedBox(height: 14),
+                    SizedBox(
+                      height: 154,
+                      child: GeoFeatureCard(
+                        icon: Icons.gps_fixed_rounded,
+                        title: 'ENTRAÎNEMENT',
+                        subtitle:
+                            'Pays, capitales, drapeaux, villes, monnaies et langues.',
+                        color: GeoColors.mint,
+                        badge: 'Disponible',
+                        artwork: const GeoCardArtwork(
+                          primary: Icons.gps_fixed_rounded,
+                          secondary: Icons.location_on_rounded,
+                          color: GeoColors.navy,
+                        ),
+                        onPressed: () => _openTraining(context),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
@@ -104,38 +133,6 @@ class PlayHubScreen extends StatelessWidget {
                           child: SizedBox(
                             height: 190,
                             child: GeoFeatureCard(
-                              icon: Icons.gps_fixed_rounded,
-                              title: 'ENTRAÎNEMENT',
-                              subtitle: 'Choisis librement ton mode et ta difficulté.',
-                              color: GeoColors.mint,
-                              badge: 'Bientôt',
-                              artwork: const GeoCardArtwork(
-                                primary: Icons.gps_fixed_rounded,
-                                secondary: Icons.location_on_rounded,
-                                color: GeoColors.navy,
-                              ),
-                              onPressed: () => _showSoon(
-                                context,
-                                title: 'Entraînement libre',
-                                message:
-                                    'Ce mode permettra de choisir les pays, le type '
-                                    'de question et la difficulté sans enjeu.',
-                                icon: Icons.gps_fixed_rounded,
-                                color: GeoColors.mint,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Expanded(
-                          child: SizedBox(
-                            height: 190,
-                            child: GeoFeatureCard(
                               icon: Icons.public_rounded,
                               title: 'EN LIGNE',
                               subtitle: 'Affronte bientôt les joueurs du monde entier.',
@@ -158,7 +155,12 @@ class PlayHubScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
                         Expanded(
                           child: SizedBox(
                             height: 190,

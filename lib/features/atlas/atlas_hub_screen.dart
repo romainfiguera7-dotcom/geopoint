@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../game/game_controller.dart';
+import '../../geo_engine/geo_country.dart';
 import '../design/geopoint_design.dart';
 import 'atlas_personal_list_screen.dart';
 import 'atlas_personal_progress.dart';
@@ -19,6 +20,65 @@ class AtlasHubScreen extends StatefulWidget {
 
 class _AtlasHubScreenState extends State<AtlasHubScreen> {
   AtlasPersonalProgress _progress = AtlasPersonalProgress.initial();
+
+  int get _worldCountryCount {
+    return widget.controller.countries
+        .map((GeoCountry country) => country.id.trim().toUpperCase())
+        .where((String id) => id.isNotEmpty)
+        .toSet()
+        .length;
+  }
+
+  int get _validVisitedCount {
+    final Set<String> availableIds = widget.controller.countries
+        .map((GeoCountry country) => country.id.trim().toUpperCase())
+        .toSet();
+    return _progress.visitedCountryIds
+        .where(availableIds.contains)
+        .length;
+  }
+
+  int get _visitedContinentCount {
+    final Set<String> visited = _progress.visitedCountryIds;
+    return widget.controller.countries
+        .where((GeoCountry country) {
+          return visited.contains(country.id.trim().toUpperCase());
+        })
+        .map((GeoCountry country) => _continentKey(country.continent))
+        .where((String continent) => continent.isNotEmpty)
+        .toSet()
+        .length;
+  }
+
+  double get _worldDiscoveredPercentage {
+    final int total = _worldCountryCount;
+    return total == 0 ? 0 : (_validVisitedCount / total) * 100;
+  }
+
+  static String _continentKey(String value) {
+    final String continent = value.trim().toLowerCase();
+
+    if (continent.contains('africa') || continent.contains('afrique')) {
+      return 'afrique';
+    }
+    if (continent.contains('asia') || continent.contains('asie')) {
+      return 'asie';
+    }
+    if (continent.contains('europe')) {
+      return 'europe';
+    }
+    if (continent.contains('america') || continent.contains('amérique')) {
+      return 'ameriques';
+    }
+    if (continent.contains('oceania') || continent.contains('océanie')) {
+      return 'oceanie';
+    }
+    if (continent.contains('antarct')) {
+      return 'antarctique';
+    }
+
+    return continent;
+  }
 
   @override
   void initState() {
@@ -146,6 +206,13 @@ class _AtlasHubScreenState extends State<AtlasHubScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 14),
+                    _TravelStatisticsCard(
+                      visitedCount: _validVisitedCount,
+                      wishlistCount: _progress.wishlistCount,
+                      continentCount: _visitedContinentCount,
+                      worldPercentage: _worldDiscoveredPercentage,
+                    ),
                     const SizedBox(height: 18),
                     Container(
                       padding: const EdgeInsets.all(17),
@@ -181,6 +248,133 @@ class _AtlasHubScreenState extends State<AtlasHubScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TravelStatisticsCard extends StatelessWidget {
+  const _TravelStatisticsCard({
+    required this.visitedCount,
+    required this.wishlistCount,
+    required this.continentCount,
+    required this.worldPercentage,
+  });
+
+  final int visitedCount;
+  final int wishlistCount;
+  final int continentCount;
+  final double worldPercentage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            'MON MONDE EN CHIFFRES',
+            style: GoogleFonts.nunitoSans(
+              color: GeoColors.gold,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: _TravelStat(
+                  icon: Icons.flight_takeoff_rounded,
+                  value: '$visitedCount',
+                  label: 'pays visités',
+                  color: GeoColors.mint,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _TravelStat(
+                  icon: Icons.favorite_rounded,
+                  value: '$wishlistCount',
+                  label: 'à visiter',
+                  color: GeoColors.coral,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _TravelStat(
+                  icon: Icons.public_rounded,
+                  value: '$continentCount/6',
+                  label: 'continents',
+                  color: GeoColors.sky,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _TravelStat(
+                  icon: Icons.explore_rounded,
+                  value: '${worldPercentage.toStringAsFixed(1)} %',
+                  label: 'du monde',
+                  color: GeoColors.gold,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TravelStat extends StatelessWidget {
+  const _TravelStat({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Icon(icon, color: color, size: 20),
+        const SizedBox(height: 5),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: GoogleFonts.fredoka(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          maxLines: 2,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.nunitoSans(
+            color: Colors.white.withValues(alpha: 0.66),
+            fontSize: 8.5,
+            fontWeight: FontWeight.w800,
+            height: 1.1,
+          ),
+        ),
+      ],
     );
   }
 }

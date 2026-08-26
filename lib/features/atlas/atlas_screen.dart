@@ -122,6 +122,9 @@ class _AtlasScreenState extends State<AtlasScreen> {
   Future<void> _openCitySheet(_AtlasData data, AtlasCity city) async {
     _searchFocusNode.unfocus();
     final GeoCountry? country = data.countryForCode(city.countryCode);
+    final String countryName = country == null
+        ? city.countryCode
+        : data.countryInfos[country.id]?.title ?? country.name;
 
     if (country != null) {
       setState(() {
@@ -133,19 +136,21 @@ class _AtlasScreenState extends State<AtlasScreen> {
 
     await showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return SafeArea(
-          child: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF4F8FC),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
+          child: SingleChildScrollView(
+            child: Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF4F8FC),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
                 Row(
                   children: <Widget>[
                     Container(
@@ -177,7 +182,8 @@ class _AtlasScreenState extends State<AtlasScreen> {
                             ),
                           ),
                           Text(
-                            city.formattedPopulation,
+                            '$countryName • '
+                            '${city.formattedPopulation}',
                             style: GoogleFonts.nunitoSans(
                               color: const Color(0xFF52708F),
                               fontSize: 12,
@@ -189,6 +195,40 @@ class _AtlasScreenState extends State<AtlasScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 14),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Wrap(
+                    spacing: 7,
+                    runSpacing: 7,
+                    children: <Widget>[
+                      for (final String label in city.categoryLabels)
+                        _CityCategoryChip(
+                          label: label,
+                          highlighted: label == 'Capitale',
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F2FF),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFC9DDF5)),
+                  ),
+                  child: Text(
+                    city.shortDescription,
+                    style: GoogleFonts.nunitoSans(
+                      color: const Color(0xFF294966),
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
                 if (country != null) ...<Widget>[
                   const SizedBox(height: 16),
                   SizedBox(
@@ -199,11 +239,12 @@ class _AtlasScreenState extends State<AtlasScreen> {
                         _openCountrySheet(data, country, focusCountry: false);
                       },
                       icon: const Icon(Icons.public_rounded),
-                      label: Text('Voir la fiche de ${country.name}'),
+                      label: Text('Voir la fiche de $countryName'),
                     ),
                   ),
                 ],
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -781,7 +822,8 @@ class _AtlasSearchResult {
   ) {
     return _AtlasSearchResult._(
       label: label,
-      subtitle: '$countryName • ${city.formattedPopulation}',
+      subtitle: '$countryName • ${city.primaryCategoryLabel} • '
+          '${city.formattedPopulation}',
       city: city,
     );
   }
@@ -790,6 +832,42 @@ class _AtlasSearchResult {
   final String? subtitle;
   final GeoCountry? country;
   final AtlasCity? city;
+}
+
+class _CityCategoryChip extends StatelessWidget {
+  const _CityCategoryChip({
+    required this.label,
+    required this.highlighted,
+  });
+
+  final String label;
+  final bool highlighted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: highlighted
+            ? const Color(0xFFFFD166)
+            : const Color(0xFF176BFF).withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(
+          color: highlighted
+              ? const Color(0xFFE4A900)
+              : const Color(0xFF176BFF).withValues(alpha: 0.26),
+        ),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.nunitoSans(
+          color: const Color(0xFF071B3A),
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
 }
 
 class _AtlasError extends StatelessWidget {

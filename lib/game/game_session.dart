@@ -244,7 +244,14 @@ class GameSession {
     );
   }
 
+  GameSession addRetryQuestion() {
+    return _copy(
+      totalQuestions: totalQuestions + 1,
+    );
+  }
+
   GameSession _copy({
+    int? totalQuestions,
     GameQuestion? currentQuestion,
     int? questionNumber,
     int? totalScore,
@@ -263,7 +270,9 @@ class GameSession {
     return GameSession(
       questionDurationSeconds:
           questionDurationSeconds,
-      totalQuestions: totalQuestions,
+      totalQuestions:
+          totalQuestions ??
+              this.totalQuestions,
       currentQuestion:
           currentQuestion ??
               this.currentQuestion,

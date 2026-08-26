@@ -93,7 +93,16 @@ class _CountryAtlasSheetState extends State<CountryAtlasSheet> {
     final List<AtlasCity> cities = widget.cities;
     final VoidCallback onExploreCities = widget.onExploreCities;
     final String title = countryInfo?.title ?? country.name;
-    final List<AtlasCity> mainCities = cities.take(8).toList(growable: false);
+    final List<AtlasCity> sortedMainCities = List<AtlasCity>.of(cities)
+      ..sort((AtlasCity first, AtlasCity second) {
+        if (first.isCapital != second.isCapital) {
+          return first.isCapital ? -1 : 1;
+        }
+
+        return second.population.compareTo(first.population);
+      });
+    final List<AtlasCity> mainCities =
+        sortedMainCities.take(8).toList(growable: false);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.88,
@@ -268,8 +277,8 @@ class _CountryAtlasSheetState extends State<CountryAtlasSheet> {
                       icon: Icons.location_on_rounded,
                       value: '${cities.length}',
                       label: cities.length > 1
-                          ? 'villes de plus de 100 000 habitants'
-                          : 'ville de plus de 100 000 habitants',
+                          ? 'grandes villes référencées'
+                          : 'grande ville référencée',
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -316,7 +325,7 @@ class _CountryAtlasSheetState extends State<CountryAtlasSheet> {
               ],
               const SizedBox(height: 20),
               Text(
-                'Données urbaines : GeoNames',
+                'Données urbaines : GeoNames et sélection GeoPoint',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.nunitoSans(
                   color: const Color(0xFF7C8FA5),
@@ -752,13 +761,27 @@ class _CityRow extends StatelessWidget {
           ),
           const SizedBox(width: 11),
           Expanded(
-            child: Text(
-              city.name,
-              style: GoogleFonts.nunitoSans(
-                color: const Color(0xFF071B3A),
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  city.name,
+                  style: GoogleFonts.nunitoSans(
+                    color: const Color(0xFF071B3A),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  city.primaryCategoryLabel,
+                  style: GoogleFonts.nunitoSans(
+                    color: const Color(0xFF52708F),
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
             ),
           ),
           Text(

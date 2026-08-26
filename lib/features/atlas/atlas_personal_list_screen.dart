@@ -11,6 +11,7 @@ import 'atlas_city.dart';
 import 'atlas_city_loader.dart';
 import 'atlas_personal_progress.dart';
 import 'atlas_personal_storage.dart';
+import 'atlas_screen.dart';
 import 'country_atlas_sheet.dart';
 
 enum AtlasPersonalListType {
@@ -139,6 +140,24 @@ class _AtlasPersonalListScreenState
     );
   }
 
+  Future<void> _openPersonalMap() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          return AtlasScreen(controller: widget.controller);
+        },
+      ),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _dataFuture = _loadData();
+    });
+  }
+
   List<GeoCountry> _listedCountries(_AtlasPersonalData data) {
     final Set<String> ids = _showsVisited
         ? _progress.visitedCountryIds
@@ -208,6 +227,7 @@ class _AtlasPersonalListScreenState
                           count: countries.length,
                           visited: _showsVisited,
                           color: _accentColor,
+                          onOpenMap: _openPersonalMap,
                         ),
                         const SizedBox(height: 16),
                         if (countries.isEmpty)
@@ -246,11 +266,13 @@ class _ListSummary extends StatelessWidget {
     required this.count,
     required this.visited,
     required this.color,
+    required this.onOpenMap,
   });
 
   final int count;
   final bool visited;
   final Color color;
+  final VoidCallback onOpenMap;
 
   @override
   Widget build(BuildContext context) {
@@ -261,26 +283,43 @@ class _ListSummary extends StatelessWidget {
         borderRadius: BorderRadius.circular(23),
         border: Border.all(color: Colors.white54),
       ),
-      child: Row(
+      child: Column(
         children: <Widget>[
-          Icon(
-            visited
-                ? Icons.flight_takeoff_rounded
-                : Icons.favorite_rounded,
-            color: GeoColors.navy,
-            size: 31,
-          ),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Text(
-              count == 0
-                  ? 'Aucun pays enregistré'
-                  : '$count ${count > 1 ? 'pays enregistrés' : 'pays enregistré'}',
-              style: GoogleFonts.fredoka(
+          Row(
+            children: <Widget>[
+              Icon(
+                visited
+                    ? Icons.flight_takeoff_rounded
+                    : Icons.favorite_rounded,
                 color: GeoColors.navy,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
+                size: 31,
               ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Text(
+                  count == 0
+                      ? 'Aucun pays enregistré'
+                      : '$count ${count > 1 ? 'pays enregistrés' : 'pays enregistré'}',
+                  style: GoogleFonts.fredoka(
+                    color: GeoColors.navy,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: onOpenMap,
+              style: FilledButton.styleFrom(
+                backgroundColor: GeoColors.navy,
+                foregroundColor: Colors.white,
+              ),
+              icon: const Icon(Icons.map_rounded),
+              label: const Text('VOIR MA CARTE PERSONNELLE'),
             ),
           ),
         ],

@@ -19,6 +19,7 @@ import '../../game/game_screen.dart';
 import '../../game/learning/guided_level.dart';
 import '../../game/ultimate/ultimate_game_screen.dart';
 import 'continent_expedition_screen.dart';
+import '../exploration/national_explorations_screen.dart';
 
 class ExpeditionsScreen extends StatefulWidget {
   const ExpeditionsScreen({required this.controller, super.key});
@@ -226,6 +227,15 @@ class _ExpeditionList extends StatelessWidget {
     onProgressChanged();
   }
 
+  Future<void> _openNationalExplorations(BuildContext context) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) =>
+            const NationalExplorationsScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final List<ContinentExpedition> continents =
@@ -247,6 +257,12 @@ class _ExpeditionList extends StatelessWidget {
           },
         ),
         const SizedBox(height: 16),
+        _NationalExplorationCard(
+          onPressed: () async {
+            await _openNationalExplorations(context);
+          },
+        ),
+        const SizedBox(height: 20),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -286,6 +302,97 @@ class _ExpeditionList extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _NationalExplorationCard extends StatelessWidget {
+  const _NationalExplorationCard({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(24),
+        child: Ink(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: <Color>[Color(0xFF4C75D8), Color(0xFF253C89)],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white24),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: const Color(0xFF4C75D8).withValues(alpha: 0.20),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  Icons.flag_rounded,
+                  color: Colors.white,
+                  size: 38,
+                ),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'NOUVEAU • FRANCE PILOTE',
+                      style: GoogleFonts.nunitoSans(
+                        color: const Color(0xFFFFCE59),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.7,
+                      ),
+                    ),
+                    Text(
+                      'Explorations nationales',
+                      style: GoogleFonts.fredoka(
+                        color: Colors.white,
+                        fontSize: 21,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Explore un pays en profondeur avec une carte et une progression dédiées.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.nunitoSans(
+                        color: Colors.white70,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -832,7 +939,7 @@ class _ContinentArtPainter extends CustomPainter {
     }
 
     final Matrix4 transform = Matrix4.identity()
-      ..scale(size.width, size.height);
+      ..scaleByDouble(size.width, size.height, 1.0, 1.0);
     canvas.drawPath(path.transform(transform.storage), fill);
   }
 

@@ -14,6 +14,11 @@ class GeoPointMap extends StatefulWidget {
     super.key,
     this.answerPoint,
     this.answerCountry,
+    this.validatedCountries = const <GeoCountry>[],
+    this.countryFillColors = const <String, Color>{},
+    this.countryBorderColors = const <String, Color>{},
+    this.labelledCountryIds = const <String>{},
+    this.showTapSelection = true,
     this.preferProvidedAnswerCountry = false,
     this.resultRadiusInKilometers,
     this.hintCountryId,
@@ -32,6 +37,18 @@ class GeoPointMap extends StatefulWidget {
 
   final LatLng? answerPoint;
   final GeoCountry? answerCountry;
+  final List<GeoCountry> validatedCountries;
+
+  /// Couleurs pilotées par un mode de jeu externe, notamment les sélections
+  /// multiples Monnaies et Langues.
+  final Map<String, Color> countryFillColors;
+  final Map<String, Color> countryBorderColors;
+  final Set<String> labelledCountryIds;
+
+  /// Affiche le repère et la coloration orange de la sélection classique.
+  /// La valeur est fausse lorsque plusieurs pays sont sélectionnés depuis
+  /// l'écran parent.
+  final bool showTapSelection;
 
   /// Force l'utilisation du pays fourni comme bonne réponse.
   ///
@@ -394,11 +411,13 @@ class _GeoPointMapState extends State<GeoPointMap>
       '→ $candidateCount pays candidats',
     );
 
-    setState(() {
-      _selectedPoint = point;
-      _selectedCountry = country;
-      _candidateCount = candidateCount;
-    });
+    if (widget.showTapSelection) {
+      setState(() {
+        _selectedPoint = point;
+        _selectedCountry = country;
+        _candidateCount = candidateCount;
+      });
+    }
 
     widget.onTap?.call(point);
     widget.onCountrySelected?.call(country);
@@ -1419,6 +1438,19 @@ class _GeoPointMapState extends State<GeoPointMap>
         answerPolygons =
         <Polygon<Object>>[];
 
+    final List<Polygon<Object>>
+        validatedPolygons =
+        <Polygon<Object>>[];
+
+    final List<Polygon<Object>>
+        externallyColoredPolygons =
+        <Polygon<Object>>[];
+
+    final Set<String> validatedCountryIds = widget.validatedCountries
+        .map((GeoCountry country) => country.id.trim().toUpperCase())
+        .where((String id) => id.isNotEmpty)
+        .toSet();
+
     final GeoCountry? effectiveAnswer =
         _effectiveAnswerCountry;
 
@@ -1435,6 +1467,19 @@ class _GeoPointMapState extends State<GeoPointMap>
         country,
         effectiveAnswer,
       );
+
+      final bool isValidatedCountry = validatedCountryIds.contains(
+        country.id.trim().toUpperCase(),
+      );
+
+      final String normalizedCountryId =
+          country.id.trim().toUpperCase();
+      final Color? externalFillColor =
+          widget.countryFillColors[normalizedCountryId];
+      final Color externalBorderColor =
+          widget.countryBorderColors[normalizedCountryId] ??
+              externalFillColor ??
+              Colors.white;
 
       final String normalizedHintId =
           widget.hintCountryId
@@ -1478,6 +1523,18 @@ class _GeoPointMapState extends State<GeoPointMap>
 
       for (final List<LatLng> countryPolygon
           in country.polygons) {
+        if (externalFillColor != null) {
+          externallyColoredPolygons.add(
+            Polygon<Object>(
+              points: countryPolygon,
+              color: externalFillColor.withValues(alpha: 0.94),
+              borderColor: externalBorderColor,
+              borderStrokeWidth: 2.5,
+            ),
+          );
+          continue;
+        }
+
         final bool isSelectedTerritory =
             identical(
           countryPolygon,
@@ -1572,6 +1629,20 @@ class _GeoPointMapState extends State<GeoPointMap>
           continue;
         }
 
+        if (isValidatedCountry) {
+          validatedPolygons.add(
+            Polygon<Object>(
+              points: countryPolygon,
+              color: const Color(0xFF55D6A6)
+                  .withValues(alpha: 0.92),
+              borderColor: const Color(0xFF056F27),
+              borderStrokeWidth: 1.8,
+            ),
+          );
+
+          continue;
+        }
+
         normalPolygons.add(
           Polygon<Object>(
             points: countryPolygon,
@@ -1591,9 +1662,11 @@ class _GeoPointMapState extends State<GeoPointMap>
 
     return <Polygon<Object>>[
       ...normalPolygons,
+      ...validatedPolygons,
       ...hintPolygons,
       ...selectedPolygons,
       ...answerPolygons,
+      ...externallyColoredPolygons,
     ];
   }
 
@@ -1693,9 +1766,60 @@ class _GeoPointMapState extends State<GeoPointMap>
     ];
   }
 
-  List<Marker> _buildMarkers() {
+  List<Marker> _buildMarkers(
+    List<GeoCountry> countries,
+  ) {
     final List<Marker> markers =
         <Marker>[];
+
+    final Map<String, GeoCountry> countriesById = <String, GeoCountry>{
+      for (final GeoCountry country in countries)
+        country.id.trim().toUpperCase(): country,
+    };
+
+    final Set<String> labelledIds = widget.labelledCountryIds
+        .map((String id) => id.trim().toUpperCase())
+        .where((String id) => id.isNotEmpty)
+        .toSet();
+
+    for (final GeoCountry validatedCountry in widget.validatedCountries) {
+      final String countryId = validatedCountry.id.trim().toUpperCase();
+      final GeoCountry? country = countriesById[countryId];
+
+      if (country == null) {
+        continue;
+      }
+
+      markers.add(
+        Marker(
+          point: _labelPointForCountry(country),
+          width: 116,
+          height: 28,
+          alignment: Alignment.center,
+          child: _ValidatedCountryLabel(name: country.name),
+        ),
+      );
+    }
+
+    final Set<String> validatedIds = widget.validatedCountries
+        .map((GeoCountry country) => country.id.trim().toUpperCase())
+        .toSet();
+
+    for (final String countryId in labelledIds.difference(validatedIds)) {
+      final GeoCountry? country = countriesById[countryId];
+      if (country == null) {
+        continue;
+      }
+      markers.add(
+        Marker(
+          point: _labelPointForCountry(country),
+          width: 116,
+          height: 28,
+          alignment: Alignment.center,
+          child: _ValidatedCountryLabel(name: country.name),
+        ),
+      );
+    }
 
     final LatLng? selectedPoint =
         _selectedPoint;
@@ -1743,6 +1867,19 @@ class _GeoPointMapState extends State<GeoPointMap>
     }
 
     return markers;
+  }
+
+  LatLng _labelPointForCountry(GeoCountry country) {
+    final List<LatLng>? largestPolygon = _largestPolygon(country.polygons);
+
+    if (largestPolygon != null && largestPolygon.isNotEmpty) {
+      return _polygonBoundsCenter(largestPolygon);
+    }
+
+    return LatLng(
+      (country.bounds.minLatitude + country.bounds.maxLatitude) / 2,
+      (country.bounds.minLongitude + country.bounds.maxLongitude) / 2,
+    );
   }
 
   @override
@@ -1827,7 +1964,7 @@ class _GeoPointMapState extends State<GeoPointMap>
             _buildResultCircles();
 
         final List<Marker> markers =
-            _buildMarkers();
+            _buildMarkers(countries);
 
         return Stack(
           children: <Widget>[
@@ -1925,6 +2062,48 @@ class _GeoPointMapState extends State<GeoPointMap>
           ],
         );
       },
+    );
+  }
+}
+
+class _ValidatedCountryLabel extends StatelessWidget {
+  const _ValidatedCountryLabel({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 112),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        decoration: BoxDecoration(
+          color: const Color(0xFF063B2A).withValues(alpha: 0.88),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: const Color(0xFF8FF0C7).withValues(alpha: 0.88),
+          ),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.24),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            name,
+            maxLines: 1,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

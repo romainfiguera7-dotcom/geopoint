@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../features/atlas/atlas_personal_progress.dart';
+import '../features/atlas/atlas_personal_storage.dart';
 import '../features/design/geopoint_design.dart';
 import '../geo_engine/country_info.dart';
 import '../geo_engine/country_info_loader.dart';
@@ -31,6 +33,10 @@ class GameScreen extends StatefulWidget {
     this.continentExpeditionId,
     this.continentExpeditionName,
     this.continentLevel,
+    this.isTraining = false,
+    this.trainingQuestionCount = 10,
+    this.trainingRegionId = 'world',
+    this.completeTraining = false,
     super.key,
   });
 
@@ -51,6 +57,11 @@ class GameScreen extends StatefulWidget {
   final String? continentExpeditionName;
   final ContinentLevel? continentLevel;
 
+  final bool isTraining;
+  final int trainingQuestionCount;
+  final String trainingRegionId;
+  final bool completeTraining;
+
   @override
   State<GameScreen> createState() {
     return _GameScreenState();
@@ -67,6 +78,9 @@ class _GameScreenState extends State<GameScreen> {
   bool _missionRecordLoaded = false;
   Map<String, CountryInfo> _countryInfos =
       const <String, CountryInfo>{};
+  AtlasPersonalProgress _atlasProgress =
+      AtlasPersonalProgress.initial();
+  final Set<String> _savingAtlasCountryIds = <String>{};
 
   LatLng? _pendingSelectedPoint;
 
@@ -82,7 +96,15 @@ class _GameScreenState extends State<GameScreen> {
     final ContinentLevel? continentLevel =
         widget.continentLevel;
 
-    if (guidedLevel != null) {
+    if (widget.isTraining) {
+      _controller.startTrainingMission(
+        difficultyId: widget.difficultyId,
+        modeId: widget.modeId,
+        questionCount: widget.trainingQuestionCount,
+        regionId: widget.trainingRegionId,
+        completeRegion: widget.completeTraining,
+      );
+    } else if (guidedLevel != null) {
       _controller.startGuidedMission(
         guidedLevel,
       );
@@ -110,6 +132,10 @@ class _GameScreenState extends State<GameScreen> {
       _loadCountryInfos(),
     );
 
+    unawaited(
+      _loadAtlasProgress(),
+    );
+
     _controller.addListener(
       _handleControllerChanged,
     );
@@ -117,7 +143,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _loadMissionRecord() async {
-    if (widget.guidedLevel != null) {
+    if (widget.guidedLevel != null || widget.isTraining) {
       _missionRecordLoaded = true;
       return;
     }
@@ -186,6 +212,73 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  Future<void> _loadAtlasProgress() async {
+    final AtlasPersonalProgress progress =
+        await AtlasPersonalStorage.load();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _atlasProgress = progress;
+    });
+  }
+
+  Future<void> _toggleAtlasVisited(GeoCountry country) async {
+    await _saveAtlasProgress(
+      country,
+      _atlasProgress.toggleVisited(country.id),
+    );
+  }
+
+  Future<void> _toggleAtlasWishlist(GeoCountry country) async {
+    await _saveAtlasProgress(
+      country,
+      _atlasProgress.toggleWishlist(country.id),
+    );
+  }
+
+  Future<void> _saveAtlasProgress(
+    GeoCountry country,
+    AtlasPersonalProgress next,
+  ) async {
+    final String countryId = country.id.trim().toUpperCase();
+
+    if (countryId.isEmpty || _savingAtlasCountryIds.isNotEmpty) {
+      return;
+    }
+
+    setState(() {
+      _savingAtlasCountryIds.add(countryId);
+    });
+
+    final bool saved = await AtlasPersonalStorage.save(next);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      if (saved) {
+        _atlasProgress = next;
+      }
+      _savingAtlasCountryIds.remove(countryId);
+    });
+
+    if (!saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossible de sauvegarder ce pays pour le moment.'),
+        ),
+      );
+    }
+  }
+
+  bool get _isSavingAtlasCountry {
+    return _savingAtlasCountryIds.isNotEmpty;
+  }
+
   CountryInfo? _countryInfoFor(
     GeoCountry? country,
   ) {
@@ -237,7 +330,7 @@ class _GameScreenState extends State<GameScreen> {
 
     if (_controller.session.isLastQuestion &&
         _controller.hasAnswered) {
-      if (widget.guidedLevel == null) {
+      if (widget.guidedLevel == null && !widget.isTraining) {
         await _saveMissionProgress();
       }
 
@@ -263,6 +356,10 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   int _calculateEarnedStars() {
+    if (widget.isTraining) {
+      return 0;
+    }
+
     final ContinentLevel? continentLevel =
         widget.continentLevel;
 
@@ -397,6 +494,10 @@ class _GameScreenState extends State<GameScreen> {
   String _expeditionLabel(
     String difficultyId,
   ) {
+    if (widget.completeTraining) {
+      return 'Parcours complet';
+    }
+
     if (widget.guidedLevel != null) {
       return 'Tutoriel';
     }
@@ -471,7 +572,7 @@ class _GameScreenState extends State<GameScreen> {
      * du temps et de la precision, pas d'une carte rendue
      * artificiellement inutilisable.
      */
-    if (widget.modeId == 'mixed') {
+    if (widget.completeTraining || widget.modeId == 'mixed') {
       return 12;
     }
 
@@ -547,6 +648,8 @@ class _GameScreenState extends State<GameScreen> {
                     _controller.answerPoint,
                 answerCountry:
                     _controller.answerCountry,
+                validatedCountries:
+                    _controller.validatedCountries,
                 resultRadiusInKilometers:
                     _resultRadiusInKilometers(
                   question,
@@ -660,6 +763,27 @@ class _GameScreenState extends State<GameScreen> {
                             _controller.answerCountry,
                         answerCapitalName:
                             _controller.answerCapitalName,
+                        countryStatus:
+                            _controller.answerCountry == null
+                                ? AtlasCountryStatus.none
+                                : _atlasProgress.statusFor(
+                                    _controller.answerCountry!.id,
+                                  ),
+                        isSavingCountry:
+                            _controller.answerCountry != null &&
+                                _isSavingAtlasCountry,
+                        onToggleVisited:
+                            _controller.answerCountry == null
+                                ? null
+                                : () => _toggleAtlasVisited(
+                                      _controller.answerCountry!,
+                                    ),
+                        onToggleWishlist:
+                            _controller.answerCountry == null
+                                ? null
+                                : () => _toggleAtlasWishlist(
+                                      _controller.answerCountry!,
+                                    ),
                         isLastQuestion:
                             _controller
                                 .session
@@ -712,6 +836,27 @@ class _GameScreenState extends State<GameScreen> {
                   usesReferenceOverride:
                       _controller
                           .usesReferenceOverride,
+                  countryStatus:
+                      _controller.answerCountry == null
+                          ? AtlasCountryStatus.none
+                          : _atlasProgress.statusFor(
+                              _controller.answerCountry!.id,
+                            ),
+                  isSavingCountry:
+                      _controller.answerCountry != null &&
+                          _isSavingAtlasCountry,
+                  onToggleVisited:
+                      _controller.answerCountry == null
+                          ? null
+                          : () => _toggleAtlasVisited(
+                                _controller.answerCountry!,
+                              ),
+                  onToggleWishlist:
+                      _controller.answerCountry == null
+                          ? null
+                          : () => _toggleAtlasWishlist(
+                                _controller.answerCountry!,
+                              ),
                   isLastQuestion:
                       _controller
                           .session
@@ -787,6 +932,18 @@ class _GameScreenState extends State<GameScreen> {
                       _controller
                           .playerProfile
                           .levelProgress,
+                  isTraining:
+                      widget.isTraining,
+                  encounteredCountries:
+                      _controller.encounteredCountries,
+                  atlasProgress:
+                      _atlasProgress,
+                  savingAtlasCountryIds:
+                      _savingAtlasCountryIds,
+                  onToggleVisited:
+                      _toggleAtlasVisited,
+                  onToggleWishlist:
+                      _toggleAtlasWishlist,
                   onBackToHome:
                       _handleBackToHome,
                       ),
@@ -1055,6 +1212,10 @@ class _TutorialResultPanel
     required this.isCorrect,
     required this.answerCountry,
     required this.answerCapitalName,
+    required this.countryStatus,
+    required this.isSavingCountry,
+    required this.onToggleVisited,
+    required this.onToggleWishlist,
     required this.isLastQuestion,
     required this.onNext,
   });
@@ -1063,6 +1224,10 @@ class _TutorialResultPanel
   final bool isCorrect;
   final GeoCountry? answerCountry;
   final String? answerCapitalName;
+  final AtlasCountryStatus countryStatus;
+  final bool isSavingCountry;
+  final VoidCallback? onToggleVisited;
+  final VoidCallback? onToggleWishlist;
   final bool isLastQuestion;
   final VoidCallback onNext;
 
@@ -1145,6 +1310,17 @@ class _TutorialResultPanel
             ],
           ),
           const SizedBox(height: 13),
+          if (answerCountry != null &&
+              onToggleVisited != null &&
+              onToggleWishlist != null) ...<Widget>[
+            _GameTravelActions(
+              status: countryStatus,
+              busy: isSavingCountry,
+              onToggleVisited: onToggleVisited!,
+              onToggleWishlist: onToggleWishlist!,
+            ),
+            const SizedBox(height: 10),
+          ],
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
@@ -1183,6 +1359,10 @@ class _ResultPanel extends StatelessWidget {
     required this.answerReferencePointTypeLabel,
     required this.answerOfficialCapitalName,
     required this.usesReferenceOverride,
+    required this.countryStatus,
+    required this.isSavingCountry,
+    required this.onToggleVisited,
+    required this.onToggleWishlist,
     required this.isLastQuestion,
     required this.isCollapsed,
     required this.onToggleCollapsed,
@@ -1207,6 +1387,10 @@ class _ResultPanel extends StatelessWidget {
   final String? answerOfficialCapitalName;
 
   final bool usesReferenceOverride;
+  final AtlasCountryStatus countryStatus;
+  final bool isSavingCountry;
+  final VoidCallback? onToggleVisited;
+  final VoidCallback? onToggleWishlist;
   final bool isLastQuestion;
   final bool isCollapsed;
 
@@ -1863,6 +2047,18 @@ class _ResultPanel extends StatelessWidget {
               ),
             ),
 
+            if (answerCountry != null &&
+                onToggleVisited != null &&
+                onToggleWishlist != null) ...<Widget>[
+              const SizedBox(height: 10),
+              _GameTravelActions(
+                status: countryStatus,
+                busy: isSavingCountry,
+                onToggleVisited: onToggleVisited!,
+                onToggleWishlist: onToggleWishlist!,
+              ),
+            ],
+
             const SizedBox(height: 10),
 
             Text(
@@ -1969,6 +2165,105 @@ class _ResultPanel extends StatelessWidget {
     return const Color(0xFFFF9F68);
   }
 
+}
+
+class _GameTravelActions extends StatelessWidget {
+  const _GameTravelActions({
+    required this.status,
+    required this.busy,
+    required this.onToggleVisited,
+    required this.onToggleWishlist,
+  });
+
+  final AtlasCountryStatus status;
+  final bool busy;
+  final VoidCallback onToggleVisited;
+  final VoidCallback onToggleWishlist;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: _GameTravelButton(
+            label: 'VISITÉ',
+            icon: Icons.flight_takeoff_rounded,
+            active: status == AtlasCountryStatus.visited,
+            activeColor: const Color(0xFF55D6A6),
+            busy: busy,
+            onPressed: onToggleVisited,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _GameTravelButton(
+            label: 'À VISITER',
+            icon: Icons.favorite_rounded,
+            active: status == AtlasCountryStatus.wishlist,
+            activeColor: const Color(0xFFFF756B),
+            busy: busy,
+            onPressed: onToggleWishlist,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GameTravelButton extends StatelessWidget {
+  const _GameTravelButton({
+    required this.label,
+    required this.icon,
+    required this.active,
+    required this.activeColor,
+    required this.busy,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool active;
+  final Color activeColor;
+  final bool busy;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.icon(
+      onPressed: busy ? null : onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: active
+            ? activeColor
+            : Colors.white.withValues(alpha: 0.10),
+        foregroundColor: active ? GeoColors.navy : Colors.white,
+        disabledBackgroundColor: Colors.white.withValues(alpha: 0.06),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(13),
+          side: BorderSide(
+            color: active ? activeColor : Colors.white24,
+          ),
+        ),
+        elevation: 0,
+      ),
+      icon: busy
+          ? const SizedBox(
+              width: 15,
+              height: 15,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(icon, size: 17),
+      label: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
 }
 
 
@@ -2146,6 +2441,12 @@ class _GameOverPanel extends StatelessWidget {
     required this.playerLevel,
     required this.playerTitle,
     required this.levelProgress,
+    required this.isTraining,
+    required this.encounteredCountries,
+    required this.atlasProgress,
+    required this.savingAtlasCountryIds,
+    required this.onToggleVisited,
+    required this.onToggleWishlist,
     required this.onBackToHome,
   });
 
@@ -2170,6 +2471,13 @@ class _GameOverPanel extends StatelessWidget {
   final int playerLevel;
   final String playerTitle;
   final double levelProgress;
+  final bool isTraining;
+
+  final List<GeoCountry> encounteredCountries;
+  final AtlasPersonalProgress atlasProgress;
+  final Set<String> savingAtlasCountryIds;
+  final Future<void> Function(GeoCountry) onToggleVisited;
+  final Future<void> Function(GeoCountry) onToggleWishlist;
 
   final VoidCallback onBackToHome;
 
@@ -2232,6 +2540,14 @@ class _GameOverPanel extends StatelessWidget {
         passportResult?.newMedal.label
             ?? '';
 
+    final Set<String> displayedCountryIds = <String>{};
+    final List<GeoCountry> displayedCountries = encounteredCountries.where(
+      (GeoCountry country) {
+        final String id = country.id.trim().toUpperCase();
+        return id.isNotEmpty && displayedCountryIds.add(id);
+      },
+    ).toList(growable: false);
+
     return ColoredBox(
       color: Colors.black.withValues(
         alpha: 0.72,
@@ -2283,7 +2599,9 @@ class _GameOverPanel extends StatelessWidget {
                   const SizedBox(height: 8),
 
                   Text(
-                    'PARTIE TERMINÉE',
+                    isTraining
+                        ? 'ENTRAÎNEMENT TERMINÉ'
+                        : 'PARTIE TERMINÉE',
                     textAlign:
                         TextAlign.center,
                     style: TextStyle(
@@ -2296,24 +2614,25 @@ class _GameOverPanel extends StatelessWidget {
 
                   const SizedBox(height: 8),
 
-                  Text(
-                    _starText(
-                      earnedStars,
-                    ),
-                    textAlign:
-                        TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(
-                        0xFFFFD166,
+                  if (!isTraining) ...<Widget>[
+                    Text(
+                      _starText(
+                        earnedStars,
                       ),
-                      fontSize: 34,
-                      fontWeight:
-                          FontWeight.w900,
-                      letterSpacing: 4,
+                      textAlign:
+                          TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(
+                          0xFFFFD166,
+                        ),
+                        fontSize: 34,
+                        fontWeight:
+                            FontWeight.w900,
+                        letterSpacing: 4,
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(height: 13),
+                    const SizedBox(height: 13),
+                  ],
 
                   Text(
                     '$totalScore / '
@@ -2346,6 +2665,45 @@ class _GameOverPanel extends StatelessWidget {
 
                   const SizedBox(height: 12),
 
+                  if (isTraining)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 11,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF55D6A6)
+                            .withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: const Color(0xFF55D6A6)
+                              .withValues(alpha: 0.45),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(
+                            Icons.gps_fixed_rounded,
+                            color: Color(0xFF55D6A6),
+                          ),
+                          SizedBox(width: 9),
+                          Flexible(
+                            child: Text(
+                              'SESSION LIBRE • PROGRESSION INCHANGÉE',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFF55D6A6),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
                   Container(
                     width: double.infinity,
                     padding:
@@ -2406,7 +2764,8 @@ class _GameOverPanel extends StatelessWidget {
                     ),
                   ),
 
-                  if (hasMedalUpgrade &&
+                  if (!isTraining &&
+                      hasMedalUpgrade &&
                       medalLabel.isNotEmpty)
                     ...<Widget>[
                       const SizedBox(
@@ -2472,6 +2831,7 @@ class _GameOverPanel extends StatelessWidget {
                       ),
                     ],
 
+                  if (!isTraining) ...<Widget>[
                   const SizedBox(height: 16),
 
                   Container(
@@ -2562,6 +2922,7 @@ class _GameOverPanel extends StatelessWidget {
                       ],
                     ),
                   ),
+                  ],
 
                   const SizedBox(height: 18),
 
@@ -2611,6 +2972,30 @@ class _GameOverPanel extends StatelessWidget {
                         '$worstScore points',
                   ),
 
+                  if (displayedCountries.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 18),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'PAYS RENCONTRÉS',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.72),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 9),
+                    _MissionTravelCountries(
+                      countries: displayedCountries,
+                      progress: atlasProgress,
+                      savingCountryIds: savingAtlasCountryIds,
+                      onToggleVisited: onToggleVisited,
+                      onToggleWishlist: onToggleWishlist,
+                    ),
+                  ],
+
                   const SizedBox(height: 18),
 
                   SizedBox(
@@ -2633,6 +3018,149 @@ class _GameOverPanel extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _MissionTravelCountries extends StatelessWidget {
+  const _MissionTravelCountries({
+    required this.countries,
+    required this.progress,
+    required this.savingCountryIds,
+    required this.onToggleVisited,
+    required this.onToggleWishlist,
+  });
+
+  final List<GeoCountry> countries;
+  final AtlasPersonalProgress progress;
+  final Set<String> savingCountryIds;
+  final Future<void> Function(GeoCountry) onToggleVisited;
+  final Future<void> Function(GeoCountry) onToggleWishlist;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        children: <Widget>[
+          for (int index = 0; index < countries.length; index++) ...<Widget>[
+            _MissionTravelCountryRow(
+              country: countries[index],
+              status: progress.statusFor(countries[index].id),
+              busy: savingCountryIds.isNotEmpty,
+              onToggleVisited: () => onToggleVisited(countries[index]),
+              onToggleWishlist: () => onToggleWishlist(countries[index]),
+            ),
+            if (index < countries.length - 1)
+              const Divider(height: 1, color: Colors.white12),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _MissionTravelCountryRow extends StatelessWidget {
+  const _MissionTravelCountryRow({
+    required this.country,
+    required this.status,
+    required this.busy,
+    required this.onToggleVisited,
+    required this.onToggleWishlist,
+  });
+
+  final GeoCountry country;
+  final AtlasCountryStatus status;
+  final bool busy;
+  final VoidCallback onToggleVisited;
+  final VoidCallback onToggleWishlist;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 7, 7, 7),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              country.displayNameWithFlag,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          _MissionStatusButton(
+            icon: Icons.flight_takeoff_rounded,
+            tooltip: 'Pays visité',
+            active: status == AtlasCountryStatus.visited,
+            activeColor: const Color(0xFF55D6A6),
+            busy: busy,
+            onPressed: onToggleVisited,
+          ),
+          const SizedBox(width: 4),
+          _MissionStatusButton(
+            icon: Icons.favorite_rounded,
+            tooltip: 'À visiter',
+            active: status == AtlasCountryStatus.wishlist,
+            activeColor: const Color(0xFFFF756B),
+            busy: busy,
+            onPressed: onToggleWishlist,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MissionStatusButton extends StatelessWidget {
+  const _MissionStatusButton({
+    required this.icon,
+    required this.tooltip,
+    required this.active,
+    required this.activeColor,
+    required this.busy,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final bool active;
+  final Color activeColor;
+  final bool busy;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 38,
+      height: 38,
+      child: IconButton(
+        onPressed: busy ? null : onPressed,
+        tooltip: tooltip,
+        style: IconButton.styleFrom(
+          backgroundColor: active
+              ? activeColor
+              : Colors.white.withValues(alpha: 0.08),
+          foregroundColor: active ? GeoColors.navy : Colors.white70,
+          disabledBackgroundColor: Colors.white.withValues(alpha: 0.04),
+          padding: EdgeInsets.zero,
+        ),
+        icon: busy
+            ? const SizedBox(
+                width: 15,
+                height: 15,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(icon, size: 18),
       ),
     );
   }

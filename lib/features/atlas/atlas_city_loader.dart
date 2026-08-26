@@ -7,7 +7,7 @@ import 'atlas_city.dart';
 class AtlasCityLoader {
   AtlasCityLoader._();
 
-  static const String _assetPath = 'assets/data/atlas_cities.json';
+  static const String _assetPath = 'assets/data/major_cities.json';
 
   static Future<List<AtlasCity>>? _citiesFuture;
 
@@ -24,7 +24,7 @@ class AtlasCityLoader {
 
     if (decoded is! List) {
       throw const FormatException(
-        'atlas_cities.json doit contenir une liste.',
+        'major_cities.json doit contenir une liste.',
       );
     }
 

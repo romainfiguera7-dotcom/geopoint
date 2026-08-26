@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "lastVerified": "2026-08-25",
+  "countries": [
+    {
+      "entityId": "FRA",
+      "regionIds": [
+        "FRA-ARA",
+        "FRA-BFC",
+        "FRA-BRE",
+        "FRA-CVL",
+        "FRA-COR",
+        "FRA-GES",
+        "FRA-HDF",
+        "FRA-IDF",
+        "FRA-NOR",
+        "FRA-NAQ",
+        "FRA-OCC",
+        "FRA-PDL",
+        "FRA-PAC",
+        "FRA-GUA",
+        "FRA-MQ",
+        "FRA-GF",
+        "FRA-RE",
+        "FRA-YT"
+      ],
+      "cityIds": ["2988507", "2995469", "2996944", "2972315"],
+      "featureIds": [
+        "seine-river",
+        "mont-blanc",
+        "eiffel-tower",
+        "english-channel",
+        "lascaux-cave",
+        "french-gastronomic-meal"
+      ]
+    }
+  ],
+  "regions": [
+    {"id":"FRA-ARA","countryId":"FRA","name":"Auvergne-Rhône-Alpes","kind":"administrative_region","position":{"latitude":45.45,"longitude":4.39}},
+    {"id":"FRA-BFC","countryId":"FRA","name":"Bourgogne-Franche-Comté","kind":"administrative_region","position":{"latitude":47.24,"longitude":4.81}},
+    {"id":"FRA-BRE","countryId":"FRA","name":"Bretagne","kind":"administrative_region","position":{"latitude":48.20,"longitude":-2.93}},
+    {"id":"FRA-CVL","countryId":"FRA","name":"Centre-Val de Loire","kind":"administrative_region","position":{"latitude":47.50,"longitude":1.75}},
+    {"id":"FRA-COR","countryId":"FRA","name":"Corse","kind":"collectivite_unique","position":{"latitude":42.15,"longitude":9.10}},
+    {"id":"FRA-GES","countryId":"FRA","name":"Grand Est","kind":"administrative_region","position":{"latitude":48.69,"longitude":5.62}},
+    {"id":"FRA-HDF","countryId":"FRA","name":"Hauts-de-France","kind":"administrative_region","position":{"latitude":49.97,"longitude":2.78}},
+    {"id":"FRA-IDF","countryId":"FRA","name":"Île-de-France","kind":"administrative_region","position":{"latitude":48.85,"longitude":2.35}},
+    {"id":"FRA-NOR","countryId":"FRA","name":"Normandie","kind":"administrative_region","position":{"latitude":49.12,"longitude":0.31}},
+    {"id":"FRA-NAQ","countryId":"FRA","name":"Nouvelle-Aquitaine","kind":"administrative_region","position":{"latitude":45.19,"longitude":0.24}},
+    {"id":"FRA-OCC","countryId":"FRA","name":"Occitanie","kind":"administrative_region","position":{"latitude":43.70,"longitude":2.14}},
+    {"id":"FRA-PDL","countryId":"FRA","name":"Pays de la Loire","kind":"administrative_region","position":{"latitude":47.47,"longitude":-0.83}},
+    {"id":"FRA-PAC","countryId":"FRA","name":"Provence-Alpes-Côte d’Azur","kind":"administrative_region","position":{"latitude":43.94,"longitude":6.07}},
+    {"id":"FRA-GUA","countryId":"FRA","name":"Guadeloupe","kind":"overseas_region","position":{"latitude":16.25,"longitude":-61.58}},
+    {"id":"FRA-MQ","countryId":"FRA","name":"Martinique","kind":"collectivite_unique","position":{"latitude":14.64,"longitude":-61.02}},
+    {"id":"FRA-GF","countryId":"FRA","name":"Guyane","kind":"collectivite_unique","position":{"latitude":3.93,"longitude":-53.13}},
+    {"id":"FRA-RE","countryId":"FRA","name":"La Réunion","kind":"overseas_region","position":{"latitude":-21.13,"longitude":55.53}},
+    {"id":"FRA-YT","countryId":"FRA","name":"Mayotte","kind":"overseas_region","position":{"latitude":-12.83,"longitude":45.17}}
+  ],
+  "features": [
+    {
+      "id": "seine-river",
+      "type": "river",
+      "name": "Seine",
+      "countryIds": ["FRA"],
+      "regionIdsByCountry": {"FRA": ["FRA-BFC", "FRA-IDF", "FRA-NOR"]},
+      "position": {"latitude": 48.39, "longitude": 2.96},
+      "shortDescription": "La Seine traverse notamment Paris avant de rejoindre la Manche au Havre.",
+      "difficulty": "easy",
+      "aliases": [],
+      "quizEligible": true,
+      "sources": ["Référentiel géographique national à vérifier avant publication"]
+    },
+    {
+      "id": "mont-blanc",
+      "type": "mountain",
+      "name": "Mont Blanc",
+      "countryIds": ["FRA", "ITA"],
+      "regionIdsByCountry": {"FRA": ["FRA-ARA"]},
+      "position": {"latitude": 45.8326, "longitude": 6.8652},
+      "shortDescription": "Le Mont Blanc est le sommet le plus élevé des Alpes, à la frontière franco-italienne.",
+      "difficulty": "easy",
+      "aliases": ["Monte Bianco"],
+      "quizEligible": true,
+      "sources": ["Référentiel géographique national à vérifier avant publication"]
+    },
+    {
+      "id": "eiffel-tower",
+      "type": "monument",
+      "name": "Tour Eiffel",
+      "countryIds": ["FRA"],
+      "regionIdsByCountry": {"FRA": ["FRA-IDF"]},
+      "position": {"latitude": 48.8584, "longitude": 2.2945},
+      "shortDescription": "Construite pour l’Exposition universelle de 1889, la tour Eiffel est l’un des monuments les plus connus de France.",
+      "difficulty": "easy",
+      "aliases": ["Dame de fer"],
+      "quizEligible": true,
+      "sources": ["Référentiel patrimonial national à vérifier avant publication"]
+    },
+    {
+      "id": "english-channel",
+      "type": "sea",
+      "name": "Manche",
+      "countryIds": ["FRA", "GBR"],
+      "regionIdsByCountry": {"FRA": ["FRA-BRE", "FRA-NOR", "FRA-HDF"]},
+      "position": {"latitude": 49.50, "longitude": -1.00},
+      "shortDescription": "La Manche sépare la France du Royaume-Uni et relie l’océan Atlantique à la mer du Nord.",
+      "difficulty": "easy",
+      "aliases": ["English Channel"],
+      "quizEligible": true,
+      "sources": ["Référentiel maritime national à vérifier avant publication"]
+    },
+    {
+      "id": "lascaux-cave",
+      "type": "historic_site",
+      "name": "Grotte de Lascaux",
+      "countryIds": ["FRA"],
+      "regionIdsByCountry": {"FRA": ["FRA-NAQ"]},
+      "position": {"latitude": 45.0534, "longitude": 1.1685},
+      "shortDescription": "Lascaux est célèbre pour ses peintures et gravures préhistoriques du Paléolithique supérieur.",
+      "difficulty": "intermediate",
+      "aliases": [],
+      "quizEligible": true,
+      "sources": ["Référentiel patrimonial national à vérifier avant publication"]
+    },
+    {
+      "id": "french-gastronomic-meal",
+      "type": "cultural_specialty",
+      "name": "Repas gastronomique des Français",
+      "countryIds": ["FRA"],
+      "regionIdsByCountry": {"FRA": []},
+      "shortDescription": "Cette pratique sociale met en valeur le choix des produits, l’accord des mets et le plaisir de partager un repas.",
+      "difficulty": "intermediate",
+      "aliases": ["gastronomie française"],
+      "quizEligible": true,
+      "sources": ["Référentiel culturel national à vérifier avant publication"]
+    }
+  ]
+}

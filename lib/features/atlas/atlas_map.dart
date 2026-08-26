@@ -202,8 +202,8 @@ class AtlasMapState extends State<AtlasMap> {
     double nearestDistanceSquared = 24 * 24;
 
     for (final AtlasCity city in widget.selectedCountryCities) {
-      if (city.population < _minimumVisibleCityPopulation) {
-        break;
+      if (!_isCityVisibleAtCurrentZoom(city)) {
+        continue;
       }
 
       final Offset cityPixel = camera.projectAtZoom(city.position);
@@ -285,6 +285,11 @@ class AtlasMapState extends State<AtlasMap> {
     }
 
     return 100000;
+  }
+
+  bool _isCityVisibleAtCurrentZoom(AtlasCity city) {
+    return city.isCapital ||
+        city.population >= _minimumVisibleCityPopulation;
   }
 
   bool _shouldShowCountryLabel(GeoCountry country) {
@@ -468,8 +473,8 @@ class AtlasMapState extends State<AtlasMap> {
     final List<CircleMarker<Object>> circles = <CircleMarker<Object>>[];
 
     for (final AtlasCity city in widget.selectedCountryCities) {
-      if (city.population < minimumPopulation) {
-        break;
+      if (city.population < minimumPopulation && !city.isCapital) {
+        continue;
       }
 
       if (!_isVisible(city.position)) {
@@ -501,7 +506,7 @@ class AtlasMapState extends State<AtlasMap> {
     final MapCamera camera = _mapController.camera;
     final List<AtlasCity> candidates = widget.selectedCountryCities
         .where((AtlasCity city) {
-          return city.population >= minimumPopulation &&
+          return (city.population >= minimumPopulation || city.isCapital) &&
               _isVisible(city.position);
         })
         .toList(growable: false);
@@ -666,7 +671,8 @@ class AtlasMapState extends State<AtlasMap> {
               widget.selectedCountry == null
                   ? 'Touchez un pays pour afficher ses villes'
                   : '${widget.selectedCountryCities.length} villes • '
-                      'touchez un point • ≥ ${_populationThresholdLabel()}',
+                      'capitales toujours visibles • '
+                      '≥ ${_populationThresholdLabel()}',
               style: GoogleFonts.nunitoSans(
                 color: Colors.white,
                 fontSize: 10,

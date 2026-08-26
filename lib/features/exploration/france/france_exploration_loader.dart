@@ -17,13 +17,16 @@ class FranceExplorationLoader {
   static Future<FranceExplorationData> _load() async {
     final List<String> sources = await Future.wait(<Future<String>>[
       rootBundle.loadString('assets/data/france_regions.geojson'),
+      rootBundle.loadString('assets/data/france_departments.geojson'),
       rootBundle.loadString('assets/data/france_exploration_items.json'),
     ]);
 
     final Map<String, dynamic> regionJson =
         _object(jsonDecode(sources[0]), 'france_regions.geojson');
+    final Map<String, dynamic> departmentJson =
+        _object(jsonDecode(sources[1]), 'france_departments.geojson');
     final Map<String, dynamic> itemJson =
-        _object(jsonDecode(sources[1]), 'france_exploration_items.json');
+        _object(jsonDecode(sources[2]), 'france_exploration_items.json');
 
     final List<FranceRegionShape> regions = <FranceRegionShape>[];
     final Object? rawFeatures = regionJson['features'];
@@ -52,6 +55,38 @@ class FranceExplorationLoader {
       }
     }
 
+    final List<FranceDepartmentShape> departments =
+        <FranceDepartmentShape>[];
+    final Object? rawDepartments = departmentJson['features'];
+    if (rawDepartments is List) {
+      for (final Object? rawFeature in rawDepartments) {
+        if (rawFeature is! Map) {
+          continue;
+        }
+        final Map<String, dynamic> feature = _map(rawFeature);
+        final Map<String, dynamic> properties =
+            _object(feature['properties'], 'propriétés de département');
+        final Map<String, dynamic> geometry =
+            _object(feature['geometry'], 'géométrie de département');
+        final List<List<LatLng>> polygons = _readPolygons(geometry);
+        final String code = properties['code']?.toString() ?? '';
+        final String name = properties['nom']?.toString() ?? '';
+        final String regionCode = properties['region']?.toString() ?? '';
+        if (code.isEmpty || name.isEmpty || polygons.isEmpty) {
+          continue;
+        }
+        departments.add(
+          FranceDepartmentShape(
+            code: code,
+            name: name,
+            regionCode: regionCode,
+            polygons: List<List<LatLng>>.unmodifiable(polygons),
+            center: _center(polygons),
+          ),
+        );
+      }
+    }
+
     final List<FranceExplorationItem> items = <FranceExplorationItem>[];
     final Object? rawItems = itemJson['items'];
     if (rawItems is List) {
@@ -61,11 +96,12 @@ class FranceExplorationLoader {
         }
       }
     }
-    if (regions.isEmpty || items.isEmpty) {
+    if (regions.isEmpty || departments.isEmpty || items.isEmpty) {
       throw const FormatException('Les données de la France sont vides.');
     }
     return FranceExplorationData(
       regions: List<FranceRegionShape>.unmodifiable(regions),
+      departments: List<FranceDepartmentShape>.unmodifiable(departments),
       items: List<FranceExplorationItem>.unmodifiable(items),
     );
   }

@@ -459,54 +459,97 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
       ],
       lines: lines,
       points: points,
-      backgroundColor: const Color(0xFF67B7D1),
+      backgroundColor: const Color(0xFF096B91),
       onShapeTap: multiSelect ? _toggleCountrySelection : null,
       onPositionTap: multiSelect ? null : _answerPlacement,
       interactive: !_answered,
       maximumZoom: multiSelect ? 10 : _maximumVectorZoom,
+      initialZoom: 1.08,
     );
 
-    return Stack(
-      children: <Widget>[
-        Positioned.fill(
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      child: Stack(
+        children: <Widget>[
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: map,
             ),
-            child: map,
           ),
-        ),
-        if (multiSelect && !_answered)
           Positioned(
+            top: 12,
             left: 12,
-            right: 12,
-            bottom: 12,
-            child: _MultiSelectionBar(
-              selectedCount: _selectedCountryIds.length,
-              onValidate: _selectedCountryIds.isEmpty
-                  ? null
-                  : _validateCountrySelection,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+              decoration: BoxDecoration(
+                color: const Color(0xE6071B3A),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white24),
+              ),
+              child: Text(
+                _mapZoneLabel,
+                style: GoogleFonts.nunitoSans(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.7,
+                ),
+              ),
             ),
           ),
-        if (_answered)
-          Positioned(
-            left: 12,
-            right: 12,
-            bottom: 12,
-            child: _AnswerExplanation(
-              correct: multiSelect
-                  ? exactSelection
-                  : (_lastDistanceKilometers ?? double.infinity) <=
-                      _placementValidationRadius,
-              score: _lastScore,
-              explanation: question.explanation,
-              distanceKilometers: _lastDistanceKilometers,
-              onNext: _nextQuestion,
-              lastQuestion: _questionNumber >= widget.questionCount,
+          if (multiSelect && !_answered)
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: _MultiSelectionBar(
+                selectedCount: _selectedCountryIds.length,
+                onValidate: _selectedCountryIds.isEmpty
+                    ? null
+                    : _validateCountrySelection,
+              ),
             ),
-          ),
-      ],
+          if (_answered)
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: _AnswerExplanation(
+                correct: multiSelect
+                    ? exactSelection
+                    : (_lastDistanceKilometers ?? double.infinity) <=
+                        _placementValidationRadius,
+                score: _lastScore,
+                explanation: question.explanation,
+                distanceKilometers: _lastDistanceKilometers,
+                onNext: _nextQuestion,
+                lastQuestion: _questionNumber >= widget.questionCount,
+              ),
+            ),
+        ],
+      ),
     );
+  }
+
+  String get _mapZoneLabel {
+    switch (widget.regionId) {
+      case 'europe':
+        return 'EUROPE';
+      case 'africa':
+        return 'AFRIQUE';
+      case 'asia':
+        return 'ASIE';
+      case 'americas':
+        return 'AMÉRIQUES';
+      case 'oceania':
+        return 'OCÉANIE';
+      case 'antarctica':
+        return 'ANTARCTIQUE';
+      default:
+        return 'CARTE DU MONDE';
+    }
   }
 
   GeoVectorBounds get _vectorBoundsForRegion {

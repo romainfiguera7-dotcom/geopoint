@@ -78,6 +78,9 @@ class GeoVectorMap extends StatefulWidget {
     this.onPositionTap,
     this.interactive = true,
     this.maximumZoom = 12,
+    this.initialZoom = 1,
+    this.showControls = true,
+    this.showGrid = true,
     super.key,
   });
 
@@ -91,6 +94,9 @@ class GeoVectorMap extends StatefulWidget {
   final ValueChanged<LatLng>? onPositionTap;
   final bool interactive;
   final double maximumZoom;
+  final double initialZoom;
+  final bool showControls;
+  final bool showGrid;
 
   @override
   State<GeoVectorMap> createState() => _GeoVectorMapState();
@@ -128,7 +134,29 @@ class _GeoVectorMapState extends State<GeoVectorMap> {
     _centerLongitude =
         (widget.initialBounds.minLongitude + widget.initialBounds.maxLongitude) /
             2;
-    _zoom = 1;
+    _zoom = widget.initialZoom.clamp(1.0, widget.maximumZoom).toDouble();
+  }
+
+  void _zoomBy(double factor) {
+    setState(() {
+      _zoom = (_zoom * factor).clamp(1.0, widget.maximumZoom).toDouble();
+    });
+  }
+
+  void _resetFromControl() {
+    setState(_resetView);
+  }
+
+  double get _longitudeFactor {
+    final double referenceLatitude =
+        (widget.initialBounds.minLatitude +
+                widget.initialBounds.maxLatitude) /
+            2;
+    return math
+        .cos(referenceLatitude * math.pi / 180)
+        .abs()
+        .clamp(0.24, 1.0)
+        .toDouble();
   }
 
   double _baseScale(Size size) {
@@ -139,7 +167,8 @@ class _GeoVectorMapState extends State<GeoVectorMap> {
     final double longitudeSpan = math.max(
       0.1,
       widget.initialBounds.maxLongitude - widget.initialBounds.minLongitude,
-    );
+    ) *
+        _longitudeFactor;
     return math.min(
           size.width / longitudeSpan,
           size.height / latitudeSpan,
@@ -169,7 +198,8 @@ class _GeoVectorMapState extends State<GeoVectorMap> {
     setState(() {
       _zoom = nextZoom;
       _centerLongitude =
-          (_startCenterLongitude - movement.dx / pixelsPerDegree)
+          (_startCenterLongitude -
+                  movement.dx / (pixelsPerDegree * _longitudeFactor))
               .clamp(-180.0, 180.0)
               .toDouble();
       _centerLatitude =
@@ -190,7 +220,7 @@ class _GeoVectorMapState extends State<GeoVectorMap> {
               pixelsPerDegree,
       _centerLongitude +
           (details.localPosition.dx - _lastSize.width / 2) /
-              pixelsPerDegree,
+              (pixelsPerDegree * _longitudeFactor),
     );
     widget.onPositionTap?.call(position);
     widget.onShapeTap?.call(_shapeAt(position));
@@ -264,32 +294,45 @@ class _GeoVectorMapState extends State<GeoVectorMap> {
         );
         _lastSize = size;
         return RepaintBoundary(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onScaleStart: _handleScaleStart,
-            onScaleUpdate: _handleScaleUpdate,
-            onTapUp: _handleTap,
-            onDoubleTap: widget.interactive
-                ? () {
-                    setState(() {
-                      _zoom = (_zoom * 1.7)
-                          .clamp(1.0, widget.maximumZoom)
-                          .toDouble();
-                    });
-                  }
-                : null,
-            child: CustomPaint(
-              size: size,
-              painter: _GeoVectorPainter(
-                centerLatitude: _centerLatitude,
-                centerLongitude: _centerLongitude,
-                pixelsPerDegree: _baseScale(size) * _zoom,
-                shapes: widget.shapes,
-                lines: widget.lines,
-                points: widget.points,
-                backgroundColor: widget.backgroundColor,
+          child: Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onScaleStart: _handleScaleStart,
+                  onScaleUpdate: _handleScaleUpdate,
+                  onTapUp: _handleTap,
+                  onDoubleTap: widget.interactive
+                      ? () => _zoomBy(1.7)
+                      : null,
+                  child: CustomPaint(
+                    size: size,
+                    painter: _GeoVectorPainter(
+                      centerLatitude: _centerLatitude,
+                      centerLongitude: _centerLongitude,
+                      pixelsPerDegree: _baseScale(size) * _zoom,
+                      longitudeFactor: _longitudeFactor,
+                      shapes: widget.shapes,
+                      lines: widget.lines,
+                      points: widget.points,
+                      backgroundColor: widget.backgroundColor,
+                      bounds: widget.initialBounds,
+                      showGrid: widget.showGrid,
+                    ),
+                  ),
+                ),
               ),
-            ),
+              if (widget.interactive && widget.showControls)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: _MapControls(
+                    onZoomIn: () => _zoomBy(1.5),
+                    onZoomOut: () => _zoomBy(1 / 1.5),
+                    onReset: _resetFromControl,
+                  ),
+                ),
+            ],
           ),
         );
       },
@@ -302,24 +345,32 @@ class _GeoVectorPainter extends CustomPainter {
     required this.centerLatitude,
     required this.centerLongitude,
     required this.pixelsPerDegree,
+    required this.longitudeFactor,
     required this.shapes,
     required this.lines,
     required this.points,
     required this.backgroundColor,
+    required this.bounds,
+    required this.showGrid,
   });
 
   final double centerLatitude;
   final double centerLongitude;
   final double pixelsPerDegree;
+  final double longitudeFactor;
   final List<GeoVectorShape> shapes;
   final List<GeoVectorLine> lines;
   final List<GeoVectorPoint> points;
   final Color backgroundColor;
+  final GeoVectorBounds bounds;
+  final bool showGrid;
 
   Offset _project(LatLng point, Size size) {
     return Offset(
       size.width / 2 +
-          (point.longitude - centerLongitude) * pixelsPerDegree,
+          (point.longitude - centerLongitude) *
+              pixelsPerDegree *
+              longitudeFactor,
       size.height / 2 -
           (point.latitude - centerLatitude) * pixelsPerDegree,
     );
@@ -342,9 +393,27 @@ class _GeoVectorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = backgroundColor);
+    final Rect mapRect = Offset.zero & size;
+    canvas.drawRect(
+      mapRect,
+      Paint()
+        ..shader = ui.Gradient.linear(
+          Offset.zero,
+          Offset(size.width, size.height),
+          <Color>[
+            Color.lerp(backgroundColor, const Color(0xFF031D3D), 0.48)!,
+            backgroundColor,
+            Color.lerp(backgroundColor, const Color(0xFF19A6C8), 0.20)!,
+          ],
+          const <double>[0, 0.56, 1],
+        ),
+    );
     canvas.save();
     canvas.clipRect(Offset.zero & size);
+
+    if (showGrid) {
+      _paintGrid(canvas, size);
+    }
 
     for (final GeoVectorShape shape in shapes) {
       for (final List<LatLng> polygon in shape.polygons) {
@@ -425,6 +494,86 @@ class _GeoVectorPainter extends CustomPainter {
     canvas.restore();
   }
 
+  void _paintGrid(Canvas canvas, Size size) {
+    final double longitudeSpan = bounds.maxLongitude - bounds.minLongitude;
+    final double step = longitudeSpan > 100
+        ? 30
+        : longitudeSpan > 35
+            ? 10
+            : 2;
+    final Paint gridPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.10)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.7;
+    final double firstLongitude = (bounds.minLongitude / step).floor() * step;
+    for (double longitude = firstLongitude;
+        longitude <= bounds.maxLongitude + step;
+        longitude += step) {
+      final Offset start = _project(LatLng(-85, longitude), size);
+      final Offset end = _project(LatLng(85, longitude), size);
+      canvas.drawLine(start, end, gridPaint);
+    }
+    final double firstLatitude = (bounds.minLatitude / step).floor() * step;
+    for (double latitude = firstLatitude;
+        latitude <= bounds.maxLatitude + step;
+        latitude += step) {
+      final Offset start = _project(LatLng(latitude, -180), size);
+      final Offset end = _project(LatLng(latitude, 180), size);
+      canvas.drawLine(start, end, gridPaint);
+    }
+  }
+
   @override
   bool shouldRepaint(covariant _GeoVectorPainter oldDelegate) => true;
+}
+
+class _MapControls extends StatelessWidget {
+  const _MapControls({
+    required this.onZoomIn,
+    required this.onZoomOut,
+    required this.onReset,
+  });
+
+  final VoidCallback onZoomIn;
+  final VoidCallback onZoomOut;
+  final VoidCallback onReset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xE6071B3A),
+      elevation: 5,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          _MapControlButton(icon: Icons.add_rounded, onTap: onZoomIn),
+          const SizedBox(width: 40, child: Divider(height: 1, color: Colors.white24)),
+          _MapControlButton(icon: Icons.remove_rounded, onTap: onZoomOut),
+          const SizedBox(width: 40, child: Divider(height: 1, color: Colors.white24)),
+          _MapControlButton(icon: Icons.center_focus_strong_rounded, onTap: onReset),
+        ],
+      ),
+    );
+  }
+}
+
+class _MapControlButton extends StatelessWidget {
+  const _MapControlButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: Icon(icon, color: Colors.white, size: 22),
+      ),
+    );
+  }
 }

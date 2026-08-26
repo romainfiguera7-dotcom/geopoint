@@ -15,6 +15,7 @@ class NationalTrainingScreen extends StatefulWidget {
 class _NationalTrainingScreenState extends State<NationalTrainingScreen> {
   static const List<_NationalTopic> _topics = <_NationalTopic>[
     _NationalTopic('region', 'RÉGIONS', Icons.map_rounded, FranceQuestionKind.region),
+    _NationalTopic('department', 'DÉPARTEMENTS', Icons.grid_on_rounded, FranceQuestionKind.department),
     _NationalTopic('city', 'GRANDES VILLES', Icons.location_city_rounded, FranceQuestionKind.point),
     _NationalTopic('prefecture', 'PRÉFECTURES', Icons.account_balance_rounded, FranceQuestionKind.point),
     _NationalTopic('river', 'FLEUVES', Icons.water_rounded, FranceQuestionKind.point),

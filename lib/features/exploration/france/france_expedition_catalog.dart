@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum FranceQuestionKind { region, overseas, point, mixed }
+enum FranceQuestionKind { region, department, overseas, point, mixed }
 
 class FranceExpeditionLevel {
   const FranceExpeditionLevel({
@@ -55,6 +55,26 @@ abstract final class FranceExpeditionCatalog {
       difficulty: 'intermediate',
       questionCount: 5,
       icon: Icons.public_rounded,
+    ),
+    FranceExpeditionLevel(
+      id: 'france-departements-reperes',
+      title: 'Premiers départements',
+      subtitle: 'Place 12 départements faciles à reconnaître',
+      kind: FranceQuestionKind.department,
+      category: 'department',
+      difficulty: 'easy',
+      questionCount: 12,
+      icon: Icons.grid_on_rounded,
+    ),
+    FranceExpeditionLevel(
+      id: 'france-departements',
+      title: 'Les départements',
+      subtitle: 'Progresse sur toute la carte départementale',
+      kind: FranceQuestionKind.department,
+      category: 'department',
+      difficulty: 'hard',
+      questionCount: 20,
+      icon: Icons.apps_rounded,
     ),
     FranceExpeditionLevel(
       id: 'france-grandes-villes',

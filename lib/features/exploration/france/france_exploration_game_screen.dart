@@ -56,6 +56,10 @@ class _FranceExplorationGameScreenState
   static const List<String> _easyRegionCodes = <String>[
     '11', '32', '75', '76', '84', '93',
   ];
+  static const Set<String> _easyDepartmentCodes = <String>{
+    '06', '13', '29', '31', '33', '34',
+    '44', '59', '67', '75', '83', '2A',
+  };
 
   final math.Random _random = math.Random();
   final Distance _distance = const Distance();
@@ -70,7 +74,7 @@ class _FranceExplorationGameScreenState
   bool _finished = false;
   bool _lastAnswerCorrect = false;
   String _feedback = '';
-  String? _selectedRegionCode;
+  String? _selectedAreaCode;
   LatLng? _selectedPoint;
 
   _FranceQuestion get _currentQuestion => _questions[_questionIndex];
@@ -111,6 +115,17 @@ class _FranceExplorationGameScreenState
         if (allowedCodes.contains(region.code)) {
           pool.add(_FranceQuestion.region(region));
         }
+      }
+    } else if (widget.kind == FranceQuestionKind.department) {
+      for (final FranceDepartmentShape department in data.departments) {
+        if (!_metropolitanRegionCodes.contains(department.regionCode)) {
+          continue;
+        }
+        if (widget.difficulty == 'easy' &&
+            !_easyDepartmentCodes.contains(department.code)) {
+          continue;
+        }
+        pool.add(_FranceQuestion.department(department));
       }
     } else if (widget.kind == FranceQuestionKind.overseas) {
       for (final FranceExplorationItem item
@@ -213,7 +228,27 @@ class _FranceExplorationGameScreenState
       feedback: correct
           ? '${target.name} est bien placée.'
           : 'C’était ${target.name}.',
-      selectedRegionCode: regionCode,
+      selectedAreaCode: regionCode,
+    );
+  }
+
+  void _handleDepartmentTap(String? departmentCode) {
+    if (_answered ||
+        _finished ||
+        _questions.isEmpty ||
+        departmentCode == null ||
+        _currentQuestion.kind != FranceQuestionKind.department) {
+      return;
+    }
+    final FranceDepartmentShape target = _currentQuestion.department!;
+    final bool correct = departmentCode == target.code;
+    _registerAnswer(
+      correct: correct,
+      points: correct ? 100 : 0,
+      feedback: correct
+          ? '${target.name} est bien placé.'
+          : 'C’était ${target.name} (${target.code}).',
+      selectedAreaCode: departmentCode,
     );
   }
 
@@ -258,7 +293,7 @@ class _FranceExplorationGameScreenState
     required bool correct,
     required int points,
     required String feedback,
-    String? selectedRegionCode,
+    String? selectedAreaCode,
     LatLng? selectedPoint,
   }) {
     setState(() {
@@ -269,7 +304,7 @@ class _FranceExplorationGameScreenState
       if (correct) {
         _correctAnswers++;
       }
-      _selectedRegionCode = selectedRegionCode;
+      _selectedAreaCode = selectedAreaCode;
       _selectedPoint = selectedPoint;
     });
   }
@@ -285,7 +320,7 @@ class _FranceExplorationGameScreenState
       _questionIndex++;
       _answered = false;
       _feedback = '';
-      _selectedRegionCode = null;
+      _selectedAreaCode = null;
       _selectedPoint = null;
     });
   }
@@ -362,27 +397,70 @@ class _FranceExplorationGameScreenState
   Widget _buildMap() {
     final FranceExplorationData data = _data!;
     final _FranceQuestion question = _currentQuestion;
+    final bool regionMap = question.kind == FranceQuestionKind.region;
+    final bool departmentQuestion =
+        question.kind == FranceQuestionKind.department;
     final List<GeoVectorShape> shapes = <GeoVectorShape>[];
-    for (final FranceRegionShape region in data.regions) {
-      if (!_metropolitanRegionCodes.contains(region.code)) {
-        continue;
+    if (regionMap) {
+      for (final FranceRegionShape region in data.regions) {
+        if (!_metropolitanRegionCodes.contains(region.code)) {
+          continue;
+        }
+        final bool isTarget =
+            _answered && question.region?.code == region.code;
+        final bool isSelected = _selectedAreaCode == region.code;
+        final Color color = isTarget
+            ? GeoColors.mint
+            : isSelected
+                ? GeoColors.coral
+                : _regionMapColor(region.code);
+        shapes.add(
+          GeoVectorShape(
+            id: region.code,
+            polygons: region.polygons,
+            fillColor: color.withValues(alpha: 0.96),
+            borderColor: Colors.white.withValues(alpha: 0.86),
+            borderWidth: isTarget || isSelected ? 2.8 : 1.25,
+          ),
+        );
       }
-      final bool isTarget = _answered && question.region?.code == region.code;
-      final bool isSelected = _selectedRegionCode == region.code;
-      final Color color = isTarget
-          ? GeoColors.mint
-          : isSelected
-              ? GeoColors.coral
-              : const Color(0xFFDBE8C8);
-      shapes.add(
-        GeoVectorShape(
-          id: region.code,
-          polygons: region.polygons,
-          fillColor: color.withValues(alpha: 0.94),
-          borderColor: const Color(0xFF526C5A),
-          borderWidth: isTarget || isSelected ? 2.5 : 1,
-        ),
-      );
+    } else {
+      for (final FranceDepartmentShape department in data.departments) {
+        if (!_metropolitanRegionCodes.contains(department.regionCode)) {
+          continue;
+        }
+        final bool isTarget =
+            _answered && question.department?.code == department.code;
+        final bool isSelected = _selectedAreaCode == department.code;
+        final Color color = isTarget
+            ? GeoColors.mint
+            : isSelected
+                ? GeoColors.coral
+                : _regionMapColor(department.regionCode);
+        shapes.add(
+          GeoVectorShape(
+            id: department.code,
+            polygons: department.polygons,
+            fillColor: color.withValues(alpha: 0.92),
+            borderColor: Colors.white.withValues(alpha: 0.72),
+            borderWidth: isTarget || isSelected ? 2.5 : 0.7,
+          ),
+        );
+      }
+      for (final FranceRegionShape region in data.regions) {
+        if (!_metropolitanRegionCodes.contains(region.code)) {
+          continue;
+        }
+        shapes.add(
+          GeoVectorShape(
+            id: 'region-border-${region.code}',
+            polygons: region.polygons,
+            fillColor: Colors.transparent,
+            borderColor: const Color(0xFF07284D).withValues(alpha: 0.82),
+            borderWidth: 1.7,
+          ),
+        );
+      }
     }
 
     final List<GeoVectorPoint> points = <GeoVectorPoint>[];
@@ -433,30 +511,107 @@ class _FranceExplorationGameScreenState
         ),
       );
     }
-
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
-      child: GeoVectorMap(
-        viewId: 'france-${widget.title}-$_questionIndex',
-        initialBounds: const GeoVectorBounds(
-          minLatitude: 40.7,
-          maxLatitude: 51.5,
-          minLongitude: -5.8,
-          maxLongitude: 10.1,
+    if (_answered && question.department != null) {
+      points.add(
+        GeoVectorPoint(
+          position: question.department!.center,
+          color: GeoColors.mint,
+          radius: 5,
+          label: '${question.department!.name} • ${question.department!.code}',
         ),
-        shapes: shapes,
-        lines: lines,
-        points: points,
-        backgroundColor: const Color(0xFF72C7E8),
-        onShapeTap: question.kind == FranceQuestionKind.region
-            ? _handleRegionTap
-            : null,
-        onPositionTap: question.kind == FranceQuestionKind.point
-            ? _handlePositionTap
-            : null,
-        maximumZoom: 10,
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
+          children: <Widget>[
+            Positioned.fill(
+              child: GeoVectorMap(
+                viewId: 'france-${widget.title}-$_questionIndex',
+                initialBounds: const GeoVectorBounds(
+                  minLatitude: 41.1,
+                  maxLatitude: 51.4,
+                  minLongitude: -5.6,
+                  maxLongitude: 10.0,
+                ),
+                shapes: shapes,
+                lines: lines,
+                points: points,
+                backgroundColor: const Color(0xFF096B91),
+                onShapeTap: regionMap
+                    ? _handleRegionTap
+                    : departmentQuestion
+                        ? _handleDepartmentTap
+                        : null,
+                onPositionTap: question.kind == FranceQuestionKind.point
+                    ? _handlePositionTap
+                    : null,
+                maximumZoom: departmentQuestion ? 14 : 11,
+                initialZoom: regionMap ? 1.08 : 1.16,
+              ),
+            ),
+            Positioned(
+              top: 12,
+              left: 12,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                decoration: BoxDecoration(
+                  color: const Color(0xE6071B3A),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: Text(
+                  regionMap ? 'CARTE DES RÉGIONS' : 'CARTE DES DÉPARTEMENTS',
+                  style: GoogleFonts.nunitoSans(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.7,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Color _regionMapColor(String regionCode) {
+    switch (regionCode) {
+      case '11':
+        return const Color(0xFFB9A3E8);
+      case '24':
+        return const Color(0xFFF1C15B);
+      case '27':
+        return const Color(0xFF8BC9A8);
+      case '28':
+        return const Color(0xFF83B9E8);
+      case '32':
+        return const Color(0xFF65C6C0);
+      case '44':
+        return const Color(0xFFF2A866);
+      case '52':
+        return const Color(0xFFD7CE6F);
+      case '53':
+        return const Color(0xFF78B998);
+      case '75':
+        return const Color(0xFFF0A0B7);
+      case '76':
+        return const Color(0xFFE68C72);
+      case '84':
+        return const Color(0xFF9CABE8);
+      case '93':
+        return const Color(0xFFE88877);
+      case '94':
+        return const Color(0xFFC49BDF);
+      default:
+        return const Color(0xFFAAD1C2);
+    }
   }
 
   Widget _buildOverseasQuestion() {
@@ -702,11 +857,19 @@ class _FranceQuestion {
   const _FranceQuestion({
     required this.kind,
     this.region,
+    this.department,
     this.item,
   });
 
   factory _FranceQuestion.region(FranceRegionShape region) {
     return _FranceQuestion(kind: FranceQuestionKind.region, region: region);
+  }
+
+  factory _FranceQuestion.department(FranceDepartmentShape department) {
+    return _FranceQuestion(
+      kind: FranceQuestionKind.department,
+      department: department,
+    );
   }
 
   factory _FranceQuestion.item(
@@ -718,11 +881,15 @@ class _FranceQuestion {
 
   final FranceQuestionKind kind;
   final FranceRegionShape? region;
+  final FranceDepartmentShape? department;
   final FranceExplorationItem? item;
 
   String get prompt {
     if (region != null) {
       return 'Trouve ${region!.name}';
+    }
+    if (department != null) {
+      return 'Trouve ${department!.name}';
     }
     if (kind == FranceQuestionKind.overseas) {
       return 'Associe ce chef-lieu à sa région';

@@ -1,3 +1,5 @@
+import '../../geo_engine/geo_entity_id.dart';
+
 enum AtlasCountryStatus {
   none,
   visited,
@@ -8,12 +10,14 @@ class AtlasPersonalProgress {
   const AtlasPersonalProgress._({
     required this.visitedCountryIds,
     required this.wishlistCountryIds,
+    required this.favoriteCountryIds,
   });
 
   factory AtlasPersonalProgress.initial() {
     return const AtlasPersonalProgress._(
       visitedCountryIds: <String>{},
       wishlistCountryIds: <String>{},
+      favoriteCountryIds: <String>{},
     );
   }
 
@@ -21,18 +25,22 @@ class AtlasPersonalProgress {
     final Set<String> visited = _readIds(json['visitedCountryIds']);
     final Set<String> wishlist = _readIds(json['wishlistCountryIds'])
       ..removeAll(visited);
+    final Set<String> favorites = _readIds(json['favoriteCountryIds']);
 
     return AtlasPersonalProgress._(
       visitedCountryIds: Set<String>.unmodifiable(visited),
       wishlistCountryIds: Set<String>.unmodifiable(wishlist),
+      favoriteCountryIds: Set<String>.unmodifiable(favorites),
     );
   }
 
   final Set<String> visitedCountryIds;
   final Set<String> wishlistCountryIds;
+  final Set<String> favoriteCountryIds;
 
   int get visitedCount => visitedCountryIds.length;
   int get wishlistCount => wishlistCountryIds.length;
+  int get favoriteCount => favoriteCountryIds.length;
 
   AtlasCountryStatus statusFor(String countryId) {
     final String id = _normalizeId(countryId);
@@ -76,6 +84,32 @@ class AtlasPersonalProgress {
     return _withStatus(id, AtlasCountryStatus.wishlist);
   }
 
+  bool isFavorite(String countryId) {
+    final String id = _normalizeId(countryId);
+
+    return id.isNotEmpty && favoriteCountryIds.contains(id);
+  }
+
+  AtlasPersonalProgress toggleFavorite(String countryId) {
+    final String id = _normalizeId(countryId);
+
+    if (id.isEmpty) {
+      return this;
+    }
+
+    final Set<String> favorites = <String>{...favoriteCountryIds};
+
+    if (!favorites.remove(id)) {
+      favorites.add(id);
+    }
+
+    return AtlasPersonalProgress._(
+      visitedCountryIds: visitedCountryIds,
+      wishlistCountryIds: wishlistCountryIds,
+      favoriteCountryIds: Set<String>.unmodifiable(favorites),
+    );
+  }
+
   AtlasPersonalProgress _withStatus(
     String countryId,
     AtlasCountryStatus status,
@@ -94,16 +128,19 @@ class AtlasPersonalProgress {
     return AtlasPersonalProgress._(
       visitedCountryIds: Set<String>.unmodifiable(visited),
       wishlistCountryIds: Set<String>.unmodifiable(wishlist),
+      favoriteCountryIds: favoriteCountryIds,
     );
   }
 
   Map<String, dynamic> toJson() {
     final List<String> visited = visitedCountryIds.toList()..sort();
     final List<String> wishlist = wishlistCountryIds.toList()..sort();
+    final List<String> favorites = favoriteCountryIds.toList()..sort();
 
     return <String, dynamic>{
       'visitedCountryIds': visited,
       'wishlistCountryIds': wishlist,
+      'favoriteCountryIds': favorites,
     };
   }
 
@@ -119,6 +156,6 @@ class AtlasPersonalProgress {
   }
 
   static String _normalizeId(String value) {
-    return value.trim().toUpperCase();
+    return GeoEntityId.normalize(value);
   }
 }

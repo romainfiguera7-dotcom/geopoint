@@ -1,3 +1,4 @@
+import '../geo_engine/geo_entity_id.dart';
 import 'country_mastery.dart';
 
 class GeoBrainProfile {
@@ -621,18 +622,7 @@ class GeoBrainProfile {
   static String _normalizeCountryId(
     String countryId,
   ) {
-    final String normalizedId =
-        countryId
-            .trim()
-            .toUpperCase();
-
-    if (normalizedId.isEmpty) {
-      throw ArgumentError(
-        'L’identifiant du pays est obligatoire.',
-      );
-    }
-
-    return normalizedId;
+    return GeoEntityId.require(countryId);
   }
 
   static int _readInt(

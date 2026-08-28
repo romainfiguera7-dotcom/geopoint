@@ -101,6 +101,12 @@ class _AtlasPersonalListScreenState
     }
 
     if (saved) {
+      await widget.controller.synchronizePassportPersonalProgress(next);
+
+      if (!mounted) {
+        return next.statusFor(countryId);
+      }
+
       setState(() {
         _progress = next;
       });

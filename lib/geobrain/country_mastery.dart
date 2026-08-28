@@ -1,3 +1,5 @@
+import '../geo_engine/geo_entity_id.dart';
+
 class CountryMastery {
   const CountryMastery({
     required this.countryId,
@@ -43,14 +45,7 @@ class CountryMastery {
   factory CountryMastery.initial(
     String countryId,
   ) {
-    final String normalizedId =
-        countryId.trim().toUpperCase();
-
-    if (normalizedId.isEmpty) {
-      throw ArgumentError(
-        'L’identifiant du pays est obligatoire.',
-      );
-    }
+    final String normalizedId = GeoEntityId.require(countryId);
 
     return CountryMastery(
       countryId: normalizedId,
@@ -340,12 +335,9 @@ class CountryMastery {
   factory CountryMastery.fromJson(
     Map<String, dynamic> json,
   ) {
-    final String countryId =
-        json['countryId']
-                ?.toString()
-                .trim()
-                .toUpperCase() ??
-            '';
+    final String countryId = GeoEntityId.normalize(
+      json['countryId']?.toString() ?? '',
+    );
 
     if (countryId.isEmpty) {
       throw const FormatException(

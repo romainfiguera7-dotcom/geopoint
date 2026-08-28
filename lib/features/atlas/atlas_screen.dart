@@ -277,6 +277,12 @@ class _AtlasScreenState extends State<AtlasScreen> {
     }
 
     if (saved) {
+      await widget.controller.synchronizePassportPersonalProgress(next);
+
+      if (!mounted) {
+        return next.statusFor(countryId);
+      }
+
       setState(() {
         _personalProgress = next;
       });

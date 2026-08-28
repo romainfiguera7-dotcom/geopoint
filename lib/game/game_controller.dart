@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../features/atlas/atlas_personal_progress.dart';
+import '../features/atlas/atlas_personal_storage.dart';
 import '../geo_engine/capital.dart';
 import '../geo_engine/capital_loader.dart';
 import '../geo_engine/geo_country.dart';
@@ -14,6 +16,8 @@ import '../player/level_result.dart';
 import '../player/player_profile.dart';
 import '../player/player_storage.dart';
 import '../player/xp_system.dart';
+import '../passport/progress/passport_progress_coordinator.dart';
+import '../passport/progress/passport_progress_v2.dart';
 import 'continent/continent_expedition.dart';
 import 'country_difficulty_loader.dart';
 import 'game_difficulty.dart';
@@ -65,7 +69,10 @@ class GameController extends ChangeNotifier {
   late PlayerPassport _passport;
   late PlayerProfile _playerProfile;
   late GeoBrainService _geoBrainService;
+  late PassportProgressV2 _passportProgress;
   late CountrySelector _countrySelector;
+
+  Future<void> _passportSynchronizationQueue = Future<void>.value();
 
   PassportResult? _lastPassportResult;
   LevelResult? _lastLevelResult;
@@ -153,6 +160,9 @@ class GameController extends ChangeNotifier {
 
   GeoBrainService get geoBrainService =>
       _geoBrainService;
+
+  PassportProgressV2 get passportProgress =>
+      _passportProgress;
 
   List<GeoCountry> get countries =>
       _countries;
@@ -560,6 +570,9 @@ class GameController extends ChangeNotifier {
     final GeoBrainService geoBrainService =
         await GeoBrainService.create();
 
+    final AtlasPersonalProgress atlasPersonalProgress =
+        await AtlasPersonalStorage.load();
+
     _capitals =
         Map<String, Capital>.unmodifiable(
       capitals,
@@ -601,6 +614,14 @@ class GameController extends ChangeNotifier {
 
     _geoBrainService =
         geoBrainService;
+
+    _passportProgress =
+        await PassportProgressCoordinator.synchronize(
+      passport: _passport,
+      playerProfile: _playerProfile,
+      geoBrainProfile: _geoBrainService.profile,
+      atlasProgress: atlasPersonalProgress,
+    );
 
     _countrySelector =
         CountrySelector(
@@ -681,6 +702,14 @@ class GameController extends ChangeNotifier {
       'entité(s) déjà vue(s), '
       '${_geoBrainService.profile.masteredCountryCount} '
       'maîtrisée(s).',
+    );
+
+    debugPrint(
+      'GeoPoint Passeport 2.0 : '
+      '${_passportProgress.discoveredEntityCount} entité(s) découverte(s), '
+      '${_passportProgress.masteredEntityCount} maîtrisée(s), '
+      '${_passportProgress.visitedEntityCount} visitée(s), '
+      '${_passportProgress.wishlistedEntityCount} à visiter.',
     );
 
     _applyMissionConfiguration(
@@ -1169,6 +1198,8 @@ class GameController extends ChangeNotifier {
       'GeoPoint : Passeport réinitialisé.',
     );
 
+    await _synchronizePassportProgress();
+
     notifyListeners();
   }
 
@@ -1183,6 +1214,8 @@ class GameController extends ChangeNotifier {
     debugPrint(
       'GeoPoint : profil joueur réinitialisé.',
     );
+
+    await _synchronizePassportProgress();
 
     notifyListeners();
   }
@@ -1219,6 +1252,18 @@ class GameController extends ChangeNotifier {
 
     debugPrint(
       'GeoPoint GeoBrain : progression réinitialisée.',
+    );
+
+    await _synchronizePassportProgress();
+
+    notifyListeners();
+  }
+
+  Future<void> synchronizePassportPersonalProgress(
+    AtlasPersonalProgress atlasProgress,
+  ) async {
+    await _synchronizePassportProgress(
+      atlasProgress: atlasProgress,
     );
 
     notifyListeners();
@@ -1419,6 +1464,10 @@ class GameController extends ChangeNotifier {
       _savePlayerProfile(),
     );
 
+    unawaited(
+      _synchronizePassportProgress(),
+    );
+
     debugPrint(
       'GeoPoint Passeport : '
       'score total ${passportResult.score}, '
@@ -1480,7 +1529,27 @@ class GameController extends ChangeNotifier {
           isCorrect,
     );
 
+    await _synchronizePassportProgress();
+
     notifyListeners();
+  }
+
+  Future<void> _synchronizePassportProgress({
+    AtlasPersonalProgress? atlasProgress,
+  }) {
+    _passportSynchronizationQueue = _passportSynchronizationQueue.then(
+      (_) async {
+        _passportProgress =
+            await PassportProgressCoordinator.synchronize(
+          passport: _passport,
+          playerProfile: _playerProfile,
+          geoBrainProfile: _geoBrainService.profile,
+          atlasProgress: atlasProgress,
+        );
+      },
+    );
+
+    return _passportSynchronizationQueue;
   }
 
   Future<void> _savePassport() async {

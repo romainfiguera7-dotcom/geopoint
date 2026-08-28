@@ -22,14 +22,23 @@ class PassportProgressCoordinator {
     final PassportProgressV2? existingProgress =
         await PassportProgressStorage.load();
     final bool isFirstMigration = existingProgress == null;
-    final PassportProgressV2 progress = PassportProgressMigrator.fromLegacy(
-      passport: passport,
-      playerProfile: playerProfile,
-      geoBrainProfile: geoBrainProfile,
-      atlasProgress: personalProgress,
-      mergeLegacyGeoBrainPersonalLists: isFirstMigration,
-      migratedAt: synchronizedAt,
-    );
+    final PassportProgressV2 progress = existingProgress == null
+        ? PassportProgressMigrator.fromLegacy(
+            passport: passport,
+            playerProfile: playerProfile,
+            geoBrainProfile: geoBrainProfile,
+            atlasProgress: personalProgress,
+            mergeLegacyGeoBrainPersonalLists: true,
+            migratedAt: synchronizedAt,
+          )
+        : PassportProgressMigrator.refreshExisting(
+            existingProgress: existingProgress,
+            passport: passport,
+            playerProfile: playerProfile,
+            geoBrainProfile: geoBrainProfile,
+            atlasProgress: personalProgress,
+            synchronizedAt: synchronizedAt,
+          );
 
     if (isFirstMigration) {
       final AtlasPersonalProgress mergedPersonalProgress =

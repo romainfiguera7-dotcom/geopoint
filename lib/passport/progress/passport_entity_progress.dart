@@ -9,6 +9,9 @@ class PassportThemeProgress {
     required this.totalAttempts,
     required this.firstSeenAt,
     required this.lastAnsweredAt,
+    this.currentStreak = 0,
+    this.bestStreak = 0,
+    this.nextReviewAt,
   });
 
   final int masteryLevel;
@@ -17,6 +20,9 @@ class PassportThemeProgress {
   final int totalAttempts;
   final DateTime? firstSeenAt;
   final DateTime? lastAnsweredAt;
+  final int currentStreak;
+  final int bestStreak;
+  final DateTime? nextReviewAt;
 
   factory PassportThemeProgress.initial() {
     return const PassportThemeProgress(
@@ -26,6 +32,9 @@ class PassportThemeProgress {
       totalAttempts: 0,
       firstSeenAt: null,
       lastAnsweredAt: null,
+      currentStreak: 0,
+      bestStreak: 0,
+      nextReviewAt: null,
     );
   }
 
@@ -55,18 +64,36 @@ class PassportThemeProgress {
 
   PassportThemeProgress registerAnswer({
     required bool isCorrect,
-    required int masteryLevelAfterAnswer,
+    int? masteryLevelAfterAnswer,
     required DateTime answeredAt,
   }) {
+    final int updatedStreak = isCorrect ? currentStreak + 1 : 0;
+    final int updatedBestStreak = updatedStreak > bestStreak
+        ? updatedStreak
+        : bestStreak;
+    final int updatedMasteryLevel = PassportProgressRules.normalizeMasteryLevel(
+      masteryLevelAfterAnswer ??
+          PassportProgressRules.masteryLevelAfterAnswer(
+            currentMasteryLevel: masteryLevel,
+            updatedStreak: updatedStreak,
+            isCorrect: isCorrect,
+          ),
+    );
+
     return PassportThemeProgress(
-      masteryLevel: PassportProgressRules.normalizeMasteryLevel(
-        masteryLevelAfterAnswer,
-      ),
+      masteryLevel: updatedMasteryLevel,
       correctAnswers: correctAnswers + (isCorrect ? 1 : 0),
       wrongAnswers: wrongAnswers + (isCorrect ? 0 : 1),
       totalAttempts: totalAttempts + 1,
       firstSeenAt: firstSeenAt ?? answeredAt,
       lastAnsweredAt: answeredAt,
+      currentStreak: updatedStreak,
+      bestStreak: updatedBestStreak,
+      nextReviewAt: PassportProgressRules.nextReviewAt(
+        masteryLevel: updatedMasteryLevel,
+        isCorrect: isCorrect,
+        answeredAt: answeredAt,
+      ),
     );
   }
 
@@ -78,6 +105,9 @@ class PassportThemeProgress {
       'totalAttempts': totalAttempts,
       'firstSeenAt': firstSeenAt?.toIso8601String(),
       'lastAnsweredAt': lastAnsweredAt?.toIso8601String(),
+      'currentStreak': currentStreak,
+      'bestStreak': bestStreak,
+      'nextReviewAt': nextReviewAt?.toIso8601String(),
     };
   }
 
@@ -103,6 +133,9 @@ class PassportThemeProgress {
       totalAttempts: attempts,
       firstSeenAt: _readOptionalDateTime(json['firstSeenAt']),
       lastAnsweredAt: _readOptionalDateTime(json['lastAnsweredAt']),
+      currentStreak: _readNonNegativeInt(json['currentStreak']),
+      bestStreak: _readNonNegativeInt(json['bestStreak']),
+      nextReviewAt: _readOptionalDateTime(json['nextReviewAt']),
     );
   }
 }
@@ -221,7 +254,7 @@ class PassportEntityProgress {
   PassportEntityProgress registerAnswer({
     required PassportKnowledgeTheme theme,
     required bool isCorrect,
-    required int masteryLevelAfterAnswer,
+    int? masteryLevelAfterAnswer,
     required PassportDiscoverySource source,
     required DateTime answeredAt,
   }) {
@@ -270,6 +303,58 @@ class PassportEntityProgress {
 
   PassportEntityProgress setFavorite(bool value) {
     return _copyWith(isFavorite: value);
+  }
+
+  PassportEntityProgress setPersonalStates({
+    required bool visited,
+    required bool wishlisted,
+    required bool favorite,
+  }) {
+    return PassportEntityProgress._(
+      entityId: entityId,
+      discoveredAt: discoveredAt,
+      discoverySource: discoverySource,
+      themes: themes,
+      isVisited: visited,
+      isWishlisted: !visited && wishlisted,
+      isFavorite: favorite,
+      stampUnlockedAt: stampUnlockedAt,
+      stampUnlockSource: stampUnlockSource,
+    );
+  }
+
+  PassportEntityProgress mergeLegacyKnowledge(
+    PassportEntityProgress legacy,
+  ) {
+    final bool hasThematicHistory = themes.values.any(
+      (PassportThemeProgress theme) => theme.hasBeenSeen,
+    );
+    final Map<PassportKnowledgeTheme, PassportThemeProgress> mergedThemes =
+        Map<PassportKnowledgeTheme, PassportThemeProgress>.from(themes);
+
+    if (!hasThematicHistory) {
+      for (final MapEntry<PassportKnowledgeTheme, PassportThemeProgress> entry
+          in legacy.themes.entries) {
+        if (entry.value.hasBeenSeen) {
+          mergedThemes.putIfAbsent(entry.key, () => entry.value);
+        }
+      }
+    }
+
+    return PassportEntityProgress._(
+      entityId: entityId,
+      discoveredAt: discoveredAt ?? legacy.discoveredAt,
+      discoverySource: discoverySource ?? legacy.discoverySource,
+      themes:
+          Map<PassportKnowledgeTheme, PassportThemeProgress>.unmodifiable(
+        mergedThemes,
+      ),
+      isVisited: isVisited,
+      isWishlisted: isWishlisted,
+      isFavorite: isFavorite,
+      stampUnlockedAt: stampUnlockedAt ?? legacy.stampUnlockedAt,
+      stampUnlockSource: stampUnlockSource ?? legacy.stampUnlockSource,
+    );
   }
 
   PassportEntityProgress _copyWith({

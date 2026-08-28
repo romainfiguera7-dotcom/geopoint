@@ -17,6 +17,8 @@ import '../player/player_profile.dart';
 import '../player/player_storage.dart';
 import '../player/xp_system.dart';
 import '../passport/progress/passport_progress_coordinator.dart';
+import '../passport/progress/passport_progress_rules.dart';
+import '../passport/progress/passport_progress_storage.dart';
 import '../passport/progress/passport_progress_v2.dart';
 import 'continent/continent_expedition.dart';
 import 'country_difficulty_loader.dart';
@@ -1089,16 +1091,16 @@ class GameController extends ChangeNotifier {
     }
 
     if (_currentGuidedLevel == null &&
-        (questionModeId ==
-            'find_country' ||
-        questionModeId ==
-            'find_flag')) {
+        PassportProgressRules.themeForGameMode(questionModeId) != null) {
       unawaited(
-        _registerGeoBrainAnswer(
+        _registerPassportAnswer(
           countryId:
               answerCountry.id,
+          modeId:
+              questionModeId,
           isCorrect:
               isCorrectCountry,
+          source: _passportSourceForCurrentGame(),
         ),
       );
     }
@@ -1254,6 +1256,7 @@ class GameController extends ChangeNotifier {
       'GeoPoint GeoBrain : progression réinitialisée.',
     );
 
+    await PassportProgressStorage.clear();
     await _synchronizePassportProgress();
 
     notifyListeners();
@@ -1267,6 +1270,43 @@ class GameController extends ChangeNotifier {
     );
 
     notifyListeners();
+  }
+
+  Future<void> markPassportEntityDiscoveredFromAtlas(
+    String entityId,
+  ) async {
+    if (_passportProgress.progressFor(entityId).hasBeenDiscovered) {
+      return;
+    }
+
+    final DateTime discoveredAt = DateTime.now();
+    final Future<void> operation = _passportSynchronizationQueue.then(
+      (_) async {
+        _passportProgress = _passportProgress.markDiscovered(
+          entityId: entityId,
+          source: PassportDiscoverySource.atlas,
+          discoveredAt: discoveredAt,
+        );
+
+        await PassportProgressStorage.save(_passportProgress);
+      },
+    );
+
+    _passportSynchronizationQueue = operation;
+    await operation;
+    notifyListeners();
+  }
+
+  Future<void> registerPassportSilhouetteAnswer({
+    required String countryId,
+    required bool isCorrect,
+  }) {
+    return _registerPassportAnswer(
+      countryId: countryId,
+      modeId: 'ultimate',
+      isCorrect: isCorrect,
+      source: PassportDiscoverySource.expedition,
+    );
   }
 
   void _startTimer() {
@@ -1361,17 +1401,15 @@ class GameController extends ChangeNotifier {
 
     if (_currentGuidedLevel == null &&
         answerCountry != null &&
-        (
-          questionModeId ==
-                  'find_country' ||
-              questionModeId ==
-                  'find_flag'
-        )) {
+        PassportProgressRules.themeForGameMode(questionModeId) != null) {
       unawaited(
-        _registerGeoBrainAnswer(
+        _registerPassportAnswer(
           countryId:
               answerCountry.id,
+          modeId:
+              questionModeId,
           isCorrect: false,
+          source: _passportSourceForCurrentGame(),
         ),
       );
     }
@@ -1518,20 +1556,57 @@ class GameController extends ChangeNotifier {
     }
   }
 
-  Future<void> _registerGeoBrainAnswer({
+  Future<void> _registerPassportAnswer({
     required String countryId,
+    required String modeId,
     required bool isCorrect,
+    required PassportDiscoverySource source,
   }) async {
-    await _geoBrainService.registerAnswer(
-      countryId:
-          countryId,
-      isCorrect:
-          isCorrect,
+    final PassportKnowledgeTheme? theme =
+        PassportProgressRules.themeForGameMode(modeId);
+
+    if (theme == null) {
+      return;
+    }
+
+    final DateTime answeredAt = DateTime.now();
+    final String normalizedModeId = modeId.trim().toLowerCase();
+    final bool updatesLegacyGeoBrain =
+        normalizedModeId == 'find_country' ||
+            normalizedModeId == 'find_flag';
+    final Future<void> operation = _passportSynchronizationQueue.then(
+      (_) async {
+        if (updatesLegacyGeoBrain) {
+          await _geoBrainService.registerAnswer(
+            countryId: countryId,
+            isCorrect: isCorrect,
+          );
+        }
+
+        _passportProgress = _passportProgress.registerAnswer(
+          entityId: countryId,
+          theme: theme,
+          isCorrect: isCorrect,
+          source: source,
+          answeredAt: answeredAt,
+        );
+
+        await PassportProgressStorage.save(_passportProgress);
+      },
     );
 
-    await _synchronizePassportProgress();
+    _passportSynchronizationQueue = operation;
+    await operation;
 
     notifyListeners();
+  }
+
+  PassportDiscoverySource _passportSourceForCurrentGame() {
+    if (_currentContinentLevel != null) {
+      return PassportDiscoverySource.expedition;
+    }
+
+    return PassportDiscoverySource.game;
   }
 
   Future<void> _synchronizePassportProgress({

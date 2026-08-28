@@ -1157,6 +1157,15 @@ class _ExpeditionDetailScreenState extends State<ExpeditionDetailScreen> {
                   difficultyId: widget.difficulty.id,
                   missionTitle: mission.title,
                   previousBestScore: previousBestScore,
+                  onAnswer: ({
+                    required String countryId,
+                    required bool isCorrect,
+                  }) {
+                    return widget.controller.registerPassportSilhouetteAnswer(
+                      countryId: countryId,
+                      isCorrect: isCorrect,
+                    );
+                  },
                 );
               },
             ),

@@ -132,6 +132,56 @@ void main() {
       expect(result.progressFor('FRA').isWishlisted, isFalse);
     });
 
+    test('une progression thématique existante n’est jamais écrasée', () {
+      final PassportProgressV2 existing = PassportProgressV2.initial(
+        createdAt: createdAt,
+      ).registerAnswer(
+        entityId: 'FRA',
+        theme: PassportKnowledgeTheme.flag,
+        isCorrect: true,
+        source: PassportDiscoverySource.game,
+        answeredAt: reviewedAt,
+      );
+      final GeoBrainProfile geoBrain = GeoBrainProfile(
+        schemaVersion: GeoBrainProfile.currentSchemaVersion,
+        countries: <String, CountryMastery>{
+          'FRA': CountryMastery(
+            countryId: 'FRA',
+            masteryLevel: 1,
+            correctAnswers: 1,
+            wrongAnswers: 0,
+            totalAttempts: 1,
+            currentStreak: 1,
+            bestStreak: 1,
+            lastReviewedAt: reviewedAt,
+            nextReviewAt: reviewedAt.add(const Duration(days: 1)),
+            isWishlisted: false,
+            isVisited: false,
+          ),
+        },
+        createdAt: createdAt,
+        updatedAt: reviewedAt,
+      );
+
+      final PassportProgressV2 result =
+          PassportProgressMigrator.refreshExisting(
+        existingProgress: existing,
+        passport: PlayerPassport.initial(createdAt: createdAt),
+        playerProfile: PlayerProfile.initial(createdAt: createdAt),
+        geoBrainProfile: geoBrain,
+        atlasProgress: AtlasPersonalProgress.initial(),
+        synchronizedAt: migratedAt,
+      );
+
+      expect(result.progressFor('FRA').locationProgress.totalAttempts, 0);
+      expect(
+        result.progressFor('FRA').progressFor(PassportKnowledgeTheme.flag)
+            .totalAttempts,
+        1,
+      );
+      expect(result.progressFor('FRA').hasBeenDiscovered, isTrue);
+    });
+
     test('la sauvegarde V2 peut être relue sans modification', () {
       final PassportProgressV2 source = PassportProgressMigrator.fromLegacy(
         passport: PlayerPassport.initial(createdAt: createdAt),

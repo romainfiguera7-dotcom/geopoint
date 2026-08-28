@@ -93,6 +93,10 @@ class _AtlasScreenState extends State<AtlasScreen> {
       await Future<void>.delayed(const Duration(milliseconds: 220));
     }
 
+    await widget.controller.markPassportEntityDiscoveredFromAtlas(
+      country.id,
+    );
+
     if (!mounted) {
       return;
     }

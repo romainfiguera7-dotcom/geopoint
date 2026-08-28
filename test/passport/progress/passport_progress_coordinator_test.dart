@@ -5,6 +5,7 @@ import 'package:geopoint/game/passport/player_passport.dart';
 import 'package:geopoint/geobrain/country_mastery.dart';
 import 'package:geopoint/geobrain/geobrain_profile.dart';
 import 'package:geopoint/passport/progress/passport_progress_coordinator.dart';
+import 'package:geopoint/passport/progress/passport_progress_rules.dart';
 import 'package:geopoint/passport/progress/passport_progress_storage.dart';
 import 'package:geopoint/passport/progress/passport_progress_v2.dart';
 import 'package:geopoint/player/player_profile.dart';
@@ -73,6 +74,15 @@ void main() {
     expect(saved.progressFor('FRA').isVisited, isTrue);
     expect(atlas.visitedCountryIds, contains('FRA'));
 
+    final PassportProgressV2 withFlagProgress = saved.registerAnswer(
+      entityId: 'FRA',
+      theme: PassportKnowledgeTheme.flag,
+      isCorrect: true,
+      source: PassportDiscoverySource.game,
+      answeredAt: migratedAt.add(const Duration(seconds: 1)),
+    );
+    await PassportProgressStorage.save(withFlagProgress);
+
     final AtlasPersonalProgress emptiedAtlas = AtlasPersonalProgress.initial();
     await AtlasPersonalStorage.save(emptiedAtlas);
     await PassportProgressCoordinator.synchronize(
@@ -87,6 +97,12 @@ void main() {
 
     expect(updated, isNotNull);
     expect(updated!.progressFor('FRA').isVisited, isFalse);
+    expect(
+      updated.progressFor('FRA').progressFor(PassportKnowledgeTheme.flag)
+          .totalAttempts,
+      1,
+    );
+    expect(updated.progressFor('FRA').locationProgress.totalAttempts, 10);
     expect(updated.playerProfile.totalXp, 17740);
     expect(updated.playerProfile.gamesPlayed, 178);
   });

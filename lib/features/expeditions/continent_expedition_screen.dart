@@ -92,6 +92,15 @@ class _ContinentExpeditionScreenState
               difficultyId: level.difficultyId,
               missionTitle: level.title,
               previousBestScore: previousBestScore,
+              onAnswer: ({
+                required String countryId,
+                required bool isCorrect,
+              }) {
+                return widget.controller.registerPassportSilhouetteAnswer(
+                  countryId: countryId,
+                  isCorrect: isCorrect,
+                );
+              },
             );
           },
         ),

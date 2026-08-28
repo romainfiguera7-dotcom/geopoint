@@ -1236,15 +1236,9 @@ PassportLearningState _themeState(
 
   final PassportThemeProgress progress = entity.progressFor(theme);
 
-  if (progress.isMastered) {
-    return PassportLearningState.mastered;
-  }
-
-  if (progress.hasBeenSeen) {
-    return PassportLearningState.learning;
-  }
-
-  return PassportLearningState.undiscovered;
+  return progress.learningState(
+    entityHasBeenDiscovered: progress.hasBeenSeen,
+  );
 }
 
 _StateStyle _styleForState(PassportLearningState state) {

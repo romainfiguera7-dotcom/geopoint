@@ -130,6 +130,40 @@ class PassportProgressV2 {
     );
   }
 
+  PassportProgressV2 registerAnswer({
+    required String entityId,
+    required PassportKnowledgeTheme theme,
+    required bool isCorrect,
+    required PassportDiscoverySource source,
+    DateTime? answeredAt,
+  }) {
+    final DateTime answerDate = answeredAt ?? DateTime.now();
+    final PassportEntityProgress updatedEntity = progressFor(entityId)
+        .registerAnswer(
+      theme: theme,
+      isCorrect: isCorrect,
+      source: source,
+      answeredAt: answerDate,
+    );
+
+    return replaceEntity(updatedEntity, updatedAt: answerDate);
+  }
+
+  PassportProgressV2 markDiscovered({
+    required String entityId,
+    required PassportDiscoverySource source,
+    DateTime? discoveredAt,
+  }) {
+    final DateTime discoveryDate = discoveredAt ?? DateTime.now();
+    final PassportEntityProgress updatedEntity = progressFor(entityId)
+        .markDiscovered(
+      source: source,
+      discoveredAt: discoveryDate,
+    );
+
+    return replaceEntity(updatedEntity, updatedAt: discoveryDate);
+  }
+
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'schemaVersion': schemaVersion,

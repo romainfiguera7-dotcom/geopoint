@@ -34,9 +34,82 @@ void main() {
         answeredAt: firstDate,
       );
 
-      expect(progress.learningState, PassportLearningState.learning);
+      expect(progress.learningState, PassportLearningState.discovered);
       expect(progress.stampStage, PassportCountryStampStage.discovered);
       expect(progress.stampUnlockSource, PassportDiscoverySource.game);
+    });
+
+    test('deux réponses font passer un thème en apprentissage', () {
+      final PassportEntityProgress firstAnswer =
+          PassportEntityProgress.initial('FRA').registerAnswer(
+        theme: PassportKnowledgeTheme.capital,
+        isCorrect: true,
+        source: PassportDiscoverySource.game,
+        answeredAt: firstDate,
+      );
+      final PassportEntityProgress secondAnswer = firstAnswer.registerAnswer(
+        theme: PassportKnowledgeTheme.capital,
+        isCorrect: false,
+        source: PassportDiscoverySource.game,
+        answeredAt: firstDate.add(const Duration(hours: 1)),
+      );
+      final PassportThemeProgress capital =
+          secondAnswer.progressFor(PassportKnowledgeTheme.capital);
+
+      expect(firstAnswer.learningState, PassportLearningState.discovered);
+      expect(firstAnswer.locationProgress.totalAttempts, 0);
+      expect(capital.totalAttempts, 2);
+      expect(
+        capital.learningState(entityHasBeenDiscovered: capital.hasBeenSeen),
+        PassportLearningState.learning,
+      );
+      expect(
+        secondAnswer.progressFor(PassportKnowledgeTheme.flag).totalAttempts,
+        0,
+      );
+    });
+
+    test('chaque thème possède sa propre maîtrise GeoBrain', () {
+      PassportEntityProgress progress =
+          PassportEntityProgress.initial('FRA');
+
+      for (int index = 0; index < 5; index++) {
+        progress = progress.registerAnswer(
+          theme: PassportKnowledgeTheme.flag,
+          isCorrect: true,
+          source: PassportDiscoverySource.game,
+          answeredAt: firstDate.add(Duration(days: index)),
+        );
+      }
+
+      final PassportThemeProgress flag =
+          progress.progressFor(PassportKnowledgeTheme.flag);
+
+      expect(flag.masteryLevel, 5);
+      expect(flag.currentStreak, 5);
+      expect(flag.bestStreak, 5);
+      expect(flag.isMastered, isTrue);
+      expect(progress.locationProgress.masteryLevel, 0);
+    });
+
+    test('associe les modes de jeu aux bons thèmes', () {
+      expect(
+        PassportProgressRules.themeForGameMode('find_country'),
+        PassportKnowledgeTheme.location,
+      );
+      expect(
+        PassportProgressRules.themeForGameMode('find_capital'),
+        PassportKnowledgeTheme.capital,
+      );
+      expect(
+        PassportProgressRules.themeForGameMode('find_flag'),
+        PassportKnowledgeTheme.flag,
+      );
+      expect(
+        PassportProgressRules.themeForGameMode('ultimate'),
+        PassportKnowledgeTheme.silhouette,
+      );
+      expect(PassportProgressRules.themeForGameMode('unknown'), isNull);
     });
 
     test('le tampon évolue avec la maîtrise de la localisation', () {

@@ -56,6 +56,9 @@ class PassportProgressMigrator {
           totalAttempts: mastery.totalAttempts,
           firstSeenAt: discoveredAt,
           lastAnsweredAt: mastery.lastReviewedAt,
+          currentStreak: mastery.currentStreak,
+          bestStreak: mastery.bestStreak,
+          nextReviewAt: mastery.nextReviewAt,
         );
       }
 
@@ -87,6 +90,79 @@ class PassportProgressMigrator {
         geoBrainProfile.createdAt,
       ]),
       updatedAt: migrationDate,
+    );
+  }
+
+  static PassportProgressV2 refreshExisting({
+    required PassportProgressV2 existingProgress,
+    required PlayerPassport passport,
+    required PlayerProfile playerProfile,
+    required GeoBrainProfile geoBrainProfile,
+    required AtlasPersonalProgress atlasProgress,
+    DateTime? synchronizedAt,
+  }) {
+    final DateTime synchronizationDate = synchronizedAt ?? DateTime.now();
+    final PassportProgressV2 legacySnapshot = fromLegacy(
+      passport: passport,
+      playerProfile: playerProfile,
+      geoBrainProfile: geoBrainProfile,
+      atlasProgress: atlasProgress,
+      mergeLegacyGeoBrainPersonalLists: false,
+      migratedAt: synchronizationDate,
+    );
+    final Set<String> visitedIds = atlasProgress.visitedCountryIds
+        .map(GeoEntityId.normalize)
+        .where((String entityId) => entityId.isNotEmpty)
+        .toSet();
+    final Set<String> wishlistIds = atlasProgress.wishlistCountryIds
+        .map(GeoEntityId.normalize)
+        .where((String entityId) => entityId.isNotEmpty)
+        .toSet();
+    final Set<String> favoriteIds = atlasProgress.favoriteCountryIds
+        .map(GeoEntityId.normalize)
+        .where((String entityId) => entityId.isNotEmpty)
+        .toSet();
+    final Set<String> entityIds = <String>{
+      ...existingProgress.entities.keys,
+      ...legacySnapshot.entities.keys,
+      ...visitedIds,
+      ...wishlistIds,
+      ...favoriteIds,
+    };
+    final Map<String, PassportEntityProgress> entities =
+        <String, PassportEntityProgress>{};
+
+    for (final String entityId in entityIds) {
+      final PassportEntityProgress? existingEntity =
+          existingProgress.entities[entityId];
+      final PassportEntityProgress? legacyEntity =
+          legacySnapshot.entities[entityId];
+      PassportEntityProgress mergedEntity = existingEntity ??
+          legacyEntity ??
+          PassportEntityProgress.initial(entityId);
+
+      if (existingEntity != null && legacyEntity != null) {
+        mergedEntity = existingEntity.mergeLegacyKnowledge(legacyEntity);
+      }
+
+      entities[entityId] = mergedEntity.setPersonalStates(
+        visited: visitedIds.contains(entityId),
+        wishlisted: wishlistIds.contains(entityId),
+        favorite: favoriteIds.contains(entityId),
+      );
+    }
+
+    return PassportProgressV2(
+      schemaVersion: PassportProgressV2.currentSchemaVersion,
+      licenseProgress: passport,
+      playerProfile: playerProfile,
+      entities: Map<String, PassportEntityProgress>.unmodifiable(entities),
+      migratedFromSchemaVersions: <String, int>{
+        ...existingProgress.migratedFromSchemaVersions,
+        ...legacySnapshot.migratedFromSchemaVersions,
+      },
+      createdAt: existingProgress.createdAt,
+      updatedAt: synchronizationDate,
     );
   }
 

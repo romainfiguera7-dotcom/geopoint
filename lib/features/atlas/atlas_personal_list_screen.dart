@@ -125,6 +125,14 @@ class _AtlasPersonalListScreenState
     _AtlasPersonalData data,
     GeoCountry country,
   ) async {
+    await widget.controller.markPassportEntityDiscoveredFromAtlas(
+      country.id,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,

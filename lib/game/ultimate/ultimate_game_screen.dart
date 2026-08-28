@@ -12,6 +12,11 @@ import 'country_silhouette.dart';
 import 'ultimate_question.dart';
 import 'ultimate_question_generator.dart';
 
+typedef UltimateAnswerCallback = Future<void> Function({
+  required String countryId,
+  required bool isCorrect,
+});
+
 class UltimateGameResult {
   const UltimateGameResult({
     required this.earnedStars,
@@ -28,6 +33,7 @@ class UltimateGameScreen extends StatefulWidget {
     required this.countryDifficulties,
     required this.difficultyId,
     required this.previousBestScore,
+    this.onAnswer,
     this.missionTitle = 'Défi Silhouettes',
     super.key,
   });
@@ -36,6 +42,7 @@ class UltimateGameScreen extends StatefulWidget {
   final Map<String, int> countryDifficulties;
   final String difficultyId;
   final int previousBestScore;
+  final UltimateAnswerCallback? onAnswer;
   final String missionTitle;
 
   @override
@@ -224,6 +231,18 @@ class _UltimateGameScreenState extends State<UltimateGameScreen> {
       _isTimeUp = true;
       _selectedCountryId = null;
     });
+
+    final UltimateQuestion? question = _currentQuestion;
+    final UltimateAnswerCallback? onAnswer = widget.onAnswer;
+
+    if (question != null && onAnswer != null) {
+      unawaited(
+        onAnswer(
+          countryId: question.answerCountry.id,
+          isCorrect: false,
+        ),
+      );
+    }
   }
 
   void _submitChoice(GeoCountry country) {
@@ -249,6 +268,17 @@ class _UltimateGameScreenState extends State<UltimateGameScreen> {
         _correctAnswers++;
       }
     });
+
+    final UltimateAnswerCallback? onAnswer = widget.onAnswer;
+
+    if (onAnswer != null) {
+      unawaited(
+        onAnswer(
+          countryId: question.answerCountry.id,
+          isCorrect: isCorrect,
+        ),
+      );
+    }
   }
 
   int _calculateTimeBonus() {

@@ -16,10 +16,12 @@ import '../player/level_result.dart';
 import '../player/player_profile.dart';
 import '../player/player_storage.dart';
 import '../player/xp_system.dart';
+import '../passport/progress/passport_entity_progress.dart';
 import '../passport/progress/passport_progress_coordinator.dart';
 import '../passport/progress/passport_progress_rules.dart';
 import '../passport/progress/passport_progress_storage.dart';
 import '../passport/progress/passport_progress_v2.dart';
+import '../passport/progress/passport_stamp_unlock_event.dart';
 import 'continent/continent_expedition.dart';
 import 'country_difficulty_loader.dart';
 import 'game_difficulty.dart';
@@ -73,6 +75,9 @@ class GameController extends ChangeNotifier {
   late GeoBrainService _geoBrainService;
   late PassportProgressV2 _passportProgress;
   late CountrySelector _countrySelector;
+
+  PassportStampUnlockEvent? _latestCountryStampUnlock;
+  int _countryStampUnlockSequence = 0;
 
   Future<void> _passportSynchronizationQueue = Future<void>.value();
 
@@ -165,6 +170,9 @@ class GameController extends ChangeNotifier {
 
   PassportProgressV2 get passportProgress =>
       _passportProgress;
+
+  PassportStampUnlockEvent? get latestCountryStampUnlock =>
+      _latestCountryStampUnlock;
 
   List<GeoCountry> get countries =>
       _countries;
@@ -1297,16 +1305,28 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> registerPassportSilhouetteAnswer({
+  Future<PassportEntityProgress?> registerPassportSilhouetteAnswer({
     required String countryId,
     required bool isCorrect,
-  }) {
-    return _registerPassportAnswer(
+  }) async {
+    final bool wasUnlocked =
+        _passportProgress.progressFor(countryId).stampUnlockedAt != null;
+
+    await _registerPassportAnswer(
       countryId: countryId,
       modeId: 'ultimate',
       isCorrect: isCorrect,
       source: PassportDiscoverySource.expedition,
     );
+
+    final PassportEntityProgress updated =
+        _passportProgress.progressFor(countryId);
+
+    if (!wasUnlocked && updated.stampUnlockedAt != null) {
+      return updated;
+    }
+
+    return null;
   }
 
   void _startTimer() {
@@ -1583,6 +1603,9 @@ class GameController extends ChangeNotifier {
           );
         }
 
+        final DateTime? stampBeforeAnswer =
+            _passportProgress.progressFor(countryId).stampUnlockedAt;
+
         _passportProgress = _passportProgress.registerAnswer(
           entityId: countryId,
           theme: theme,
@@ -1590,6 +1613,21 @@ class GameController extends ChangeNotifier {
           source: source,
           answeredAt: answeredAt,
         );
+
+        final PassportEntityProgress updatedEntity =
+            _passportProgress.progressFor(countryId);
+        final DateTime? stampAfterAnswer = updatedEntity.stampUnlockedAt;
+
+        if (stampBeforeAnswer == null &&
+            stampAfterAnswer != null) {
+          _countryStampUnlockSequence++;
+          _latestCountryStampUnlock = PassportStampUnlockEvent(
+            sequence: _countryStampUnlockSequence,
+            entityId: updatedEntity.entityId,
+            unlockedAt: stampAfterAnswer,
+            source: source,
+          );
+        }
 
         await PassportProgressStorage.save(_passportProgress);
       },

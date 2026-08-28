@@ -10,6 +10,7 @@ import '../../passport/progress/passport_entity_progress.dart';
 import '../../passport/progress/passport_progress_rules.dart';
 import '../../passport/progress/passport_progress_v2.dart';
 import '../design/geopoint_design.dart';
+import 'passport_country_stamp_view.dart';
 
 class PassportContinentScreen extends StatefulWidget {
   const PassportContinentScreen({
@@ -924,6 +925,14 @@ class _CountryProgressSheet extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 20),
+              Center(
+                child: PassportCountryStampView(
+                  country: entry.country,
+                  progress: progress,
+                  size: 138,
+                ),
+              ),
+              const SizedBox(height: 16),
               Text(
                 'CONNAISSANCES',
                 style: GoogleFonts.nunitoSans(

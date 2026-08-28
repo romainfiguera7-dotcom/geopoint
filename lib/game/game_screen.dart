@@ -7,11 +7,15 @@ import 'package:latlong2/latlong.dart';
 import '../features/atlas/atlas_personal_progress.dart';
 import '../features/atlas/atlas_personal_storage.dart';
 import '../features/design/geopoint_design.dart';
+import '../features/passport/passport_country_stamp_view.dart';
 import '../geo_engine/country_info.dart';
 import '../geo_engine/country_info_loader.dart';
 import '../geo_engine/flag_emoji.dart';
 import '../geo_engine/geo_country.dart';
 import '../geo_engine/geopoint_map.dart';
+import '../passport/progress/passport_stamp_unlock_event.dart';
+import '../passport/settings/passport_display_preferences.dart';
+import '../passport/settings/passport_display_preferences_storage.dart';
 import 'continent/continent_expedition.dart';
 import 'continent/continent_progress.dart';
 import 'continent/continent_storage.dart';
@@ -83,12 +87,18 @@ class _GameScreenState extends State<GameScreen> {
   final Set<String> _savingAtlasCountryIds = <String>{};
 
   LatLng? _pendingSelectedPoint;
+  Timer? _stampUnlockOverlayTimer;
+  PassportStampUnlockEvent? _stampUnlockOverlayEvent;
+  bool _stampAnimationsEnabled = true;
+  int _handledStampUnlockSequence = 0;
 
   @override
   void initState() {
     super.initState();
 
     _controller = widget.controller;
+    _handledStampUnlockSequence =
+        _controller.latestCountryStampUnlock?.sequence ?? 0;
 
     final GuidedLevel? guidedLevel =
         widget.guidedLevel;
@@ -134,6 +144,10 @@ class _GameScreenState extends State<GameScreen> {
 
     unawaited(
       _loadAtlasProgress(),
+    );
+
+    unawaited(
+      _loadPassportDisplayPreferences(),
     );
 
     _controller.addListener(
@@ -292,12 +306,72 @@ class _GameScreenState extends State<GameScreen> {
     return _countryInfos[countryId];
   }
 
+  Future<void> _loadPassportDisplayPreferences() async {
+    try {
+      final PassportDisplayPreferences preferences =
+          await PassportDisplayPreferencesStorage.load();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _stampAnimationsEnabled = preferences.stampAnimationsEnabled;
+      });
+    } on Object catch (_) {
+      // Une préférence illisible ne doit jamais empêcher de jouer.
+    }
+  }
+
+  GeoCountry? _countryForStampUnlock(
+    PassportStampUnlockEvent event,
+  ) {
+    final String entityId = event.entityId.trim().toUpperCase();
+
+    for (final GeoCountry country in _controller.countries) {
+      if (country.id.trim().toUpperCase() == entityId) {
+        return country;
+      }
+    }
+
+    return null;
+  }
+
+  void _showStampUnlockOverlay(PassportStampUnlockEvent event) {
+    _stampUnlockOverlayTimer?.cancel();
+    _stampUnlockOverlayEvent = event;
+    _stampUnlockOverlayTimer = Timer(
+      const Duration(milliseconds: 2400),
+      () {
+        if (!mounted || _stampUnlockOverlayEvent?.sequence != event.sequence) {
+          return;
+        }
+
+        setState(() {
+          _stampUnlockOverlayEvent = null;
+        });
+      },
+    );
+  }
+
   void _handleControllerChanged() {
     if (!mounted) {
       return;
     }
 
-    setState(() {});
+    final PassportStampUnlockEvent? latestUnlock =
+        _controller.latestCountryStampUnlock;
+
+    setState(() {
+      if (latestUnlock != null &&
+          latestUnlock.sequence > _handledStampUnlockSequence) {
+        _handledStampUnlockSequence = latestUnlock.sequence;
+
+        if (_stampAnimationsEnabled) {
+          _showStampUnlockOverlay(latestUnlock);
+        }
+      }
+    });
   }
 
   void _handlePointSelected(
@@ -600,6 +674,7 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   void dispose() {
+    _stampUnlockOverlayTimer?.cancel();
     _controller.removeListener(
       _handleControllerChanged,
     );
@@ -618,6 +693,11 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     final GameQuestion? question =
         _controller.session.currentQuestion;
+    final PassportStampUnlockEvent? stampUnlockEvent =
+        _stampUnlockOverlayEvent;
+    final GeoCountry? stampUnlockCountry = stampUnlockEvent == null
+        ? null
+        : _countryForStampUnlock(stampUnlockEvent);
 
     final int questionNumber =
         _controller.session.questionNumber;
@@ -947,6 +1027,18 @@ class _GameScreenState extends State<GameScreen> {
                   onBackToHome:
                       _handleBackToHome,
                       ),
+              ),
+
+            if (stampUnlockEvent != null && stampUnlockCountry != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: PassportStampUnlockOverlay(
+                    country: stampUnlockCountry,
+                    progress: _controller.passportProgress.progressFor(
+                      stampUnlockCountry.id,
+                    ),
+                  ),
+                ),
               ),
           ],
         ),

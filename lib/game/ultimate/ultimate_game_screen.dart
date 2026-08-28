@@ -4,15 +4,19 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../features/passport/passport_country_stamp_view.dart';
 import '../../geo_engine/country_info.dart';
 import '../../geo_engine/country_info_loader.dart';
 import '../../geo_engine/geo_country.dart';
 import '../../geo_engine/geopoint_map.dart';
+import '../../passport/progress/passport_entity_progress.dart';
+import '../../passport/settings/passport_display_preferences.dart';
+import '../../passport/settings/passport_display_preferences_storage.dart';
 import 'country_silhouette.dart';
 import 'ultimate_question.dart';
 import 'ultimate_question_generator.dart';
 
-typedef UltimateAnswerCallback = Future<void> Function({
+typedef UltimateAnswerCallback = Future<PassportEntityProgress?> Function({
   required String countryId,
   required bool isCorrect,
 });
@@ -55,6 +59,7 @@ class _UltimateGameScreenState extends State<UltimateGameScreen> {
   late final UltimateQuestionGenerator _questionGenerator;
 
   Timer? _timer;
+  Timer? _stampUnlockOverlayTimer;
 
   UltimateQuestion? _currentQuestion;
 
@@ -73,6 +78,9 @@ class _UltimateGameScreenState extends State<UltimateGameScreen> {
 
   Map<String, CountryInfo> _countryInfos =
       const <String, CountryInfo>{};
+  GeoCountry? _stampUnlockCountry;
+  PassportEntityProgress? _stampUnlockProgress;
+  bool _stampAnimationsEnabled = true;
 
   int get _totalQuestions {
     switch (widget.difficultyId) {
@@ -125,7 +133,70 @@ class _UltimateGameScreenState extends State<UltimateGameScreen> {
     _questionGenerator = UltimateQuestionGenerator();
 
     unawaited(_loadCountryInfos());
+    unawaited(_loadPassportDisplayPreferences());
     _startNextQuestion();
+  }
+
+  Future<void> _loadPassportDisplayPreferences() async {
+    try {
+      final PassportDisplayPreferences preferences =
+          await PassportDisplayPreferencesStorage.load();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _stampAnimationsEnabled = preferences.stampAnimationsEnabled;
+      });
+    } on Object catch (_) {
+      // Une préférence illisible ne doit jamais bloquer une expédition.
+    }
+  }
+
+  Future<void> _registerPassportAnswer({
+    required GeoCountry country,
+    required bool isCorrect,
+  }) async {
+    final UltimateAnswerCallback? onAnswer = widget.onAnswer;
+
+    if (onAnswer == null) {
+      return;
+    }
+
+    try {
+      final PassportEntityProgress? unlockedProgress = await onAnswer(
+        countryId: country.id,
+        isCorrect: isCorrect,
+      );
+
+      if (!mounted ||
+          unlockedProgress == null ||
+          !_stampAnimationsEnabled) {
+        return;
+      }
+
+      _stampUnlockOverlayTimer?.cancel();
+      setState(() {
+        _stampUnlockCountry = country;
+        _stampUnlockProgress = unlockedProgress;
+      });
+      _stampUnlockOverlayTimer = Timer(
+        const Duration(milliseconds: 2400),
+        () {
+          if (!mounted || _stampUnlockCountry?.id != country.id) {
+            return;
+          }
+
+          setState(() {
+            _stampUnlockCountry = null;
+            _stampUnlockProgress = null;
+          });
+        },
+      );
+    } on Object catch (_) {
+      // La progression ne doit jamais interrompre la partie en cours.
+    }
   }
 
   Future<void> _loadCountryInfos() async {
@@ -233,12 +304,11 @@ class _UltimateGameScreenState extends State<UltimateGameScreen> {
     });
 
     final UltimateQuestion? question = _currentQuestion;
-    final UltimateAnswerCallback? onAnswer = widget.onAnswer;
 
-    if (question != null && onAnswer != null) {
+    if (question != null) {
       unawaited(
-        onAnswer(
-          countryId: question.answerCountry.id,
+        _registerPassportAnswer(
+          country: question.answerCountry,
           isCorrect: false,
         ),
       );
@@ -269,16 +339,12 @@ class _UltimateGameScreenState extends State<UltimateGameScreen> {
       }
     });
 
-    final UltimateAnswerCallback? onAnswer = widget.onAnswer;
-
-    if (onAnswer != null) {
-      unawaited(
-        onAnswer(
-          countryId: question.answerCountry.id,
-          isCorrect: isCorrect,
-        ),
-      );
-    }
+    unawaited(
+      _registerPassportAnswer(
+        country: question.answerCountry,
+        isCorrect: isCorrect,
+      ),
+    );
   }
 
   int _calculateTimeBonus() {
@@ -586,6 +652,7 @@ class _UltimateGameScreenState extends State<UltimateGameScreen> {
   @override
   void dispose() {
     _stopTimer();
+    _stampUnlockOverlayTimer?.cancel();
     super.dispose();
   }
 
@@ -614,15 +681,30 @@ class _UltimateGameScreenState extends State<UltimateGameScreen> {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
         ),
       ),
-      body: SafeArea(
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 450),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeInCubic,
-          child: _hasAnswered
-              ? _buildMapReveal(question)
-              : _buildQuestionView(question),
-        ),
+      body: Stack(
+        children: <Widget>[
+          Positioned.fill(
+            child: SafeArea(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 450),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                child: _hasAnswered
+                    ? _buildMapReveal(question)
+                    : _buildQuestionView(question),
+              ),
+            ),
+          ),
+          if (_stampUnlockCountry != null && _stampUnlockProgress != null)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: PassportStampUnlockOverlay(
+                  country: _stampUnlockCountry!,
+                  progress: _stampUnlockProgress!,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

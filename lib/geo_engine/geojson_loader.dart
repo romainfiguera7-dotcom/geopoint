@@ -100,6 +100,19 @@ class GeoJsonLoader {
         fallback: 'Inconnu',
       );
 
+      final String administrativeName = _readProperty(
+        properties,
+        <String>['ADMIN'],
+        fallback: name,
+      );
+      final String sovereignName = _readProperty(
+        properties,
+        <String>['SOVEREIGNT'],
+        fallback: administrativeName,
+      );
+      final bool isTerritory = administrativeName.trim().toLowerCase() !=
+          sovereignName.trim().toLowerCase();
+
       final List<List<LatLng>> polygons =
           _parseGeometry(geometry);
 
@@ -115,6 +128,8 @@ class GeoJsonLoader {
           isoA2: isoA2,
           name: name,
           continent: continent,
+          isTerritory: isTerritory,
+          sovereignName: sovereignName,
         ),
       );
 
@@ -142,6 +157,8 @@ class GeoJsonLoader {
                 name: builder.name,
                 continent: builder.continent,
                 polygons: builder.polygons,
+                isTerritory: builder.isTerritory,
+                sovereignName: builder.sovereignName,
               ),
             )
             .toList(
@@ -435,6 +452,8 @@ class _CountryBuilder {
     required this.isoA2,
     required this.name,
     required this.continent,
+    required this.isTerritory,
+    required this.sovereignName,
   });
 
   final String id;
@@ -443,6 +462,8 @@ class _CountryBuilder {
 
   final String name;
   final String continent;
+  final bool isTerritory;
+  final String sovereignName;
 
   final List<List<LatLng>> polygons =
       <List<LatLng>>[];

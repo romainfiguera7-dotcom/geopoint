@@ -7,6 +7,8 @@ class GeoCountry {
     required this.name,
     required this.continent,
     required this.polygons,
+    this.isTerritory = false,
+    this.sovereignName = '',
   }) : bounds = GeoBounds.fromPolygons(polygons);
 
   /// Identifiant principal du pays.
@@ -21,6 +23,8 @@ class GeoCountry {
 
   final String name;
   final String continent;
+  final bool isTerritory;
+  final String sovereignName;
 
   /// Un pays peut contenir plusieurs polygones :
   /// territoire principal, îles, territoires séparés, etc.

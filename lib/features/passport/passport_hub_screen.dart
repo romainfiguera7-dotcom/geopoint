@@ -6,7 +6,7 @@ import '../../passport/progress/passport_progress_v2.dart';
 import '../../player/player_profile.dart';
 import '../design/geopoint_design.dart';
 import '../statistics/statistics_screen.dart';
-import 'passport_screen.dart';
+import 'passport_country_stamp_book_screen.dart';
 import 'passport_world_screen.dart';
 
 class PassportHubScreen extends StatelessWidget {
@@ -18,7 +18,7 @@ class PassportHubScreen extends StatelessWidget {
     Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
-          return PassportScreen(controller: controller);
+          return PassportCountryStampBookScreen(controller: controller);
         },
       ),
     );
@@ -45,15 +45,7 @@ class PassportHubScreen extends StatelessWidget {
   }
 
   void _openContinents(BuildContext context) {
-    showGeoComingSoon(
-      context,
-      title: 'Tes continents',
-      message:
-          'Chaque continent aura bientôt sa progression, ses tampons et son '
-          'prochain objectif.',
-      icon: Icons.travel_explore_rounded,
-      color: GeoColors.sky,
-    );
+    _openWorld(context);
   }
 
   void _openAchievements(BuildContext context) {
@@ -65,12 +57,6 @@ class PassportHubScreen extends StatelessWidget {
       icon: Icons.emoji_events_rounded,
       color: GeoColors.coral,
     );
-  }
-
-  int get _totalLicenseStampCount {
-    return controller.passportEngine.stamps.values
-        .where((stamp) => stamp.isEnabled)
-        .length;
   }
 
   int get _worldEntityCount {
@@ -86,8 +72,6 @@ class PassportHubScreen extends StatelessWidget {
     final PassportProgressV2 progress = controller.passportProgress;
     final PlayerProfile profile = controller.playerProfile;
     final int worldEntityCount = _worldEntityCount;
-    final int licenseStampCount = controller.passport.validatedStampCount;
-    final int totalLicenseStampCount = _totalLicenseStampCount;
 
     return Scaffold(
       body: Stack(
@@ -146,9 +130,10 @@ class PassportHubScreen extends StatelessWidget {
                         _PassportDestination(
                           icon: Icons.collections_bookmark_rounded,
                           title: 'COLLECTIONS',
-                          subtitle: 'Tampons, licences et récompenses.',
+                          subtitle: 'Collectionne les tampons du monde.',
                           color: GeoColors.gold,
-                          badge: '$licenseStampCount/$totalLicenseStampCount',
+                          badge:
+                              '${progress.unlockedCountryStampCount}/$worldEntityCount',
                           onPressed: () => _openCollections(context),
                         ),
                         _PassportDestination(

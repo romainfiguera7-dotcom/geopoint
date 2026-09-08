@@ -1,0 +1,46 @@
+GEOPOINT — POINT 29.9 — PODIUMS, FICHES ET HISTORIQUE
+====================================================
+
+Cette archive est cumulative : elle inclut les points 29.1 à 29.9 ainsi que la
+correction Cloud Run validée pour les classements.
+
+1. Fermer l'application et arrêter Flutter avec la touche q si nécessaire.
+
+2. Depuis PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   .\android\gradlew.bat --stop
+
+3. Extraire l'archive dans D:\romai\GEOPOINT :
+
+   Expand-Archive `
+   "$env:USERPROFILE\Downloads\geopoint_point_29_9_podium_profils_historique.zip" `
+   "D:\romai\GEOPOINT" -Force
+
+4. Vérifier puis déployer la fonction modifiée :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   dart format lib test
+   flutter analyze
+   flutter test
+
+   $env:FUNCTIONS_DISCOVERY_TIMEOUT = "120"
+   firebase deploy --only functions:getChallengeLeaderboards
+
+   flutter run
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found!
+- flutter test : All tests passed!
+- le pré-déploiement Firebase : 42 tests réussis
+- l'écran CLASSEMENTS montre un podium dès qu'un score existe
+- un appui sur un joueur ouvre sa fiche de classement
+- MON HISTORIQUE montre jusqu'aux 20 dernières tentatives personnelles
+- seule la meilleure partie continue de compter dans le classement
+
+Si Firebase répond de nouveau HTTP 401 après le déploiement, vérifier que le
+service Cloud Run getchallengeleaderboards possède toujours le rôle
+allUsers / Cloud Run Invoker. Ce rôle n'enlève ni Authentication ni App Check.

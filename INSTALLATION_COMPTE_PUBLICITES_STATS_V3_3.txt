@@ -1,0 +1,44 @@
+GEOPOINT — CORRECTIF V3.3
+Compte, publicités de test et statistiques France
+
+1. Installer le projet
+
+cd D:\romai\GEOPOINT
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_compte_publicites_stats_v3_3.zip" "D:\romai\GEOPOINT" -Force
+
+cd D:\romai\GEOPOINT\geopoint
+flutter pub get
+flutter analyze
+flutter test
+flutter run -d 58041FDCR00681
+
+2. Activer les méthodes de connexion Firebase
+
+Dans Firebase Console > Authentication > Sign-in method :
+- conserver Anonyme activé ;
+- activer Adresse e-mail/Mot de passe ;
+- activer Google et choisir l'adresse e-mail d'assistance du projet.
+
+La connexion Google Android utilise android/app/google-services.json et les
+empreintes SHA déjà enregistrées dans le projet Firebase.
+
+3. Publicités pendant le développement
+
+Cette version utilise uniquement les identifiants de test officiels Google.
+Une interstitielle apparaît après chaque troisième partie terminée, avec un
+compteur commun aux entraînements et aux expéditions.
+
+Ne pas publier cette configuration pour générer des revenus. Avant la version
+Play Store, créer l'application et un bloc interstitiel dans AdMob, intégrer le
+consentement publicitaire européen, puis remplacer l'identifiant d'application
+et l'identifiant du bloc de test par ceux du compte AdMob GeoPoint.
+
+4. Vérifications manuelles conseillées
+
+- jouer trois parties en mélangeant entraînement et expédition ;
+- vérifier que l'annonce TEST s'ouvre seulement après la troisième ;
+- vérifier qu'un compte sans publicité ne voit aucune annonce ;
+- créer un compte e-mail depuis une partie invitée puis redémarrer l'app ;
+- tester la connexion Google ;
+- modifier le pseudo puis vérifier l'accueil et le Passeport ;
+- ouvrir Expédition France et vérifier Parties, Précision et Record.

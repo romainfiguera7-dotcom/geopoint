@@ -1,0 +1,67 @@
+GEOPOINT — INSTALLATION DU POINT 29.12
+=====================================
+
+L'archive contient déjà le dossier geopoint. Décompresse-la dans
+D:\romai\GEOPOINT et non dans D:\romai\GEOPOINT\geopoint.
+
+1. Arrêter Flutter et Gradle :
+
+cd D:\romai\GEOPOINT\geopoint
+.\android\gradlew.bat --stop
+
+2. Mettre de côté un éventuel ancien dossier imbriqué :
+
+$duplicate = "D:\romai\GEOPOINT\geopoint\geopoint"
+$backup = "D:\romai\GEOPOINT\geopoint_duplicate_backup_$(Get-Date -Format yyyyMMdd_HHmmss)"
+if (Test-Path $duplicate) {
+  Move-Item $duplicate $backup
+}
+
+3. Décompresser l'archive :
+
+Expand-Archive `
+"$env:USERPROFILE\Downloads\geopoint_point_29_12_controle_interne_corrige_v2.zip" `
+"D:\romai\GEOPOINT" -Force
+
+4. Vérifier le projet :
+
+cd D:\romai\GEOPOINT\geopoint
+flutter pub get
+flutter analyze
+flutter test
+npm --prefix functions run check
+
+5. Déployer :
+
+$env:FUNCTIONS_DISCOVERY_TIMEOUT = "120"
+firebase deploy --only "firestore:rules,firestore:indexes,functions"
+
+6. Accorder le rôle administrateur au compte de test :
+
+Récupérer d'abord son UID dans Firebase Console > Authentication > Users.
+Dans Firebase Console > Paramètres du projet > Comptes de service, générer une
+clé privée Firebase Admin. La conserver HORS du dossier geopoint, par exemple :
+
+D:\romai\firebase-secrets\geopoint-dev-admin.json
+
+Puis exécuter :
+
+$env:GOOGLE_APPLICATION_CREDENTIALS = "D:\romai\firebase-secrets\geopoint-dev-admin.json"
+
+npm --prefix functions run admin:grant -- UID_FIREBASE
+
+Remove-Item Env:GOOGLE_APPLICATION_CREDENTIALS
+
+Ne jamais ajouter une clé de compte de service au dossier geopoint ou à Git.
+
+7. Lancer l'application :
+
+flutter run
+
+OUVRIR LE CONTRÔLE INTERNE
+--------------------------
+
+Défis > icône GeoPoint Studio > CONTRÔLE INTERNE.
+
+Le premier chargement renouvelle automatiquement le jeton Firebase pour lire
+le nouveau rôle. Un compte ordinaire doit recevoir « Accès refusé ».

@@ -1,16 +1,34 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../game/game_controller.dart';
+import '../../geobrain/geobrain_attempt.dart';
+import '../../monetization/interstitial_ad_service.dart';
+import '../../geobrain/geobrain_theme.dart';
 import '../../geo_engine/country_info.dart';
 import '../../geo_engine/country_info_loader.dart';
 import '../../geo_engine/geo_country.dart';
+import '../../geo_engine/geopoint_map.dart';
 import '../atlas/atlas_city.dart';
 import '../atlas/atlas_city_loader.dart';
-import '../design/geo_vector_map.dart';
 import '../design/geopoint_design.dart';
+import '../settings/gameplay_feedback.dart';
 import 'world_quiz_engine.dart';
+
+class WorldQuizGameResult {
+  const WorldQuizGameResult({
+    required this.totalScore,
+    required this.correctAnswers,
+    required this.totalQuestions,
+  });
+
+  final int totalScore;
+  final int correctAnswers;
+  final int totalQuestions;
+}
 
 class WorldQuizGameScreen extends StatefulWidget {
   const WorldQuizGameScreen({
@@ -20,6 +38,9 @@ class WorldQuizGameScreen extends StatefulWidget {
     required this.questionCount,
     this.regionId = 'world',
     this.difficultyId = 'easy',
+    this.attemptContext = GeoBrainAttemptContext.classicGame,
+    this.returnExpeditionResult = false,
+    this.onExpeditionCompleted,
     super.key,
   });
 
@@ -29,6 +50,10 @@ class WorldQuizGameScreen extends StatefulWidget {
   final int questionCount;
   final String regionId;
   final String difficultyId;
+  final GeoBrainAttemptContext attemptContext;
+  final bool returnExpeditionResult;
+  final Future<void> Function(WorldQuizGameResult result)?
+      onExpeditionCompleted;
 
   @override
   State<WorldQuizGameScreen> createState() => _WorldQuizGameScreenState();
@@ -48,9 +73,10 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
   int _lastScore = 0;
   int? _selectedAnswerIndex;
   double? _lastDistanceKilometers;
-  LatLng? _lastPlacementPoint;
   bool _answered = false;
   bool _finished = false;
+  bool _isCompleting = false;
+  DateTime _questionStartedAt = DateTime.now();
 
   @override
   void initState() {
@@ -93,6 +119,7 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
       setState(() {
         _engine = engine;
         _question = question;
+        _questionStartedAt = DateTime.now();
       });
     } catch (error) {
       if (!mounted) {
@@ -111,6 +138,7 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
     }
 
     final bool correct = index == question.correctAnswerIndex;
+    final String proposedAnswer = question.answers[index];
     setState(() {
       _selectedAnswerIndex = index;
       _answered = true;
@@ -120,6 +148,12 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
         _correctAnswers++;
       }
     });
+    GameplayFeedback.answer(isCorrect: correct);
+    _recordSingleCountryAttempt(
+      question: question,
+      isCorrect: correct,
+      proposedAnswerId: proposedAnswer,
+    );
   }
 
   void _answerPlacement(LatLng point) {
@@ -139,7 +173,6 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
 
     setState(() {
       _answered = true;
-      _lastPlacementPoint = point;
       _lastDistanceKilometers = distance;
       _lastScore = placementScore;
       _score += placementScore;
@@ -147,6 +180,12 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
         _correctAnswers++;
       }
     });
+    GameplayFeedback.answer(isCorrect: correct);
+    _recordSingleCountryAttempt(
+      question: question,
+      isCorrect: correct,
+      distanceInKilometers: distance,
+    );
   }
 
   int _placementScore(double distance) {
@@ -218,15 +257,39 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
         _correctAnswers++;
       }
     });
+    GameplayFeedback.answer(isCorrect: exact);
+    _recordMultiCountryAttempts(
+      question: question,
+      expectedCountryIds: expected,
+      selectedCountryIds: Set<String>.from(_selectedCountryIds),
+    );
   }
 
-  void _nextQuestion() {
+  Future<void> _nextQuestion() async {
     final WorldQuizEngine? engine = _engine;
     if (!_answered || engine == null) {
       return;
     }
 
     if (_questionNumber >= widget.questionCount) {
+      if (_isCompleting) {
+        return;
+      }
+      _isCompleting = true;
+      try {
+        await widget.onExpeditionCompleted?.call(
+          WorldQuizGameResult(
+            totalScore: _score,
+            correctAnswers: _correctAnswers,
+            totalQuestions: widget.questionCount,
+          ),
+        );
+      } finally {
+        _isCompleting = false;
+      }
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _finished = true;
       });
@@ -243,11 +306,11 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
       _questionNumber++;
       _question = question;
       _selectedAnswerIndex = null;
-      _lastPlacementPoint = null;
       _lastDistanceKilometers = null;
       _lastScore = 0;
       _answered = false;
       _selectedCountryIds.clear();
+      _questionStartedAt = DateTime.now();
     });
   }
 
@@ -270,13 +333,130 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
       _correctAnswers = 0;
       _lastScore = 0;
       _selectedAnswerIndex = null;
-      _lastPlacementPoint = null;
       _lastDistanceKilometers = null;
       _answered = false;
       _finished = false;
+      _isCompleting = false;
       _question = question;
       _selectedCountryIds.clear();
+      _questionStartedAt = DateTime.now();
     });
+  }
+
+  Future<void> _leaveResults() async {
+    if (_finished &&
+        (widget.attemptContext == GeoBrainAttemptContext.training ||
+            widget.attemptContext == GeoBrainAttemptContext.expedition)) {
+      await InterstitialAdService.instance.registerCompletedGame();
+      if (!mounted) return;
+    }
+    Navigator.of(context).pop();
+  }
+
+  void _recordSingleCountryAttempt({
+    required WorldQuizQuestion question,
+    required bool isCorrect,
+    double? distanceInKilometers,
+    String? proposedAnswerId,
+  }) {
+    final GeoCountry? country = question.answerCountry;
+    final GeoBrainTheme? theme = _geoBrainThemeFor(question.kind);
+    if (country == null || theme == null) {
+      return;
+    }
+    unawaited(
+      widget.controller.registerGeoBrainAttempt(
+        GeoBrainAttempt(
+          countryId: country.id,
+          theme: theme,
+          answeredAt: DateTime.now(),
+          modeId: _modeIdFor(question.kind),
+          difficultyId: widget.difficultyId,
+          isCorrect: isCorrect,
+          distanceInKilometers: distanceInKilometers,
+          responseTimeMilliseconds:
+              DateTime.now().difference(_questionStartedAt).inMilliseconds,
+          proposedAnswerId: proposedAnswerId,
+          context: widget.attemptContext,
+        ),
+      ),
+    );
+  }
+
+  void _recordMultiCountryAttempts({
+    required WorldQuizQuestion question,
+    required Set<String> expectedCountryIds,
+    required Set<String> selectedCountryIds,
+  }) {
+    final GeoBrainTheme? theme = _geoBrainThemeFor(question.kind);
+    if (theme == null) {
+      return;
+    }
+    final DateTime answeredAt = DateTime.now();
+    final int responseTime =
+        answeredAt.difference(_questionStartedAt).inMilliseconds;
+    final String proposedAnswer = (selectedCountryIds.toList()..sort()).join(',');
+    final Set<String> evaluatedIds = <String>{
+      ...expectedCountryIds,
+      ...selectedCountryIds,
+    };
+    for (final String countryId in evaluatedIds) {
+      final bool isExpected = expectedCountryIds.contains(countryId);
+      final bool wasSelected = selectedCountryIds.contains(countryId);
+      unawaited(
+        widget.controller.registerGeoBrainAttempt(
+          GeoBrainAttempt(
+            countryId: countryId,
+            theme: theme,
+            answeredAt: answeredAt,
+            modeId: _modeIdFor(question.kind),
+            difficultyId: widget.difficultyId,
+            isCorrect: isExpected && wasSelected,
+            responseTimeMilliseconds: responseTime,
+            proposedAnswerId: proposedAnswer,
+            context: widget.attemptContext,
+          ),
+        ),
+      );
+    }
+  }
+
+  GeoBrainTheme? _geoBrainThemeFor(WorldQuizKind kind) {
+    switch (kind) {
+      case WorldQuizKind.placeCity:
+      case WorldQuizKind.cityCountry:
+        return GeoBrainTheme.cities;
+      case WorldQuizKind.currency:
+        return GeoBrainTheme.currency;
+      case WorldQuizKind.language:
+        return GeoBrainTheme.languages;
+      case WorldQuizKind.populationRange:
+      case WorldQuizKind.populationCompare:
+      case WorldQuizKind.ranking:
+      case WorldQuizKind.area:
+        return null;
+    }
+  }
+
+  String _modeIdFor(WorldQuizKind kind) {
+    switch (kind) {
+      case WorldQuizKind.placeCity:
+        return 'place_city';
+      case WorldQuizKind.cityCountry:
+        return 'city_country';
+      case WorldQuizKind.currency:
+        return 'currency';
+      case WorldQuizKind.language:
+        return 'language';
+      case WorldQuizKind.populationRange:
+        return 'population_range';
+      case WorldQuizKind.populationCompare:
+        return 'population_compare';
+      case WorldQuizKind.ranking:
+        return 'ranking';
+      case WorldQuizKind.area:
+        return 'area';
+    }
   }
 
   @override
@@ -391,80 +571,30 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
       borderColors[answerId] = const Color(0xFF056F27);
     }
 
-    final List<GeoVectorPoint> points = <GeoVectorPoint>[];
-    final List<GeoVectorLine> lines = <GeoVectorLine>[];
-    if (multiSelect && _answered) {
-      for (final GeoCountry country in widget.controller.countries) {
-        final String id = country.id.trim().toUpperCase();
-        if (!expected.contains(id)) {
-          continue;
-        }
-        final LatLng? labelPoint = _countryLabelPoint(country);
-        if (labelPoint != null) {
-          points.add(
-            GeoVectorPoint(
-              position: labelPoint,
-              color: GeoColors.mint,
-              radius: 4,
-              label: country.name,
-            ),
-          );
-        }
-      }
-    }
-    if (!multiSelect && _answered && question.targetPoint != null) {
-      points.add(
-        GeoVectorPoint(
-          position: question.targetPoint!,
-          color: GeoColors.mint,
-          radius: 9,
-        ),
-      );
-      if (_lastPlacementPoint != null) {
-        points.add(
-          GeoVectorPoint(
-            position: _lastPlacementPoint!,
-            color: GeoColors.coral,
-            radius: 7,
-          ),
-        );
-        lines.add(
-          GeoVectorLine(
-            points: <LatLng>[_lastPlacementPoint!, question.targetPoint!],
-            color: GeoColors.coral,
-            width: 3,
-          ),
-        );
-      }
-    }
-
-    final Widget map = GeoVectorMap(
-      viewId: '${question.id}-$_questionNumber',
-      initialBounds: _vectorBoundsForRegion,
-      shapes: <GeoVectorShape>[
-        for (final GeoCountry country in widget.controller.countries)
-          GeoVectorShape(
-            id: country.id.trim().toUpperCase(),
-            polygons: country.polygons,
-            fillColor: fillColors[country.id.trim().toUpperCase()] ??
-                _continentColor(country),
-            borderColor: borderColors[country.id.trim().toUpperCase()] ??
-                Colors.white.withValues(alpha: 0.72),
-            borderWidth: fillColors.containsKey(
-              country.id.trim().toUpperCase(),
-            )
-                ? 2.2
-                : 0.65,
-          ),
-      ],
-      lines: lines,
-      points: points,
-      backgroundColor: const Color(0xFF096B91),
-      onShapeTap: multiSelect ? _toggleCountrySelection : null,
-      onPositionTap: multiSelect ? null : _answerPlacement,
-      interactive: !_answered,
-      maximumZoom: multiSelect ? 10 : _maximumVectorZoom,
-      initialZoom: 1.08,
+    final Widget map = GeoPointMap(
+      key: ValueKey<String>('${question.id}-$_questionNumber'),
+      initialCenter: _initialMapCenter,
+      initialZoom: _initialMapZoom,
+      maximumZoom: multiSelect ? 10 : _maximumMapZoom,
+      answerPoint:
+          !multiSelect && _answered ? question.targetPoint : null,
+      answerCountry:
+          !multiSelect && _answered ? question.answerCountry : null,
+      preferProvidedAnswerCountry: true,
+      resultRadiusInKilometers:
+          !multiSelect ? _placementValidationRadius : null,
+      countryFillColors: fillColors,
+      countryBorderColors: borderColors,
+      labelledCountryIds: multiSelect && _answered
+          ? expected
+          : const <String>{},
+      showTapSelection: !multiSelect,
+      showInformationPanel: false,
+      allowInteraction: !_answered,
+      onCountrySelected: multiSelect
+          ? (GeoCountry? country) => _toggleCountrySelection(country?.id)
+          : null,
+      onTap: multiSelect ? null : _answerPlacement,
     );
 
     return Padding(
@@ -552,93 +682,42 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
     }
   }
 
-  GeoVectorBounds get _vectorBoundsForRegion {
+  LatLng get _initialMapCenter {
     switch (widget.regionId) {
       case 'europe':
-        return const GeoVectorBounds(
-          minLatitude: 34,
-          maxLatitude: 72,
-          minLongitude: -25,
-          maxLongitude: 45,
-        );
+        return const LatLng(52, 10);
       case 'africa':
-        return const GeoVectorBounds(
-          minLatitude: -38,
-          maxLatitude: 38,
-          minLongitude: -20,
-          maxLongitude: 55,
-        );
+        return const LatLng(2, 20);
       case 'asia':
-        return const GeoVectorBounds(
-          minLatitude: -12,
-          maxLatitude: 78,
-          minLongitude: 25,
-          maxLongitude: 180,
-        );
+        return const LatLng(34, 100);
       case 'americas':
-        return const GeoVectorBounds(
-          minLatitude: -58,
-          maxLatitude: 75,
-          minLongitude: -170,
-          maxLongitude: -30,
-        );
+        return const LatLng(10, -90);
       case 'oceania':
-        return const GeoVectorBounds(
-          minLatitude: -52,
-          maxLatitude: 15,
-          minLongitude: 105,
-          maxLongitude: 180,
-        );
+        return const LatLng(-22, 140);
       case 'antarctica':
-        return const GeoVectorBounds(
-          minLatitude: -88,
-          maxLatitude: -60,
-          minLongitude: -180,
-          maxLongitude: 180,
-        );
+        return const LatLng(-72, 0);
       default:
-        return const GeoVectorBounds(
-          minLatitude: -85,
-          maxLatitude: 85,
-          minLongitude: -180,
-          maxLongitude: 180,
-        );
+        return const LatLng(20, 0);
     }
   }
 
-  Color _continentColor(GeoCountry country) {
-    final String continent = country.continent.toLowerCase().trim();
-    if (continent.contains('africa')) return const Color(0xFFF2C14E);
-    if (continent.contains('asia')) return const Color(0xFFE07A5F);
-    if (continent.contains('europe')) return const Color(0xFF81B29A);
-    if (continent.contains('north america')) return const Color(0xFF8ECAE6);
-    if (continent.contains('south america')) return const Color(0xFF90BE6D);
-    if (continent.contains('oceania')) return const Color(0xFFB388EB);
-    if (continent.contains('antarctica')) return const Color(0xFFEAF4F4);
-    return const Color(0xFFD9C2A6);
+  double get _initialMapZoom {
+    switch (widget.regionId) {
+      case 'europe':
+        return 3.0;
+      case 'africa':
+      case 'oceania':
+        return 2.7;
+      case 'asia':
+        return 2.4;
+      case 'americas':
+        return 2.2;
+      default:
+        return 2.0;
+    }
   }
 
-  LatLng? _countryLabelPoint(GeoCountry country) {
-    if (country.polygons.isEmpty) {
-      return null;
-    }
-    final List<LatLng> polygon = country.polygons.reduce(
-      (List<LatLng> first, List<LatLng> second) =>
-          first.length >= second.length ? first : second,
-    );
-    if (polygon.isEmpty) {
-      return null;
-    }
-    double latitude = 0;
-    double longitude = 0;
-    for (final LatLng point in polygon) {
-      latitude += point.latitude;
-      longitude += point.longitude;
-    }
-    return LatLng(latitude / polygon.length, longitude / polygon.length);
-  }
-
-  double get _maximumVectorZoom {
+  double get _maximumMapZoom {
     switch (widget.difficultyId) {
       case 'easy':
         return 8.5;
@@ -733,7 +812,9 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
               ),
               const SizedBox(height: 18),
               Text(
-                'SESSION TERMINÉE',
+                widget.returnExpeditionResult
+                    ? 'ÉTAPE TERMINÉE'
+                    : 'SESSION TERMINÉE',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.fredoka(
                   color: GeoColors.navy,
@@ -783,9 +864,17 @@ class _WorldQuizGameScreenState extends State<WorldQuizGameScreen> {
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.tune_rounded),
-                label: const Text('CHANGER DE QUIZ'),
+                onPressed: _leaveResults,
+                icon: Icon(
+                  widget.returnExpeditionResult
+                      ? Icons.flag_rounded
+                      : Icons.tune_rounded,
+                ),
+                label: Text(
+                  widget.returnExpeditionResult
+                      ? 'TERMINER L’ÉTAPE'
+                      : 'CHANGER DE QUIZ',
+                ),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(52),
                   foregroundColor: GeoColors.navy,

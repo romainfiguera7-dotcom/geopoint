@@ -1,0 +1,46 @@
+GEOPOINT — POINT 29.8 — RÉCOMPENSES DE SAISON
+================================================
+
+Cette archive est cumulative : elle inclut également les points 29.1 à 29.7.
+
+1. Fermer l'application et arrêter Flutter avec la touche q si nécessaire.
+
+2. Depuis PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   .\android\gradlew.bat --stop
+
+3. Extraire l'archive dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+   Accepter le remplacement des fichiers.
+
+4. Vérifier puis déployer :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   dart format lib test
+   flutter analyze
+   flutter test
+   npm --prefix functions run check
+   firebase deploy --only "firestore:rules,firestore:indexes,functions"
+   flutter run
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found!
+- flutter test : All tests passed!
+- npm : 39 tests réussis
+- Firebase déploie claimSeasonReward en europe-west1
+- l'onglet SAISON affiche les cinq paliers de récompense
+- au changement de mois, le gain précédent est crédité automatiquement une
+  seule fois dans MES RÉCOMPENSES
+
+IMPORTANT
+---------
+
+La saison de septembre 2026 ne peut produire son premier versement qu'à partir
+du 1er octobre 2026 à 01:00 UTC. C'est normal : le classement doit d'abord être
+clos. Tous les participants reçoivent au minimum 75 pièces.

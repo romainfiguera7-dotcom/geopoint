@@ -1,0 +1,83 @@
+GEOPOINT - POINT 26.8 : SUGGESTIONS D'ENTRAÎNEMENT
+-------------------------------------------------
+
+Cette version transforme l'historique GeoBrain en propositions d'entraînement
+concrètes, visibles directement dans le Passeport.
+
+SUGGESTIONS PERSONNALISÉES
+--------------------------
+
+GeoBrain peut notamment proposer :
+
+- « Réviser les Balkans » lorsque plusieurs pays de la zone sont fragiles ou
+  arrivés à leur date de révision ;
+- « Retravailler les drapeaux d'Afrique » lorsque les erreurs ou oublis se
+  concentrent sur ce thème ;
+- « Confirmer les capitales apprises cette semaine » après plusieurs réussites
+  récentes ;
+- « Découvrir cinq nouveaux pays d'Océanie » lorsque ces pays sont encore
+  inconnus ;
+- « Revoir mes priorités » lorsqu'une révision générale est plus pertinente.
+
+Chaque proposition contient une explication positive et précise fondée sur
+l'historique réel du joueur. Le Passeport affiche au maximum trois suggestions
+à la fois, classées par utilité pédagogique.
+
+SÉANCES CIBLÉES
+---------------
+
+Le bouton LANCER ouvre une séance déjà préparée avec :
+
+- la bonne zone géographique ;
+- le bon thème de jeu ;
+- le nombre utile de questions ;
+- uniquement les pays concernés par la suggestion ;
+- la difficulté adaptative de l'étape 26.7, modifiable avant le départ.
+
+Une suggestion sur les Balkans ne lance donc pas une sélection générale de
+toute l'Europe. Les limites habituelles de difficulté ne retirent pas non plus
+un pays expressément choisi par GeoBrain.
+
+IGNORER SANS PÉNALITÉ
+---------------------
+
+Le bouton IGNORER masque immédiatement la proposition. Cette action :
+
+- ne crée aucune tentative ;
+- ne baisse aucun score ;
+- ne modifie aucune date de révision ;
+- ne change pas la maîtrise du joueur.
+
+SAUVEGARDE
+----------
+
+Cette étape ne modifie pas le schéma GeoBrain. Elle lit les fiches, thèmes,
+tentatives et calendriers existants sans les altérer.
+
+INSTALLATION
+------------
+
+1. Fermer GeoPoint.
+
+2. Décompresser le ZIP dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+   en remplaçant les fichiers existants.
+
+3. Lancer dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found!
+- flutter test : 99 tests réussis
+- le Passeport affiche les séances utiles au profil courant ;
+- LANCER ouvre uniquement les pays annoncés ;
+- IGNORER masque la proposition sans modifier la progression.

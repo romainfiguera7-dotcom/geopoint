@@ -1,0 +1,52 @@
+POINTGEO V3.4.2 - NOM PUBLIC ET PORTEFEUILLE FIREBASE
+=====================================================
+
+Le nom public de l'application devient PointGeo.
+Les identifiants techniques restent volontairement inchangés :
+- package Android : com.romainfiguera.geopoint
+- projet Firebase : geopoint-dev
+- produit sans publicité : geopoint_no_ads
+- nom du projet Flutter et clés de sauvegarde internes : geopoint
+
+INSTALLATION DU PROJET
+----------------------
+
+cd D:\romai\GEOPOINT
+Expand-Archive "$env:USERPROFILE\Downloads\pointgeo_portefeuille_firebase_v3_4_2.zip" "D:\romai\GEOPOINT" -Force
+
+cd D:\romai\GEOPOINT\geopoint
+flutter pub get
+flutter analyze
+flutter test
+npm --prefix functions run check
+
+DEPLOIEMENT FIREBASE OBLIGATOIRE
+--------------------------------
+
+firebase deploy --only "functions"
+
+LANCEMENT ANDROID
+-----------------
+
+flutter run -d 58041FDCR00681
+
+FONCTIONNEMENT DU PORTEFEUILLE
+------------------------------
+
+- Chaque gain de défi reste en attente jusqu'à la validation du résultat
+  officiel par Firebase.
+- Firebase utilise le pack de défis publié comme source du montant.
+- Une même récompense ne peut être créditée qu'une seule fois.
+- Le solde Firebase remplace le solde local lors de la synchronisation.
+- Les pièces et diamants sont récupérés sur un autre appareil connecté au
+  même compte.
+- Si le résultat classé n'est pas encore arrivé au serveur, la récompense
+  reste en attente et sera automatiquement retentée.
+
+DEFIS PERMANENTS
+----------------
+
+- Les six défis Monde, Europe, Afrique, Amériques, Asie et Océanie sont
+  conservés même si Firebase renvoie encore un ancien pack publié.
+- Le bloc « Carnet de rentrée » a été supprimé. Le pack inclus porte le nom
+  « Défis PointGeo ».

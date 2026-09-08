@@ -1,0 +1,74 @@
+GEOPOINT — POINT 28.5
+GEOPOINT STUDIO LOCAL
+
+Cette archive est cumulative. Elle contient toute la base validée du point 27
+et les étapes 28.1 à 28.5.
+
+Nouveautés
+==========
+
+- GeoPoint Studio est intégré à l’écran JOUER > DÉFIS en mode développement.
+- L’interface permet de créer un défi du jour, de la semaine ou du mois.
+- Les dates et heures sont choisies dans le fuseau local de l’appareil.
+- Le mode, la difficulté, le continent ou une liste précise de pays sont
+  configurables.
+- Le nombre de questions, les conditions de réussite et les récompenses sont
+  configurables.
+- La carte du défi est prévisualisée pendant la saisie.
+- Les brouillons sont enregistrés localement et peuvent être modifiés,
+  dupliqués ou supprimés.
+- Le pack complet peut être validé puis copié en JSON dans le presse-papiers.
+
+Règles automatiques
+===================
+
+- Profil adulte : 1 essai gratuit, puis recommencements illimités avec une
+  publicité récompensée.
+- Profil enfant : publicité interdite et recommencements gratuits illimités.
+- Studio génère automatiquement une variante enfant pour chaque défi.
+- GeoBrain est automatiquement coupé lorsqu’un défi est classé.
+- Deux défis du même rythme ne peuvent pas être actifs en même temps.
+- Un pays, un mode, une difficulté ou une période inconnus bloquent l’export.
+
+Limite actuelle
+===============
+
+Cette première version est locale et accessible uniquement avec une
+compilation Flutter de développement. Elle ne publie rien sur Internet et ne
+possède pas encore de compte administrateur. La connexion sécurisée et la
+publication distante correspondent à la future version GeoPoint Studio
+connectée.
+
+Installation et test
+====================
+
+1. Décompresser l’archive dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+2. Accepter le remplacement des fichiers.
+3. Exécuter dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+Parcours à vérifier
+===================
+
+1. Ouvrir JOUER > DÉFIS.
+2. Appuyer sur la carte violette GEOPOINT STUDIO.
+3. Choisir NOUVEAU DÉFI puis le rythme souhaité.
+4. Modifier les champs et vérifier l’aperçu en haut de l’écran.
+5. Enregistrer le brouillon.
+6. Utiliser le menu du brouillon pour le dupliquer ou le supprimer.
+7. Appuyer sur VALIDER.
+8. Lorsque le pack est valide, appuyer sur EXPORTER JSON.
+
+Résultat technique attendu
+==========================
+
+- flutter analyze : No issues found!
+- flutter test : tous les tests réussissent.
+- Environ 222 tests sont présents, dont 50 consacrés aux défis.

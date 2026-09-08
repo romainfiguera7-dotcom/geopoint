@@ -3,27 +3,55 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../challenges/challenge_server_connection.dart';
+import '../challenges/challenge_pack_cache_storage.dart';
+import '../challenges/challenge_result.dart';
+import '../challenges/challenge_storage.dart';
+import '../app/geopoint_features.dart';
 import '../features/atlas/atlas_personal_progress.dart';
 import '../features/atlas/atlas_personal_storage.dart';
+import '../features/exploration/france/national_expedition_storage.dart';
+import '../features/settings/gameplay_feedback.dart';
 import '../geo_engine/capital.dart';
 import '../geo_engine/capital_loader.dart';
 import '../geo_engine/geo_country.dart';
 import '../geo_engine/reference_point.dart';
 import '../geo_engine/reference_point_loader.dart';
 import '../geobrain/country_selector.dart';
+import '../geobrain/geobrain_difficulty_adapter.dart';
+import '../geobrain/geobrain_attempt.dart';
 import '../geobrain/geobrain_service.dart';
+import '../geobrain/geobrain_theme.dart';
 import '../player/level_result.dart';
+import '../player/player_identity_service.dart';
+import '../player/player_identity_storage.dart';
+import '../player/player_online_identity.dart';
+import '../player/player_online_link_service.dart';
 import '../player/player_profile.dart';
+import '../player/player_statistics.dart';
 import '../player/player_storage.dart';
+import '../player/player_xp_debug_tools.dart';
+import '../player/player_xp_ledger.dart';
 import '../player/xp_system.dart';
+import '../server/geopoint_server_contract.dart';
+import '../passport/achievements/passport_achievement.dart';
+import '../passport/achievements/passport_achievement_catalog.dart';
 import '../passport/progress/passport_entity_progress.dart';
+import '../passport/progress/passport_continent.dart';
 import '../passport/progress/passport_progress_coordinator.dart';
 import '../passport/progress/passport_progress_rules.dart';
 import '../passport/progress/passport_progress_storage.dart';
 import '../passport/progress/passport_progress_v2.dart';
 import '../passport/progress/passport_stamp_unlock_event.dart';
+import '../passport/achievements/passport_achievement_progress.dart';
+import '../passport/achievements/passport_achievement_snapshot_builder.dart';
+import '../passport/achievements/passport_achievement_storage.dart';
 import 'continent/continent_expedition.dart';
+import 'continent/continent_progress.dart';
+import 'continent/continent_storage.dart';
 import 'country_difficulty_loader.dart';
+import 'expedition/expedition_progress.dart';
+import 'expedition/expedition_storage.dart';
 import 'game_difficulty.dart';
 import 'game_difficulty_loader.dart';
 import 'game_engine.dart';
@@ -36,23 +64,14 @@ import 'passport/passport_service.dart';
 import 'passport/passport_stamp.dart';
 import 'passport/passport_storage.dart';
 import 'passport/player_passport.dart';
+import 'playable_country_policy.dart';
 import 'score_system.dart';
 
 class GameController extends ChangeNotifier {
   static const Set<String>
-      _excludedQuestionEntityIds =
-      <String>{
-    'CYN',
-    'PSX',
-    'SAH',
-    'SOL',
-  };
-
-  static const Set<String>
       _completeTrainingExcludedEntityIds =
       <String>{
     'SMR',
-    'VAT',
   };
 
   GameController({
@@ -72,6 +91,7 @@ class GameController extends ChangeNotifier {
   late PassportEngine _passportEngine;
   late PlayerPassport _passport;
   late PlayerProfile _playerProfile;
+  late PlayerOnlineIdentity _playerIdentity;
   late GeoBrainService _geoBrainService;
   late PassportProgressV2 _passportProgress;
   late CountrySelector _countrySelector;
@@ -80,9 +100,15 @@ class GameController extends ChangeNotifier {
   int _countryStampUnlockSequence = 0;
 
   Future<void> _passportSynchronizationQueue = Future<void>.value();
+  Future<void> _currentGameCompletion = Future<void>.value();
 
   PassportResult? _lastPassportResult;
   LevelResult? _lastLevelResult;
+
+  int _xpSessionSequence = 0;
+  String? _currentXpGrantId;
+  Set<String> _xpSeenCountryIdsAtSessionStart = const <String>{};
+  Set<String> _xpMasteredCountryIdsAtSessionStart = const <String>{};
 
   bool _passportResultRegisteredForCurrentGame =
       false;
@@ -108,8 +134,15 @@ class GameController extends ChangeNotifier {
 
   final List<GeoCountry> _encounteredCountries = <GeoCountry>[];
   final List<GeoCountry> _validatedCountries = <GeoCountry>[];
+  final List<QuestionStatisticsResult> _currentGameQuestionResults =
+      <QuestionStatisticsResult>[];
+  final List<ChallengeAnswerEvidence> _currentChallengeAnswerEvidence =
+      <ChallengeAnswerEvidence>[];
+
+  bool _isDisposed = false;
 
   bool _isTrainingMission = false;
+  bool _isChallengeMission = false;
   bool _isCompleteTraining = false;
   int? _trainingQuestionCount;
   String _trainingRegionId = 'world';
@@ -150,6 +183,11 @@ class GameController extends ChangeNotifier {
   GameSession get session =>
       _session;
 
+  List<ChallengeAnswerEvidence> get currentChallengeAnswerEvidence =>
+      List<ChallengeAnswerEvidence>.unmodifiable(
+        _currentChallengeAnswerEvidence,
+      );
+
   PlayerPassport get passport =>
       _passport;
 
@@ -162,6 +200,9 @@ class GameController extends ChangeNotifier {
   PlayerProfile get playerProfile =>
       _playerProfile;
 
+  PlayerOnlineIdentity get playerIdentity =>
+      _playerIdentity;
+
   LevelResult? get lastLevelResult =>
       _lastLevelResult;
 
@@ -173,6 +214,57 @@ class GameController extends ChangeNotifier {
 
   PassportStampUnlockEvent? get latestCountryStampUnlock =>
       _latestCountryStampUnlock;
+
+  Future<void> waitForPassportProgressSynchronization() {
+    return _passportSynchronizationQueue;
+  }
+
+  Future<void> waitForCurrentGameCompletion() {
+    return _waitForCurrentGameCompletionSafely();
+  }
+
+  Future<void> _waitForCurrentGameCompletionSafely() async {
+    try {
+      await _currentGameCompletion;
+    } on Object catch (error, stackTrace) {
+      debugPrint('GeoPoint : finalisation de partie incomplète : $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
+
+  void _startNewXpSession() {
+    _xpSessionSequence++;
+    final int startedAtMicroseconds =
+        DateTime.now().toUtc().microsecondsSinceEpoch;
+    _currentXpGrantId =
+        'game-$startedAtMicroseconds-$_xpSessionSequence';
+    _currentGameCompletion = Future<void>.value();
+    _xpSeenCountryIdsAtSessionStart = Set<String>.unmodifiable(
+      _geoBrainService.profile.countries.entries
+          .where((entry) => entry.value.hasBeenSeen)
+          .map((entry) => entry.key.trim().toUpperCase()),
+    );
+    _xpMasteredCountryIdsAtSessionStart = Set<String>.unmodifiable(
+      _geoBrainService.profile.countries.entries
+          .where((entry) => entry.value.isMastered)
+          .map((entry) => entry.key.trim().toUpperCase()),
+    );
+  }
+
+  String _resolveCurrentXpGrantId(DateTime completedAt) {
+    final String? currentGrantId = _currentXpGrantId;
+
+    if (currentGrantId != null && currentGrantId.isNotEmpty) {
+      return currentGrantId;
+    }
+
+    _xpSessionSequence++;
+    final String fallbackGrantId =
+        'game-${completedAt.toUtc().microsecondsSinceEpoch}-'
+        '$_xpSessionSequence';
+    _currentXpGrantId = fallbackGrantId;
+    return fallbackGrantId;
+  }
 
   List<GeoCountry> get countries =>
       _countries;
@@ -201,6 +293,9 @@ class GameController extends ChangeNotifier {
 
   bool get isTrainingMission =>
       _isTrainingMission;
+
+  bool get isChallengeMission =>
+      _isChallengeMission;
 
   bool get isCompleteTraining =>
       _isCompleteTraining;
@@ -415,6 +510,7 @@ class GameController extends ChangeNotifier {
     required String modeId,
     required String regionId,
     required bool completeRegion,
+    Set<String>? allowedCountryIds,
   }) {
     final String normalizedDifficulty = difficultyId.trim().toLowerCase();
     final String resolvedDifficulty =
@@ -433,6 +529,9 @@ class GameController extends ChangeNotifier {
         resolvedMode == 'find_capital' || resolvedMode == 'mixed';
     final bool requiresFlag =
         resolvedMode == 'find_flag' || resolvedMode == 'mixed';
+    final Set<String>? normalizedAllowedIds = allowedCountryIds
+        ?.map<String>((String id) => id.trim().toUpperCase())
+        .toSet();
 
     return _countries.where((GeoCountry country) {
       if (_isExcludedFromQuestions(country) ||
@@ -441,6 +540,10 @@ class GameController extends ChangeNotifier {
       }
 
       final String countryId = country.id.trim().toUpperCase();
+      if (normalizedAllowedIds != null &&
+          !normalizedAllowedIds.contains(countryId)) {
+        return false;
+      }
       if (completeRegion &&
           _completeTrainingExcludedEntityIds.contains(countryId)) {
         return false;
@@ -458,10 +561,57 @@ class GameController extends ChangeNotifier {
               RegExp(r'^[A-Z]{2}$')
                   .hasMatch(country.isoA2.trim().toUpperCase()));
 
-      return (difficulty <= maximumDifficulty || isPlayableAntarctica) &&
+      return (normalizedAllowedIds != null ||
+              difficulty <= maximumDifficulty ||
+              isPlayableAntarctica) &&
           hasRequiredCapital &&
           hasRequiredFlag;
     }).length;
+  }
+
+  GeoBrainDifficultyRecommendation recommendedTrainingDifficulty({
+    required String modeId,
+    required String regionId,
+    Set<String>? allowedCountryIds,
+  }) {
+    final String normalizedMode = _normalizeModeId(modeId);
+    final Set<GeoBrainTheme> relevantThemes;
+    if (normalizedMode == 'mixed') {
+      relevantThemes = <GeoBrainTheme>{
+        GeoBrainTheme.location,
+        GeoBrainTheme.capital,
+        GeoBrainTheme.flag,
+      };
+    } else {
+      final GeoBrainTheme? theme = GeoBrainTheme.fromModeId(normalizedMode);
+      relevantThemes = theme == null
+          ? GeoBrainTheme.values.toSet()
+          : <GeoBrainTheme>{theme};
+    }
+
+    final Set<String>? normalizedAllowedIds = allowedCountryIds
+        ?.map<String>((String id) => id.trim().toUpperCase())
+        .toSet();
+    final Set<String> regionalCountryIds = _countries
+        .where(
+          (GeoCountry country) =>
+              _matchesTrainingRegion(country, regionId) &&
+              (normalizedAllowedIds == null ||
+                  normalizedAllowedIds.contains(
+                    country.id.trim().toUpperCase(),
+                  )),
+        )
+        .map<String>((GeoCountry country) => country.id.trim().toUpperCase())
+        .toSet();
+    final List<GeoBrainAttempt> attempts = _geoBrainService.profile.attemptHistory
+        .where(
+          (GeoBrainAttempt attempt) =>
+              regionalCountryIds.contains(attempt.countryId) &&
+              relevantThemes.contains(attempt.theme),
+        )
+        .toList(growable: false);
+
+    return const GeoBrainDifficultyAdapter().recommend(attempts: attempts);
   }
 
   LatLng? get selectedPoint =>
@@ -534,6 +684,9 @@ class GameController extends ChangeNotifier {
   double get averageElapsedSeconds =>
       _session.averageElapsedSeconds;
 
+  int get totalElapsedSeconds =>
+      _session.totalElapsedSeconds;
+
   int get bestScore =>
       _session.bestScore ?? 0;
 
@@ -580,8 +733,10 @@ class GameController extends ChangeNotifier {
     final GeoBrainService geoBrainService =
         await GeoBrainService.create();
 
+    final AtlasPersonalProgress? savedAtlasPersonalProgress =
+        await AtlasPersonalStorage.loadOrNull();
     final AtlasPersonalProgress atlasPersonalProgress =
-        await AtlasPersonalStorage.load();
+        savedAtlasPersonalProgress ?? AtlasPersonalProgress.initial();
 
     _capitals =
         Map<String, Capital>.unmodifiable(
@@ -618,9 +773,13 @@ class GameController extends ChangeNotifier {
         savedPassport ??
             PlayerPassport.initial();
 
-    _playerProfile =
-        savedProfile ??
-            PlayerProfile.initial();
+    _playerProfile = savedProfile ?? PlayerProfile.initial();
+    if (!GeoPointFeatures.childModeEnabled && _playerProfile.isChildProfile) {
+      _playerProfile = _playerProfile.copyWith(
+        profileType: PlayerProfileType.adult,
+      );
+      await PlayerStorage.save(_playerProfile);
+    }
 
     _geoBrainService =
         geoBrainService;
@@ -631,7 +790,38 @@ class GameController extends ChangeNotifier {
       playerProfile: _playerProfile,
       geoBrainProfile: _geoBrainService.profile,
       atlasProgress: atlasPersonalProgress,
+      preserveUnifiedPersonalLists: savedAtlasPersonalProgress == null,
     );
+    _passport = _passportProgress.licenseProgress;
+    _playerProfile = _passportProgress.playerProfile;
+
+    final PlayerIdentityBootstrapResult identityBootstrap =
+        await PlayerIdentityService.bootstrap(
+      playerProfile: _playerProfile,
+      passport: _passport,
+    );
+    _playerIdentity = identityBootstrap.identity;
+    _passport = identityBootstrap.passport;
+    _playerProfile = identityBootstrap.playerProfile;
+    // Une synchronisation de progression ou une ancienne identité ne doit pas
+    // réactiver le profil enfant pendant que le module est coupé pour la V1.
+    if (!GeoPointFeatures.childModeEnabled && _playerProfile.isChildProfile) {
+      _playerProfile = _playerProfile.copyWith(
+        profileType: PlayerProfileType.adult,
+      );
+      await PlayerStorage.save(_playerProfile);
+    }
+    _passportProgress = _passportProgress
+        .replaceCoreProgress(
+          licenseProgress: _passport,
+          playerProfile: _playerProfile,
+        )
+        .recordMigrationVersions(
+      <String, int>{
+        'playerOnlineIdentity': PlayerOnlineIdentity.currentSchemaVersion,
+      },
+    );
+    await PassportProgressStorage.save(_passportProgress);
 
     _countrySelector =
         CountrySelector(
@@ -715,7 +905,7 @@ class GameController extends ChangeNotifier {
     );
 
     debugPrint(
-      'GeoPoint Passeport 2.0 : '
+      'GeoPoint Passeport 2.0 v${_passportProgress.schemaVersion} : '
       '${_passportProgress.discoveredEntityCount} entité(s) découverte(s), '
       '${_passportProgress.masteredEntityCount} maîtrisée(s), '
       '${_passportProgress.visitedEntityCount} visitée(s), '
@@ -728,13 +918,159 @@ class GameController extends ChangeNotifier {
 
     _gameEngine.reset();
     _session = _createInitialSession();
+    _startNewXpSession();
     _encounteredCountries.clear();
     _validatedCountries.clear();
+    _currentGameQuestionResults.clear();
     _completeTrainingQueue.clear();
 
     _clearAnswer();
 
     notifyListeners();
+    unawaited(_synchronizeOnlineIdentity());
+  }
+
+  Future<void> _synchronizeOnlineIdentity() async {
+    final gateway = ChallengeServerConnection.coreGateway;
+    if (gateway == null) {
+      return;
+    }
+
+    if (_playerIdentity.isLinked) {
+      try {
+        final PlayerIdentityRegistrationResponse registration =
+            await gateway.registerPlayerIdentity(
+          PlayerIdentityRegistrationRequest.fromLocalProgress(
+            identity: _playerIdentity,
+            playerProfile: _playerProfile,
+            passport: _passport,
+          ),
+        );
+        if (GeoPointFeatures.childModeEnabled &&
+            registration.isChildProfile &&
+            !_playerProfile.isChildProfile) {
+          _playerProfile = _playerProfile.activateChildProtection(
+            registration.childAgeGroup ?? PlayerChildAgeGroup.ages6To8,
+          );
+          await PlayerStorage.save(_playerProfile);
+          await _synchronizePassportProgress(
+            preferProvidedPlayerProfile: true,
+          );
+          notifyListeners();
+        }
+        if (registration.isChildProfile) {
+          debugPrint('GeoPoint : protection enfant synchronisée avec Firebase.');
+        }
+      } on Object catch (error) {
+        if (_playerProfile.isChildProfile) {
+          debugPrint(
+            'GeoPoint : protection enfant locale, synchronisation Firebase '
+            'différée : $error',
+          );
+        }
+      }
+      return;
+    }
+
+    final PlayerOnlineLinkReport report = _playerIdentity.isMigrationPending
+        ? await PlayerOnlineLinkService.refreshMigration(
+            identity: _playerIdentity,
+            gateway: gateway,
+          )
+        : await PlayerOnlineLinkService.link(
+            identity: _playerIdentity,
+            playerProfile: _playerProfile,
+            passport: _passport,
+            gateway: gateway,
+          );
+
+    if (_isDisposed) {
+      return;
+    }
+    _playerIdentity = report.identity;
+    if (report.status == PlayerOnlineLinkStatus.serverUnavailable) {
+      debugPrint(
+        'GeoPoint Firebase : synchronisation différée, jeu local conservé.',
+      );
+      return;
+    }
+    debugPrint(
+      'GeoPoint Firebase : identité joueur ${report.status.name}.',
+    );
+    notifyListeners();
+  }
+
+  Future<bool> activateChildProtection(PlayerChildAgeGroup ageGroup) async {
+    if (!GeoPointFeatures.childModeEnabled) {
+      return false;
+    }
+    if (_playerProfile.isChildProfile) {
+      return true;
+    }
+    final PlayerProfile previous = _playerProfile;
+    final PlayerProfile protectedProfile =
+        previous.activateChildProtection(ageGroup);
+    if (!await PlayerStorage.save(protectedProfile)) {
+      return false;
+    }
+    _playerProfile = protectedProfile;
+    await _synchronizePassportProgress(preferProvidedPlayerProfile: true);
+    notifyListeners();
+    await _synchronizeOnlineIdentity();
+    return true;
+  }
+
+  Future<bool> renamePlayer(String displayName) async {
+    final String normalized = displayName.trim();
+    if (normalized.length < 2 || normalized.length > 20) {
+      return false;
+    }
+    final PlayerProfile updatedProfile = _playerProfile.rename(normalized);
+    final PlayerPassport updatedPassport = _passport.rename(normalized);
+    final List<bool> saved = await Future.wait(<Future<bool>>[
+      PlayerStorage.save(updatedProfile),
+      PassportStorage.save(updatedPassport),
+    ]);
+    if (saved.any((bool value) => !value)) {
+      return false;
+    }
+    _playerProfile = updatedProfile;
+    _passport = updatedPassport;
+    _passportProgress = _passportProgress.replaceCoreProgress(
+      licenseProgress: _passport,
+      playerProfile: _playerProfile,
+    );
+    notifyListeners();
+    unawaited(_synchronizeOnlineIdentity());
+    return true;
+  }
+
+  Future<void> refreshOnlineIdentityAfterAccountChange() async {
+    _playerIdentity = _playerIdentity.unlink();
+    await PlayerIdentityStorage.save(_playerIdentity);
+    await _synchronizeOnlineIdentity();
+    notifyListeners();
+  }
+
+  /// Efface les sauvegardes personnelles de cet appareil après la suppression
+  /// distante du compte, puis recrée un profil invité neuf.
+  Future<void> deleteLocalPlayerData() async {
+    _stopTimer();
+    await Future.wait<dynamic>(<Future<dynamic>>[
+      PassportStorage.clear(),
+      PlayerStorage.clear(),
+      _geoBrainService.clear(),
+      AtlasPersonalStorage.clear(),
+      ExpeditionStorage.clear(),
+      ContinentStorage.clear(),
+      NationalExpeditionStorage.clear(),
+      ChallengeStorage.clear(),
+      ChallengePackCacheStorage.clear(),
+      PassportProgressStorage.clear(),
+      PassportAchievementStorage.clear(),
+      PlayerIdentityStorage.clear(),
+    ]);
+    await initialize(_countries);
   }
 
   void startMission({
@@ -746,6 +1082,7 @@ class GameController extends ChangeNotifier {
     _currentGuidedLevel = null;
     _currentContinentLevel = null;
     _isTrainingMission = false;
+    _isChallengeMission = false;
     _isCompleteTraining = false;
     _trainingQuestionCount = null;
     _trainingRegionId = 'world';
@@ -763,8 +1100,10 @@ class GameController extends ChangeNotifier {
 
     _gameEngine.reset();
     _session = _createInitialSession();
+    _startNewXpSession();
     _encounteredCountries.clear();
     _validatedCountries.clear();
+    _currentGameQuestionResults.clear();
 
     _lastPassportResult = null;
     _lastLevelResult = null;
@@ -785,6 +1124,7 @@ class GameController extends ChangeNotifier {
     _currentGuidedLevel = level;
     _currentContinentLevel = null;
     _isTrainingMission = false;
+    _isChallengeMission = false;
     _isCompleteTraining = false;
     _trainingQuestionCount = null;
     _trainingRegionId = 'world';
@@ -799,6 +1139,7 @@ class GameController extends ChangeNotifier {
     _gameEngine.reset();
     _encounteredCountries.clear();
     _validatedCountries.clear();
+    _currentGameQuestionResults.clear();
     _guidedQuestionQueue
       ..clear()
       ..addAll(_missionCountries);
@@ -828,6 +1169,7 @@ class GameController extends ChangeNotifier {
     _currentGuidedLevel = null;
     _currentContinentLevel = level;
     _isTrainingMission = false;
+    _isChallengeMission = false;
     _isCompleteTraining = false;
     _trainingQuestionCount = null;
     _trainingRegionId = 'world';
@@ -851,11 +1193,13 @@ class GameController extends ChangeNotifier {
     _gameEngine.reset();
     _encounteredCountries.clear();
     _validatedCountries.clear();
+    _currentGameQuestionResults.clear();
     _session = GameSession.initial(
       questionDurationSeconds:
           level.questionDurationSeconds,
       totalQuestions: level.questionCount,
     );
+    _startNewXpSession();
 
     _lastPassportResult = null;
     _lastLevelResult = null;
@@ -871,6 +1215,8 @@ class GameController extends ChangeNotifier {
     required int questionCount,
     String regionId = 'world',
     bool completeRegion = false,
+    bool reviewDifficultiesOnly = false,
+    Set<String>? allowedCountryIds,
   }) {
     _stopTimer();
 
@@ -883,6 +1229,7 @@ class GameController extends ChangeNotifier {
     _currentGuidedLevel = null;
     _currentContinentLevel = null;
     _isTrainingMission = true;
+    _isChallengeMission = false;
     _isCompleteTraining = completeRegion;
     _trainingRegionId = _normalizeTrainingRegionId(regionId);
     _guidedQuestionQueue.clear();
@@ -895,6 +1242,10 @@ class GameController extends ChangeNotifier {
       questionCountOverride: resolvedQuestionCount,
       regionId: _trainingRegionId,
       selectAllEligible: completeRegion,
+      selectionProfile: reviewDifficultiesOnly
+          ? GeoBrainSelectionProfile.reviewDifficulties
+          : GeoBrainSelectionProfile.balanced,
+      allowedCountryIds: allowedCountryIds,
     );
 
     final int availableCount = _missionCountries.length;
@@ -913,12 +1264,66 @@ class GameController extends ChangeNotifier {
     _gameEngine.reset();
     _encounteredCountries.clear();
     _validatedCountries.clear();
+    _currentGameQuestionResults.clear();
+    _currentChallengeAnswerEvidence.clear();
     _session = _createInitialSession();
 
     _lastPassportResult = null;
     _lastLevelResult = null;
     _passportResultRegisteredForCurrentGame = false;
 
+    _clearAnswer();
+    startNextQuestion();
+  }
+
+  void startChallengeMission({
+    required String challengeId,
+    required String difficultyId,
+    required String modeId,
+    required int questionCount,
+    String regionId = 'world',
+    Set<String>? allowedCountryIds,
+    bool geoBrainPersonalizationAllowed = false,
+  }) {
+    _stopTimer();
+
+    final int resolvedQuestionCount = questionCount.clamp(1, 50);
+    _currentGuidedLevel = null;
+    _currentContinentLevel = null;
+    _isTrainingMission = false;
+    _isChallengeMission = true;
+    _isCompleteTraining = false;
+    _trainingQuestionCount = resolvedQuestionCount;
+    _trainingRegionId = _normalizeTrainingRegionId(regionId);
+    _guidedQuestionQueue.clear();
+    _completeTrainingQueue.clear();
+    _currentModeId = _normalizeModeId(modeId);
+
+    _applyMissionConfiguration(
+      difficultyId,
+      questionCountOverride: resolvedQuestionCount,
+      regionId: _trainingRegionId,
+      allowedCountryIds: allowedCountryIds,
+      useGeoBrainPersonalization: geoBrainPersonalizationAllowed,
+      deterministicSelectionSeed: challengeId,
+    );
+
+    final int availableCount = _missionCountries.length;
+    _trainingQuestionCount = resolvedQuestionCount > availableCount
+        ? availableCount
+        : resolvedQuestionCount;
+    _gameEngine.reset(
+      randomSeed: challengeRandomSeed(challengeId),
+    );
+    _encounteredCountries.clear();
+    _validatedCountries.clear();
+    _currentGameQuestionResults.clear();
+    _currentChallengeAnswerEvidence.clear();
+    _session = _createInitialSession();
+    _startNewXpSession();
+    _lastPassportResult = null;
+    _lastLevelResult = null;
+    _passportResultRegisteredForCurrentGame = false;
     _clearAnswer();
     startNextQuestion();
   }
@@ -1091,29 +1496,65 @@ class GameController extends ChangeNotifier {
       includeDistanceInAverage:
           questionModeId ==
                   'find_capital' ||
-              !isCorrectCountry,
+          !isCorrectCountry,
     );
+
+    GameplayFeedback.answer(isCorrect: isCorrectCountry);
+
+    _currentGameQuestionResults.add(
+      _statisticsResultForQuestion(
+        question: question,
+        isCorrect: isCorrectCountry,
+        elapsedSeconds: elapsedSeconds,
+        distanceInKilometers: questionModeId == 'find_capital' ||
+                !isCorrectCountry
+            ? distanceInKilometers
+            : null,
+      ),
+    );
+    if (_isChallengeMission) {
+      _currentChallengeAnswerEvidence.add(
+        ChallengeAnswerEvidence(
+          modeId: questionModeId,
+          isCorrect: isCorrectCountry,
+          elapsedSeconds: elapsedSeconds,
+          distanceInKilometers: questionModeId == 'find_capital' ||
+                  !isCorrectCountry
+              ? distanceInKilometers
+              : null,
+        ),
+      );
+    }
 
     if (_isCompleteTraining && !isCorrectCountry) {
       _queueCompleteTrainingRetry(answerCountry);
     }
 
-    if (_currentGuidedLevel == null &&
-        PassportProgressRules.themeForGameMode(questionModeId) != null) {
-      unawaited(
-        _registerPassportAnswer(
-          countryId:
-              answerCountry.id,
-          modeId:
-              questionModeId,
-          isCorrect:
-              isCorrectCountry,
-          source: _passportSourceForCurrentGame(),
-        ),
+    if (PassportProgressRules.themeForGameMode(questionModeId) != null) {
+      final Future<void> progressOperation = _registerPassportAnswer(
+        countryId: answerCountry.id,
+        modeId: questionModeId,
+        isCorrect: isCorrectCountry,
+        source: _passportSourceForCurrentGame(),
+        difficultyId: _currentDifficultyId,
+        elapsedSeconds: elapsedSeconds,
+        distanceInKilometers: distanceInKilometers,
+        proposedAnswerId: selectedCountry?.id,
+        helpId: _currentGuidedLevel == null ? null : 'guided_target',
+        context: _geoBrainContextForCurrentGame(),
+        registerPassportProgress: _currentGuidedLevel == null,
       );
+      if (_session.isGameOver) {
+        _currentGameCompletion =
+            progressOperation.whenComplete(_registerCompletedGame);
+        unawaited(_currentGameCompletion);
+      } else {
+        unawaited(progressOperation);
+      }
+    } else {
+      _registerCompletedGame();
+      _currentGameCompletion = Future<void>.value();
     }
-
-    _registerCompletedGame();
 
     if (referencePoint != null) {
       debugPrint(
@@ -1146,6 +1587,7 @@ class GameController extends ChangeNotifier {
     _gameEngine.reset();
     _encounteredCountries.clear();
     _validatedCountries.clear();
+    _currentGameQuestionResults.clear();
 
     if (_isCompleteTraining) {
       _completeTrainingQueue
@@ -1168,9 +1610,10 @@ class GameController extends ChangeNotifier {
                     .questionDurationSeconds
                 : 3600,
         totalQuestions:
-            guidedLevel.questionCount,
+          guidedLevel.questionCount,
       );
     }
+    _startNewXpSession();
 
     _lastPassportResult = null;
     _lastLevelResult = null;
@@ -1197,7 +1640,7 @@ class GameController extends ChangeNotifier {
     }
 
     _passport =
-        PlayerPassport.initial();
+        PlayerPassport.initial(playerId: _playerIdentity.localPlayerId);
 
     _lastPassportResult = null;
 
@@ -1208,16 +1651,20 @@ class GameController extends ChangeNotifier {
       'GeoPoint : Passeport réinitialisé.',
     );
 
-    await _synchronizePassportProgress();
+    await _synchronizePassportProgress(preferProvidedPassport: true);
 
     notifyListeners();
   }
 
   Future<void> clearSavedPlayerProfile() async {
+    final PlayerProfile previousProfile = _playerProfile;
     await PlayerStorage.clear();
 
-    _playerProfile =
-        PlayerProfile.initial();
+    _playerProfile = PlayerProfile.initial(
+      playerId: _playerIdentity.localPlayerId,
+      profileType: previousProfile.profileType,
+      childAgeGroup: previousProfile.childAgeGroup,
+    );
 
     _lastLevelResult = null;
 
@@ -1225,8 +1672,51 @@ class GameController extends ChangeNotifier {
       'GeoPoint : profil joueur réinitialisé.',
     );
 
-    await _synchronizePassportProgress();
+    await _synchronizePassportProgress(preferProvidedPlayerProfile: true);
 
+    notifyListeners();
+  }
+
+  Future<void> applyDebugPlayerXpAction(
+    PlayerXpDebugAction action, {
+    int amount = 0,
+  }) async {
+    if (!kDebugMode) {
+      throw UnsupportedError(
+        'Les outils XP de développement sont désactivés en production.',
+      );
+    }
+
+    await waitForPassportProgressSynchronization();
+
+    final PlayerProfile previousProfile = _playerProfile;
+    final PlayerProfile updatedProfile = PlayerXpDebugTools.apply(
+      profile: previousProfile,
+      action: action,
+      amount: amount,
+    );
+
+    if (identical(previousProfile, updatedProfile)) {
+      return;
+    }
+
+    _playerProfile = updatedProfile;
+    _lastLevelResult = null;
+
+    final bool saved = await PlayerStorage.save(updatedProfile);
+    if (!saved) {
+      _playerProfile = previousProfile;
+      throw StateError('La sauvegarde du profil de test a échoué.');
+    }
+
+    await _synchronizePassportProgress(
+      preferProvidedPlayerProfile: true,
+    );
+
+    debugPrint(
+      'GeoPoint debug XP : ${_playerProfile.totalXp} XP, '
+      '${_playerProfile.displayLevelTitle}.',
+    );
     notifyListeners();
   }
 
@@ -1305,9 +1795,59 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> unlockPassportCollectionItem(String itemId) async {
+    final String normalizedId = itemId.trim().toLowerCase();
+    if (normalizedId.isEmpty ||
+        _passportProgress.unlockedCollectionItemIds.contains(normalizedId)) {
+      return;
+    }
+
+    final Future<void> operation = _passportSynchronizationQueue.then(
+      (_) async {
+        _passportProgress = _passportProgress.unlockCollectionItem(
+          normalizedId,
+        );
+        await PassportProgressStorage.save(_passportProgress);
+      },
+    );
+
+    _passportSynchronizationQueue = operation;
+    await operation;
+    notifyListeners();
+  }
+
+  Future<void> synchronizePassportAchievementProgress(
+    PassportAchievementProgress achievementProgress,
+  ) async {
+    final Future<void> operation = _passportSynchronizationQueue.then(
+      (_) async {
+        _passportProgress = _passportProgress
+            .replaceCoreProgress(
+              licenseProgress: _passport,
+              playerProfile: _playerProfile,
+              replacedAt: achievementProgress.updatedAt,
+            )
+            .recordAchievementTiers(
+              achievementProgress.completedAtByTierId,
+              recordedAt: achievementProgress.updatedAt,
+            );
+        await PassportProgressStorage.save(_passportProgress);
+        await PassportAchievementStorage.save(achievementProgress);
+      },
+    );
+    _passportSynchronizationQueue = operation;
+    await operation;
+    notifyListeners();
+  }
+
   Future<PassportEntityProgress?> registerPassportSilhouetteAnswer({
     required String countryId,
     required bool isCorrect,
+    required int elapsedSeconds,
+    required String difficultyId,
+    String? proposedAnswerId,
+    PassportDiscoverySource source = PassportDiscoverySource.expedition,
+    GeoBrainAttemptContext context = GeoBrainAttemptContext.expedition,
   }) async {
     final bool wasUnlocked =
         _passportProgress.progressFor(countryId).stampUnlockedAt != null;
@@ -1316,8 +1856,33 @@ class GameController extends ChangeNotifier {
       countryId: countryId,
       modeId: 'ultimate',
       isCorrect: isCorrect,
-      source: PassportDiscoverySource.expedition,
+      source: source,
+      difficultyId: difficultyId,
+      elapsedSeconds: elapsedSeconds,
+      proposedAnswerId: proposedAnswerId,
+      context: context,
     );
+
+    final GeoCountry? country = _findCountryById(countryId);
+    final PassportContinent? continent = country == null
+        ? null
+        : PassportContinent.forEntity(
+            entityId: country.id,
+            geoContinent: country.continent,
+          );
+    _playerProfile = _playerProfile.registerStandaloneQuestionResult(
+      modeId: 'ultimate',
+      difficultyId: difficultyId,
+      result: QuestionStatisticsResult(
+        countryId: countryId,
+        continentId: continent?.id ?? 'unknown',
+        themeId: PassportKnowledgeTheme.silhouette.id,
+        isCorrect: isCorrect,
+        elapsedSeconds: elapsedSeconds,
+      ),
+    );
+    unawaited(_savePlayerProfile());
+    notifyListeners();
 
     final PassportEntityProgress updated =
         _passportProgress.progressFor(countryId);
@@ -1415,26 +1980,53 @@ class GameController extends ChangeNotifier {
     _session =
         _session.timeout();
 
-    if (_isCompleteTraining && answerCountry != null) {
-      _queueCompleteTrainingRetry(answerCountry);
-    }
-
-    if (_currentGuidedLevel == null &&
-        answerCountry != null &&
-        PassportProgressRules.themeForGameMode(questionModeId) != null) {
-      unawaited(
-        _registerPassportAnswer(
-          countryId:
-              answerCountry.id,
-          modeId:
-              questionModeId,
+    _currentGameQuestionResults.add(
+      _statisticsResultForQuestion(
+        question: question,
+        isCorrect: false,
+        elapsedSeconds: _session.questionDurationSeconds,
+      ),
+    );
+    if (_isChallengeMission) {
+      _currentChallengeAnswerEvidence.add(
+        ChallengeAnswerEvidence(
+          modeId: questionModeId,
           isCorrect: false,
-          source: _passportSourceForCurrentGame(),
+          elapsedSeconds: _session.questionDurationSeconds,
         ),
       );
     }
 
-    _registerCompletedGame();
+    if (_isCompleteTraining && answerCountry != null) {
+      _queueCompleteTrainingRetry(answerCountry);
+    }
+
+    if (answerCountry != null &&
+        PassportProgressRules.themeForGameMode(questionModeId) != null) {
+      final Future<void> progressOperation = _registerPassportAnswer(
+        countryId:
+            answerCountry.id,
+        modeId:
+            questionModeId,
+        isCorrect: false,
+        source: _passportSourceForCurrentGame(),
+        difficultyId: _currentDifficultyId,
+        elapsedSeconds: _session.questionDurationSeconds,
+        helpId: _currentGuidedLevel == null ? null : 'guided_target',
+        context: _geoBrainContextForCurrentGame(),
+        registerPassportProgress: _currentGuidedLevel == null,
+      );
+      if (_session.isGameOver) {
+        _currentGameCompletion =
+            progressOperation.whenComplete(_registerCompletedGame);
+        unawaited(_currentGameCompletion);
+      } else {
+        unawaited(progressOperation);
+      }
+    } else {
+      _registerCompletedGame();
+      _currentGameCompletion = Future<void>.value();
+    }
   }
 
   void _registerCompletedGame() {
@@ -1466,15 +2058,26 @@ class GameController extends ChangeNotifier {
       score: _session.totalScore,
     );
 
+    final DateTime completedAt = DateTime.now();
+    final Set<String> newlyDiscoveredCountryIds =
+        _newlyDiscoveredCountryIdsForCurrentSession();
+    final Set<String> newlyMasteredCountryIds =
+        _newlyMasteredCountryIdsForCurrentSession();
     final LevelResult levelResult =
         _xpSystem.applyGameResult(
       profile: _playerProfile,
+      grantId: _resolveCurrentXpGrantId(completedAt),
+      completedAt: completedAt,
       correctAnswers:
           _session.correctAnswers,
       totalQuestions:
           _session.totalQuestions,
       averageDistanceKm:
           _session.averageDistanceInKilometers,
+      difficultyId:
+          _currentDifficultyId,
+      newlyDiscoveredCountryIds: newlyDiscoveredCountryIds,
+      newlyMasteredCountryIds: newlyMasteredCountryIds,
     );
 
     final double totalGameDistance =
@@ -1493,16 +2096,23 @@ class GameController extends ChangeNotifier {
         _playerProfile.registerGameResult(
       earnedXp:
           levelResult.earnedXp,
+      updatedXpLedger:
+          levelResult.updatedXpLedger,
       gameScore:
           _session.totalScore,
       gameCorrectAnswers:
           _session.correctAnswers,
       gameTotalAnswers:
           _session.totalQuestions,
+      modeId: _currentModeId,
+      difficultyId: _currentDifficultyId,
       gameDistanceInKilometers:
           totalGameDistance,
       gameElapsedSeconds:
           totalGameElapsedSeconds,
+      questionResults: List<QuestionStatisticsResult>.unmodifiable(
+        _currentGameQuestionResults,
+      ),
     );
 
     _lastPassportResult =
@@ -1538,7 +2148,8 @@ class GameController extends ChangeNotifier {
 
     debugPrint(
       'GeoPoint XP : '
-      '+${levelResult.earnedXp} XP, '
+      '+${levelResult.earnedXp} XP accordée(s) '
+      'par ${levelResult.grantedRewards.length} gain(s), '
       'niveau ${levelResult.previousLevel} '
       '→ ${levelResult.newLevel}, '
       'total ${levelResult.newTotalXp} XP.',
@@ -1574,6 +2185,69 @@ class GameController extends ChangeNotifier {
         '${levelResult.newTitle}.',
       );
     }
+
+    notifyListeners();
+  }
+
+  Set<String> _newlyDiscoveredCountryIdsForCurrentSession() {
+    final Set<String> encounteredIds = _encounteredCountries
+        .map((GeoCountry country) => country.id.trim().toUpperCase())
+        .where((String countryId) => countryId.isNotEmpty)
+        .toSet();
+
+    return _geoBrainService.profile.countries.entries
+        .where(
+          (entry) =>
+              encounteredIds.contains(entry.key.trim().toUpperCase()) &&
+              entry.value.hasBeenSeen &&
+              !_xpSeenCountryIdsAtSessionStart.contains(
+                entry.key.trim().toUpperCase(),
+              ),
+        )
+        .map((entry) => entry.key.trim().toUpperCase())
+        .toSet();
+  }
+
+  Set<String> _newlyMasteredCountryIdsForCurrentSession() {
+    final Set<String> encounteredIds = _encounteredCountries
+        .map((GeoCountry country) => country.id.trim().toUpperCase())
+        .where((String countryId) => countryId.isNotEmpty)
+        .toSet();
+
+    return _geoBrainService.profile.countries.entries
+        .where(
+          (entry) =>
+              encounteredIds.contains(entry.key.trim().toUpperCase()) &&
+              entry.value.isMastered &&
+              !_xpMasteredCountryIdsAtSessionStart.contains(
+                entry.key.trim().toUpperCase(),
+              ),
+        )
+        .map((entry) => entry.key.trim().toUpperCase())
+        .toSet();
+  }
+
+  QuestionStatisticsResult _statisticsResultForQuestion({
+    required GameQuestion question,
+    required bool isCorrect,
+    required int elapsedSeconds,
+    double? distanceInKilometers,
+  }) {
+    final PassportKnowledgeTheme? theme =
+        PassportProgressRules.themeForGameMode(question.modeId);
+    final PassportContinent? continent = PassportContinent.forEntity(
+      entityId: question.countryId,
+      geoContinent: question.continent,
+    );
+
+    return QuestionStatisticsResult(
+      countryId: question.countryId,
+      continentId: continent?.id ?? 'unknown',
+      themeId: theme?.id ?? 'location',
+      isCorrect: isCorrect,
+      elapsedSeconds: elapsedSeconds,
+      distanceInKilometers: distanceInKilometers,
+    );
   }
 
   Future<void> _registerPassportAnswer({
@@ -1581,26 +2255,45 @@ class GameController extends ChangeNotifier {
     required String modeId,
     required bool isCorrect,
     required PassportDiscoverySource source,
+    required String difficultyId,
+    required int elapsedSeconds,
+    double? distanceInKilometers,
+    String? helpId,
+    String? proposedAnswerId,
+    GeoBrainAttemptContext? context,
+    bool registerPassportProgress = true,
   }) async {
     final PassportKnowledgeTheme? theme =
         PassportProgressRules.themeForGameMode(modeId);
+    final GeoBrainTheme? geoBrainTheme = GeoBrainTheme.fromModeId(modeId);
 
-    if (theme == null) {
+    if (theme == null && geoBrainTheme == null) {
       return;
     }
 
     final DateTime answeredAt = DateTime.now();
-    final String normalizedModeId = modeId.trim().toLowerCase();
-    final bool updatesLegacyGeoBrain =
-        normalizedModeId == 'find_country' ||
-            normalizedModeId == 'find_flag';
     final Future<void> operation = _passportSynchronizationQueue.then(
       (_) async {
-        if (updatesLegacyGeoBrain) {
-          await _geoBrainService.registerAnswer(
-            countryId: countryId,
-            isCorrect: isCorrect,
+        if (geoBrainTheme != null) {
+          await _geoBrainService.registerAttempt(
+            GeoBrainAttempt(
+              countryId: countryId,
+              theme: geoBrainTheme,
+              answeredAt: answeredAt,
+              modeId: modeId,
+              difficultyId: difficultyId,
+              isCorrect: isCorrect,
+              distanceInKilometers: distanceInKilometers,
+              responseTimeMilliseconds: elapsedSeconds * 1000,
+              helpId: helpId,
+              proposedAnswerId: proposedAnswerId,
+              context: context ?? _geoBrainContextForCurrentGame(),
+            ),
           );
+        }
+
+        if (!registerPassportProgress || theme == null) {
+          return;
         }
 
         final DateTime? stampBeforeAnswer =
@@ -1618,8 +2311,7 @@ class GameController extends ChangeNotifier {
             _passportProgress.progressFor(countryId);
         final DateTime? stampAfterAnswer = updatedEntity.stampUnlockedAt;
 
-        if (stampBeforeAnswer == null &&
-            stampAfterAnswer != null) {
+        if (stampBeforeAnswer == null && stampAfterAnswer != null) {
           _countryStampUnlockSequence++;
           _latestCountryStampUnlock = PassportStampUnlockEvent(
             sequence: _countryStampUnlockSequence,
@@ -1643,12 +2335,248 @@ class GameController extends ChangeNotifier {
     if (_currentContinentLevel != null) {
       return PassportDiscoverySource.expedition;
     }
+    if (_isChallengeMission) {
+      return PassportDiscoverySource.challenge;
+    }
 
     return PassportDiscoverySource.game;
   }
 
+  GeoBrainAttemptContext _geoBrainContextForCurrentGame() {
+    if (_currentGuidedLevel != null) {
+      return GeoBrainAttemptContext.tutorial;
+    }
+    if (_currentContinentLevel != null) {
+      return GeoBrainAttemptContext.expedition;
+    }
+    if (_isTrainingMission) {
+      return GeoBrainAttemptContext.training;
+    }
+    if (_isChallengeMission) {
+      return GeoBrainAttemptContext.challenge;
+    }
+    return GeoBrainAttemptContext.classicGame;
+  }
+
+  Future<void> registerGeoBrainAttempt(GeoBrainAttempt attempt) async {
+    final Future<void> operation = _passportSynchronizationQueue.then(
+      (_) => _geoBrainService.registerAttempt(attempt),
+    );
+    _passportSynchronizationQueue = operation;
+    await operation;
+    notifyListeners();
+  }
+
+  Future<LevelResult> registerExpeditionMissionCompletion({
+    required String expeditionId,
+    required String missionId,
+    bool isExam = false,
+    bool combineWithCurrentGame = true,
+    DateTime? completedAt,
+  }) async {
+    final LevelResult result = _xpSystem.applyExpeditionMissionCompletion(
+      profile: _playerProfile,
+      expeditionId: expeditionId,
+      missionId: missionId,
+      completedAt: completedAt ?? DateTime.now(),
+      isExam: isExam,
+    );
+
+    if (result.earnedXp <= 0) {
+      return result;
+    }
+
+    _playerProfile = _playerProfile.copyWith(
+      totalXp: result.newTotalXp,
+      xpLedger: result.updatedXpLedger,
+    );
+    _lastLevelResult = !combineWithCurrentGame || _lastLevelResult == null
+        ? result
+        : _lastLevelResult!.followedBy(result);
+
+    await _savePlayerProfile();
+    await _synchronizePassportProgress(
+      preferProvidedPlayerProfile: true,
+    );
+
+    debugPrint(
+      'GeoPoint XP : +${result.earnedXp} XP pour la première validation '
+      '${isExam ? "d’un examen" : "d’une mission"} '
+      '$expeditionId / $missionId.',
+    );
+
+    notifyListeners();
+    return result;
+  }
+
+  Future<int> registerChallengeXpReward({
+    required String rewardClaimId,
+    required int xp,
+    required DateTime completedAt,
+  }) async {
+    if (xp <= 0 || rewardClaimId.trim().isEmpty) {
+      return 0;
+    }
+    await waitForPassportProgressSynchronization();
+    final PlayerXpProfileUpdate update = _playerProfile.applyXpGrant(
+      PlayerXpGrantRequest(
+        grantId: 'challenge-reward:${rewardClaimId.trim()}',
+        source: PlayerXpSource.challengeCompleted,
+        baseXp: xp,
+        occurredAt: completedAt,
+      ),
+    );
+    if (!update.decision.wasGranted) {
+      return 0;
+    }
+    _playerProfile = update.profile;
+    await _savePlayerProfile();
+    await _synchronizePassportProgress(
+      preferProvidedPlayerProfile: true,
+    );
+    notifyListeners();
+    return update.decision.awardedXp;
+  }
+
+  bool get hasAchievementXpBaseline {
+    return _xpSystem.hasAchievementXpBaseline(_playerProfile);
+  }
+
+  Future<void> ensureAchievementXpBaseline(
+    Iterable<String> completedTierIds,
+  ) async {
+    if (hasAchievementXpBaseline) {
+      return;
+    }
+
+    final Iterable<String> eligibleTierIds = completedTierIds.where(
+      (String tierId) {
+        final PassportAchievement? achievement =
+            PassportAchievementCatalog.achievementForTierId(tierId);
+        return achievement != null && !achievement.isPersonalOnly;
+      },
+    );
+    final updatedLedger = _xpSystem.establishAchievementXpBaseline(
+      profile: _playerProfile,
+      completedTierIds: eligibleTierIds,
+    );
+    _playerProfile = _playerProfile.copyWith(xpLedger: updatedLedger);
+
+    await _savePlayerProfile();
+    await _synchronizePassportProgress(
+      preferProvidedPlayerProfile: true,
+    );
+
+    debugPrint(
+      'GeoPoint XP : référence initiale des accomplissements enregistrée '
+      'sans gain rétroactif.',
+    );
+  }
+
+  Future<int> registerAchievementCompletions({
+    required Iterable<String> tierIds,
+    bool combineWithCurrentGame = true,
+    DateTime? completedAt,
+  }) async {
+    final Map<String, PassportAchievementTier> eligibleTiers =
+        <String, PassportAchievementTier>{};
+    for (final String tierId in tierIds) {
+      final String normalizedTierId = tierId.trim().toLowerCase();
+      final PassportAchievement? achievement =
+          PassportAchievementCatalog.achievementForTierId(normalizedTierId);
+      final PassportAchievementTier? tier =
+          PassportAchievementCatalog.tierById(normalizedTierId);
+      if (achievement == null || achievement.isPersonalOnly || tier == null) {
+        continue;
+      }
+      eligibleTiers[normalizedTierId] = tier;
+    }
+    if (eligibleTiers.isEmpty) {
+      return 0;
+    }
+
+    final LevelResult result = _xpSystem.applyAchievementCompletions(
+      profile: _playerProfile,
+      completedTierIds: eligibleTiers.keys,
+      majorTierIds: eligibleTiers.entries
+          .where((MapEntry<String, PassportAchievementTier> entry) {
+            return entry.value.isMajor;
+          })
+          .map((MapEntry<String, PassportAchievementTier> entry) => entry.key),
+      completedAt: completedAt ?? DateTime.now(),
+    );
+    if (result.earnedXp <= 0) {
+      return 0;
+    }
+
+    _playerProfile = _playerProfile.copyWith(
+      totalXp: result.newTotalXp,
+      xpLedger: result.updatedXpLedger,
+    );
+    _lastLevelResult = !combineWithCurrentGame || _lastLevelResult == null
+        ? result
+        : _lastLevelResult!.followedBy(result);
+
+    await _savePlayerProfile();
+    await _synchronizePassportProgress(
+      preferProvidedPlayerProfile: true,
+    );
+
+    debugPrint(
+      'GeoPoint XP : +${result.earnedXp} XP pour '
+      '${eligibleTiers.length} palier(s) d’accomplissement.',
+    );
+
+    notifyListeners();
+    return result.earnedXp;
+  }
+
+  Future<int> refreshPassportAchievements({
+    bool combineWithCurrentGame = false,
+  }) async {
+    await waitForPassportProgressSynchronization();
+    final List<Object> values = await Future.wait<Object>(<Future<Object>>[
+      PassportAchievementStorage.load(),
+      ExpeditionStorage.load(),
+      ContinentStorage.load(),
+    ]);
+    final PassportAchievementProgress loaded =
+        (values[0] as PassportAchievementProgress).mergeCompletedTierDates(
+      _passportProgress.completedAchievementTierDates,
+    );
+    final PassportAchievementSnapshot snapshot =
+        PassportAchievementSnapshotBuilder.build(
+      progress: _passportProgress,
+      profile: _playerProfile,
+      countries: _countries,
+      expeditionProgress: values[1] as ExpeditionProgress,
+      continentProgress: values[2] as ContinentProgress,
+    );
+    final PassportAchievementProgress updated =
+        loaded.synchronize(snapshot: snapshot);
+    final Set<String> newTierIds =
+        updated.newlyCompletedTierIdsComparedWith(loaded);
+
+    int earnedXp = 0;
+    if (hasAchievementXpBaseline) {
+      earnedXp = await registerAchievementCompletions(
+        tierIds: newTierIds,
+        combineWithCurrentGame: combineWithCurrentGame,
+      );
+    } else {
+      await ensureAchievementXpBaseline(updated.completedAtByTierId.keys);
+    }
+
+    if (!identical(loaded, updated)) {
+      await synchronizePassportAchievementProgress(updated);
+    }
+    return earnedXp;
+  }
+
   Future<void> _synchronizePassportProgress({
     AtlasPersonalProgress? atlasProgress,
+    bool preferProvidedPassport = false,
+    bool preferProvidedPlayerProfile = false,
   }) {
     _passportSynchronizationQueue = _passportSynchronizationQueue.then(
       (_) async {
@@ -1658,7 +2586,11 @@ class GameController extends ChangeNotifier {
           playerProfile: _playerProfile,
           geoBrainProfile: _geoBrainService.profile,
           atlasProgress: atlasProgress,
+          preferProvidedPassport: preferProvidedPassport,
+          preferProvidedPlayerProfile: preferProvidedPlayerProfile,
         );
+        _passport = _passportProgress.licenseProgress;
+        _playerProfile = _passportProgress.playerProfile;
       },
     );
 
@@ -1736,6 +2668,11 @@ class GameController extends ChangeNotifier {
     int? questionCountOverride,
     String regionId = 'world',
     bool selectAllEligible = false,
+    GeoBrainSelectionProfile selectionProfile =
+        GeoBrainSelectionProfile.balanced,
+    Set<String>? allowedCountryIds,
+    bool useGeoBrainPersonalization = true,
+    String? deterministicSelectionSeed,
   }) {
     final String normalizedId =
         difficultyId
@@ -1759,6 +2696,9 @@ class GameController extends ChangeNotifier {
         : _maximumCountryDifficultyFor(resolvedId);
     final String normalizedRegion =
         _normalizeTrainingRegionId(regionId);
+    final Set<String>? normalizedAllowedIds = allowedCountryIds
+        ?.map<String>((String id) => id.trim().toUpperCase())
+        .toSet();
 
     final List<GeoCountry> playableCountries =
         _countries.where(
@@ -1778,6 +2718,11 @@ class GameController extends ChangeNotifier {
             country.id
                 .trim()
                 .toUpperCase();
+
+        if (normalizedAllowedIds != null &&
+            !normalizedAllowedIds.contains(countryId)) {
+          return false;
+        }
 
         if (selectAllEligible &&
             _completeTrainingExcludedEntityIds.contains(countryId)) {
@@ -1829,7 +2774,8 @@ class GameController extends ChangeNotifier {
                           .toUpperCase(),
                     ));
 
-        return (difficulty <= maximumDifficulty ||
+        return (normalizedAllowedIds != null ||
+                difficulty <= maximumDifficulty ||
                 isPlayableAntarctica) &&
             hasRequiredCapital &&
             hasRequiredFlag;
@@ -1839,7 +2785,7 @@ class GameController extends ChangeNotifier {
     );
 
     final List<GeoCountry> difficultyEligibleCountries =
-        filtered.isEmpty
+        filtered.isEmpty && normalizedAllowedIds == null
             ? playableCountries
             : filtered;
 
@@ -1859,10 +2805,18 @@ class GameController extends ChangeNotifier {
 
     final List<GeoCountry> selectedCountries = selectAllEligible
         ? eligibleCountries
-        : _countrySelector.selectCountries(
+        : useGeoBrainPersonalization
+            ? _countrySelector.selectCountries(
             availableCountries: eligibleCountries,
             questionCount: requestedQuestionCount,
-          );
+            theme: GeoBrainTheme.fromModeId(_currentModeId),
+            selectionProfile: selectionProfile,
+          )
+            : _deterministicChallengeCountries(
+                eligibleCountries,
+                requestedQuestionCount,
+                deterministicSelectionSeed ?? '',
+              );
 
     _missionCountries =
         List<GeoCountry>.unmodifiable(
@@ -1882,6 +2836,37 @@ class GameController extends ChangeNotifier {
       'difficulté maximale '
       '$maximumDifficulty.',
     );
+  }
+
+  List<GeoCountry> _deterministicChallengeCountries(
+    List<GeoCountry> countries,
+    int questionCount,
+    String seed,
+  ) {
+    final List<GeoCountry> sorted = List<GeoCountry>.from(countries)
+      ..sort((GeoCountry left, GeoCountry right) {
+        final int leftKey = _stableSelectionKey(seed, left.id);
+        final int rightKey = _stableSelectionKey(seed, right.id);
+        final int keyComparison = leftKey.compareTo(rightKey);
+        return keyComparison != 0
+            ? keyComparison
+            : left.id.compareTo(right.id);
+      });
+    return sorted.take(questionCount).toList(growable: false);
+  }
+
+  int _stableSelectionKey(String seed, String countryId) {
+    int hash = 0x811C9DC5;
+    for (final int codeUnit
+        in '$seed|${countryId.trim().toUpperCase()}'.codeUnits) {
+      hash ^= codeUnit;
+      hash = (hash * 0x01000193) & 0x7FFFFFFF;
+    }
+    return hash;
+  }
+
+  int challengeRandomSeed(String challengeId) {
+    return _stableSelectionKey(challengeId, 'questions');
   }
 
   void _applyContinentConfiguration(
@@ -1946,6 +2931,7 @@ class GameController extends ChangeNotifier {
             ? _countrySelector.selectCountries(
                 availableCountries: selected,
                 questionCount: level.questionCount,
+                theme: GeoBrainTheme.fromModeId(_currentModeId),
               )
             : selected;
 
@@ -2238,6 +3224,43 @@ class GameController extends ChangeNotifier {
     );
   }
 
+  List<GeoCountry> ultimateChallengeCountries({
+    required String challengeId,
+    required String difficultyId,
+    required String regionId,
+    Set<String>? allowedCountryIds,
+    bool geoBrainPersonalizationAllowed = false,
+    required int questionCount,
+  }) {
+    final Set<String>? normalizedAllowedIds = allowedCountryIds
+        ?.map((String id) => id.trim().toUpperCase())
+        .where((String id) => id.isNotEmpty)
+        .toSet();
+    final List<GeoCountry> eligible = ultimateCountriesForDifficulty(
+      difficultyId,
+    ).where((GeoCountry country) {
+      final String countryId = country.id.trim().toUpperCase();
+      return _matchesTrainingRegion(country, regionId) &&
+          (normalizedAllowedIds == null ||
+              normalizedAllowedIds.contains(countryId));
+    }).toList(growable: false);
+
+    if (geoBrainPersonalizationAllowed) {
+      return _countrySelector.selectCountries(
+        availableCountries: eligible,
+        questionCount: questionCount,
+        theme: GeoBrainTheme.silhouette,
+      );
+    }
+    return List<GeoCountry>.unmodifiable(
+      _deterministicChallengeCountries(
+        eligible,
+        questionCount,
+        challengeId,
+      ),
+    );
+  }
+
   int _maximumCountryDifficultyFor(
     String difficultyId,
   ) {
@@ -2270,9 +3293,7 @@ class GameController extends ChangeNotifier {
             .trim()
             .toUpperCase();
 
-    return _excludedQuestionEntityIds.contains(
-      countryId,
-    );
+    return !PlayableCountryPolicy.isPlayableId(countryId);
   }
 
   ReferencePoint? _findReferenceOverride(
@@ -2459,6 +3480,7 @@ class GameController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     _stopTimer();
     super.dispose();
   }

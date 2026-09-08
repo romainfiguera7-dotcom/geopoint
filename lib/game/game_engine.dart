@@ -6,9 +6,11 @@ import 'game_question.dart';
 class GameEngine {
   GameEngine({
     Random? random,
-  }) : _random = random ?? Random();
+  })  : _providedRandom = random,
+        _random = random ?? Random();
 
-  final Random _random;
+  final Random? _providedRandom;
+  Random _random;
 
   final Set<String> _usedCountryIds =
       <String>{};
@@ -125,7 +127,10 @@ class GameEngine {
     }
   }
 
-  void reset() {
+  void reset({int? randomSeed}) {
+    _random = randomSeed == null
+        ? _providedRandom ?? Random()
+        : Random(randomSeed);
     _usedCountryIds.clear();
     _mixedModeBag.clear();
   }

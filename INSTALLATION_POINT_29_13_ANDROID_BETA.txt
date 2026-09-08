@@ -1,0 +1,37 @@
+GEOPOINT — POINT 29.13 — PREMIÈRE BÊTA ANDROID
+================================================
+
+Cette étape remplace la signature de débogage par une véritable clé d'envoi.
+La clé ne doit être créée qu'une seule fois et ne doit jamais être publiée.
+
+1. Quitter flutter run avec q et installer l'archive cumulative.
+
+cd D:\romai\GEOPOINT\geopoint
+.\android\gradlew.bat --stop
+
+Expand-Archive `
+"$env:USERPROFILE\Downloads\geopoint_point_29_13_beta_android.zip" `
+"D:\romai\GEOPOINT" -Force
+
+2. Créer la clé d'envoi Android.
+
+cd D:\romai\GEOPOINT\geopoint
+.\tool\prepare_android_signing.ps1
+
+Choisir un mot de passe d'au moins 8 caractères, sans espace ni accent.
+La commande affiche ensuite les empreintes SHA-1 et SHA-256.
+
+IMPORTANT : sauvegarder immédiatement dans un emplacement sûr :
+- D:\romai\GEOPOINT\geopoint\android\app\upload-keystore.jks
+- D:\romai\GEOPOINT\geopoint\android\key.properties
+- le mot de passe choisi.
+
+3. Construire et contrôler la bêta.
+
+.\tool\check_android_beta.ps1
+
+Le fichier à importer dans la Play Console sera :
+D:\romai\GEOPOINT\geopoint\build\app\outputs\bundle\release\app-release.aab
+
+Ne pas envoyer ce fichier maintenant si la Play Console n'est pas encore
+configurée. La prochaine étape sera réalisée ensemble écran par écran.

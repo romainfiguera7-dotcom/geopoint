@@ -141,6 +141,12 @@ void main() {
         isCorrect: true,
         source: PassportDiscoverySource.game,
         answeredAt: reviewedAt,
+      ).unlockCollectionItem(
+        'emblem_world_scout',
+        unlockedAt: reviewedAt,
+      ).recordAchievementTiers(
+        <String, DateTime>{'world_discovery_50': reviewedAt},
+        recordedAt: reviewedAt,
       );
       final GeoBrainProfile geoBrain = GeoBrainProfile(
         schemaVersion: GeoBrainProfile.currentSchemaVersion,
@@ -180,6 +186,14 @@ void main() {
         1,
       );
       expect(result.progressFor('FRA').hasBeenDiscovered, isTrue);
+      expect(
+        result.unlockedCollectionItemIds,
+        contains('emblem_world_scout'),
+      );
+      expect(
+        result.completedAchievementTierDates,
+        contains('world_discovery_50'),
+      );
     });
 
     test('la sauvegarde V2 peut être relue sans modification', () {

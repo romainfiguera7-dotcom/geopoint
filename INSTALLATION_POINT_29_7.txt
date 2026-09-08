@@ -1,0 +1,51 @@
+GEOPOINT — POINT 29.7 — CLASSEMENTS VISIBLES
+
+Résultat :
+- classement du défi quotidien ;
+- classement du défi hebdomadaire ;
+- classement saisonnier mensuel ;
+- top 25 et position personnelle exacte ;
+- meilleure tentative conservée ;
+- scores communs Android et iOS ;
+- publication protégée par Firebase Auth, App Check et l'anti-triche ;
+- variantes enfant exclues.
+
+1. Fermer flutter run avec q.
+
+2. Installer l'archive depuis PowerShell :
+
+cd D:\romai\GEOPOINT\geopoint
+.\android\gradlew.bat --stop
+
+Expand-Archive `
+"$env:USERPROFILE\Downloads\geopoint_point_29_7_classements_visibles.zip" `
+"D:\romai\GEOPOINT\geopoint" -Force
+
+3. Formater et tester :
+
+dart format lib test
+flutter pub get
+flutter analyze
+flutter test
+npm --prefix functions run check
+
+4. Si tous les tests passent, déployer :
+
+firebase deploy --only "firestore:rules,firestore:indexes,functions"
+
+5. Lancer l'application :
+
+flutter run
+
+6. Test réel :
+
+- ouvrir Défis puis Classements ;
+- les onglets Jour, Semaine et Saison doivent s'afficher ;
+- terminer une nouvelle partie classée ;
+- revenir au hub Défis pour synchroniser le résultat ;
+- rouvrir Classements et actualiser ;
+- le joueur doit apparaître avec son meilleur score.
+
+Note : un ancien record est publié à la prochaine tentative validée sur le même
+défi. Le pseudonyme s'affiche sous la forme « Explorateur XXXX » tant que sa
+modération n'est pas approuvée.

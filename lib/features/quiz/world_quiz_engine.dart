@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../geo_engine/country_info.dart';
 import '../../geo_engine/geo_country.dart';
+import '../../game/playable_country_policy.dart';
 import '../atlas/atlas_city.dart';
 
 enum WorldQuizMode {
@@ -85,7 +86,8 @@ class WorldQuizEngine {
     for (final GeoCountry country in countries) {
       final String id = country.id.trim().toUpperCase();
       final CountryInfo? info = infoById[id];
-      if (!_standardCountryIds.contains(id) ||
+      if (!PlayableCountryPolicy.isPlayableId(id) ||
+          !_standardCountryIds.contains(id) ||
           info == null ||
           !_matchesRegion(info.continent, regionId)) {
         continue;
@@ -233,6 +235,7 @@ class WorldQuizEngine {
         correctAnswerIndex: choices.correctIndex,
         explanation:
             '${selected.city.name} est située en ${selected.country.name}.',
+        answerCountry: selected.country.country,
       );
     }
 
@@ -253,6 +256,7 @@ class WorldQuizEngine {
       correctAnswerIndex: choices.correctIndex,
       explanation:
           '${selected.city.name} est située en ${selected.country.name}.',
+      answerCountry: selected.country.country,
     );
   }
 
@@ -604,10 +608,18 @@ class WorldQuizEngine {
     if (region == 'americas') {
       return value.contains('amerique') || value.contains('america');
     }
-    if (region == 'europe') return value.contains('europe');
-    if (region == 'africa') return value.contains('afrique') || value.contains('africa');
-    if (region == 'asia') return value.contains('asie') || value.contains('asia');
-    if (region == 'oceania') return value.contains('oceanie') || value.contains('oceania');
+    if (region == 'europe') {
+      return value.contains('europe');
+    }
+    if (region == 'africa') {
+      return value.contains('afrique') || value.contains('africa');
+    }
+    if (region == 'asia') {
+      return value.contains('asie') || value.contains('asia');
+    }
+    if (region == 'oceania') {
+      return value.contains('oceanie') || value.contains('oceania');
+    }
     if (region == 'antarctica') {
       return value.contains('antarctique') || value.contains('antarctica');
     }
@@ -738,7 +750,7 @@ class WorldQuizEngine {
     'SAU', 'SEN', 'SRB', 'SYC', 'SLE', 'SGP', 'SVK', 'SVN', 'SLB', 'SOM',
     'ZAF', 'SDS', 'ESP', 'LKA', 'SDN', 'SUR', 'SWE', 'CHE', 'SYR', 'TWN',
     'TJK', 'TZA', 'THA', 'TLS', 'TGO', 'TON', 'TTO', 'TUN', 'TUR', 'TKM',
-    'TUV', 'UGA', 'UKR', 'ARE', 'GBR', 'USA', 'URY', 'UZB', 'VUT', 'VAT',
+    'TUV', 'UGA', 'UKR', 'ARE', 'GBR', 'USA', 'URY', 'UZB', 'VUT',
     'VEN', 'VNM', 'YEM', 'ZMB', 'ZWE', 'PSX', 'KOS',
   };
 }

@@ -1,0 +1,42 @@
+CORRECTIFS AVANT PUBLICATION
+============================
+
+1. Fermer l’application GeoPoint si elle est ouverte.
+
+2. Dans PowerShell, supprimer uniquement l’ancienne copie imbriquée si elle
+   existe, puis installer le correctif :
+
+cd D:\romai\GEOPOINT
+$copieImbriquee = "D:\romai\GEOPOINT\geopoint\geopoint"
+if (Test-Path "$copieImbriquee\pubspec.yaml") {
+    Remove-Item $copieImbriquee -Recurse -Force
+}
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_correctifs_avant_publication_v2_1.zip" "D:\romai\GEOPOINT" -Force
+
+3. Vérifier puis lancer l’application :
+
+cd D:\romai\GEOPOINT\geopoint
+flutter analyze
+flutter test
+flutter run -d 58041FDCR00681
+
+CONTENU
+=======
+
+- Les cercles numérotés des expéditions sont cliquables.
+- Le nombre de tampons n’apparaît plus sur l’accueil.
+- Les fleuves sont retirés de l’exploration nationale France.
+- Les reliefs sont retirés de l’expédition et de l’entraînement France.
+- La page Paramètres contient des réglages fonctionnels pour les sons,
+  les vibrations et les animations.
+- La Cité du Vatican reste visible dans l’Atlas, mais n’est plus proposée
+  dans les modes jouables.
+- L’accueil affiche la progression XP vers le niveau suivant, ainsi que les
+  soldes de pièces et de diamants. Un appui sur une monnaie affiche son usage
+  prévu dans de futures mises à jour.
+- La progression par difficulté obsolète est retirée des statistiques du
+  Passeport.
+- Grandes villes, Monnaies et Langues utilisent désormais la même carte que
+  le reste du jeu.
+- Ces trois thèmes sont intégrés aux expéditions Europe, Afrique, Asie,
+  Amériques, Océanie et Monde, avec étoiles, records et progression XP.

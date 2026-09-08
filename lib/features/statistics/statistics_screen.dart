@@ -1,14 +1,11 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../game/expedition/expedition_progress.dart';
-import '../../game/expedition/expedition_storage.dart';
 import '../../game/game_controller.dart';
 import '../../geo_engine/flag_emoji.dart';
 import '../../geo_engine/geo_country.dart';
 import '../../geobrain/country_mastery.dart';
+import '../../geobrain/geobrain_theme.dart';
 import '../../player/player_statistics.dart';
 
 class StatisticsScreen extends StatefulWidget {
@@ -50,38 +47,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     ),
   ];
 
-  static const List<_DifficultyDefinition> _difficulties =
-      <_DifficultyDefinition>[
-        _DifficultyDefinition(
-          id: 'discovery',
-          label: 'Initiation',
-          color: Color(0xFF63D6FF),
-        ),
-        _DifficultyDefinition(
-          id: 'easy',
-          label: 'Voyageur',
-          color: Color(0xFF57E389),
-        ),
-        _DifficultyDefinition(
-          id: 'intermediate',
-          label: 'Explorateur',
-          color: Color(0xFFFFC857),
-        ),
-        _DifficultyDefinition(
-          id: 'hard',
-          label: 'Aventurier',
-          color: Color(0xFFFF8A73),
-        ),
-        _DifficultyDefinition(
-          id: 'expert',
-          label: 'Maître cartographe',
-          color: Color(0xFFB983FF),
-        ),
-      ];
-
   String _selectedModeId = 'find_country';
-  ExpeditionProgress _expeditionProgress = ExpeditionProgress.initial();
-  bool _isLoadingProgress = true;
 
   @override
   void initState() {
@@ -89,20 +55,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     widget.controller.addListener(_handleControllerChanged);
 
-    unawaited(_loadExpeditionProgress());
-  }
-
-  Future<void> _loadExpeditionProgress() async {
-    final ExpeditionProgress progress = await ExpeditionStorage.load();
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _expeditionProgress = progress;
-      _isLoadingProgress = false;
-    });
   }
 
   void _handleControllerChanged() {
@@ -118,43 +70,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     super.dispose();
   }
 
-  int _bestScoreForMode(ModeStatistics statistics) {
-    int bestScore = statistics.bestScore;
-
-    for (final _DifficultyDefinition difficulty in _difficulties) {
-      final int expeditionRecord = _expeditionProgress.bestScoreFor(
-        difficultyId: difficulty.id,
-        missionId: _selectedModeId,
-      );
-
-      if (expeditionRecord > bestScore) {
-        bestScore = expeditionRecord;
-      }
-    }
-
-    return bestScore;
-  }
-
-  int _bestScoreForDifficulty({
-    required DifficultyStatistics statistics,
-    required String difficultyId,
-  }) {
-    final int expeditionRecord = _expeditionProgress.bestScoreFor(
-      difficultyId: difficultyId,
-      missionId: _selectedModeId,
-    );
-
-    return expeditionRecord > statistics.bestScore
-        ? expeditionRecord
-        : statistics.bestScore;
-  }
-
-  List<CountryMastery> _countriesToReview() {
+  List<CountryMastery> _countriesToReview(DateTime now) {
     final List<CountryMastery> result = <CountryMastery>[];
     final Set<String> addedIds = <String>{};
 
     for (final CountryMastery mastery
-        in widget.controller.geoBrainService.countriesDueForReview) {
+        in widget.controller.geoBrainService.countriesDueForReviewAt(now)) {
       if (addedIds.add(mastery.countryId)) {
         result.add(mastery);
       }
@@ -166,7 +87,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     for (final CountryMastery mastery
         in widget.controller.geoBrainService.weakestCountries) {
-      if (mastery.isMastered) {
+      if (mastery.statusAt(now) == GeoBrainMasteryStatus.mastered) {
         continue;
       }
 
@@ -184,10 +105,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final DateTime now = DateTime.now();
     final ModeStatistics modeStatistics = widget.controller.playerProfile
         .statisticsForMode(_selectedModeId);
 
-    final int bestScore = _bestScoreForMode(modeStatistics);
+    final int bestScore = modeStatistics.bestScore;
 
     final Map<String, GeoCountry> countriesById = <String, GeoCountry>{
       for (final GeoCountry country in widget.controller.countries)
@@ -198,11 +120,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         .controller
         .geoBrainService
         .strongestCountries
-        .where((CountryMastery mastery) => mastery.isMastered)
+        .where(
+          (CountryMastery mastery) =>
+              mastery.statusAt(now) == GeoBrainMasteryStatus.mastered,
+        )
         .take(6)
         .toList(growable: false);
 
-    final List<CountryMastery> reviewCountries = _countriesToReview();
+    final List<CountryMastery> reviewCountries = _countriesToReview(now);
+    final DetailedPlayerStatistics detailedStatistics =
+        widget.controller.playerProfile.detailedStatistics;
 
     return Scaffold(
       backgroundColor: const Color(0xFF071B3A),
@@ -258,38 +185,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 ),
                 const SizedBox(height: 16),
                 _OverviewCard(statistics: modeStatistics, bestScore: bestScore),
-                if (!modeStatistics.hasPlayed && bestScore > 0) ...<Widget>[
-                  const SizedBox(height: 10),
-                  const _LegacyStatisticsNotice(),
-                ],
-                const SizedBox(height: 26),
+                const SizedBox(height: 18),
                 const _SectionTitle(
-                  icon: Icons.route_rounded,
-                  title: 'Progression par difficulté',
-                  subtitle: 'Tes résultats dans chaque expédition',
+                  icon: Icons.language_rounded,
+                  title: 'Résultats par continent',
+                  subtitle: 'Réussite et questions jouées dans chaque zone',
                 ),
                 const SizedBox(height: 12),
-                for (final _DifficultyDefinition difficulty
-                    in _difficulties) ...<Widget>[
-                  _DifficultyCard(
-                    definition: difficulty,
-                    statistics: modeStatistics.statisticsForDifficulty(
-                      difficulty.id,
-                    ),
-                    bestScore: _bestScoreForDifficulty(
-                      statistics: modeStatistics.statisticsForDifficulty(
-                        difficulty.id,
-                      ),
-                      difficultyId: difficulty.id,
-                    ),
-                    stars: _expeditionProgress.starsFor(
-                      difficultyId: difficulty.id,
-                      missionId: _selectedModeId,
-                    ),
-                    isLoading: _isLoadingProgress,
-                  ),
-                  const SizedBox(height: 10),
-                ],
+                _GeographicBreakdown(
+                  statistics: detailedStatistics,
+                  countriesById: countriesById,
+                ),
                 const SizedBox(height: 18),
                 const _SectionTitle(
                   icon: Icons.psychology_rounded,
@@ -307,7 +213,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                             .controller
                             .geoBrainService
                             .profile
-                            .masteredCountryCount,
+                            .masteredCountryCountAt(now),
                         label: 'Maîtrisés',
                       ),
                     ),
@@ -338,8 +244,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 ),
                 const SizedBox(height: 14),
                 _CountryMasterySection(
-                  title: 'Pays à revoir',
-                  emptyText: 'Aucun pays à revoir pour le moment.',
+                  title: 'À réviser',
+                  emptyText: 'Aucune révision nécessaire pour le moment.',
                   accentColor: const Color(0xFFFFC857),
                   countries: reviewCountries,
                   countriesById: countriesById,
@@ -592,43 +498,6 @@ class _SummaryTile extends StatelessWidget {
   }
 }
 
-class _LegacyStatisticsNotice extends StatelessWidget {
-  const _LegacyStatisticsNotice();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFC857).withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        children: <Widget>[
-          const Icon(
-            Icons.info_outline_rounded,
-            color: Color(0xFFFFC857),
-            size: 20,
-          ),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Text(
-              'Ton ancien record est conservé. '
-              'Les moyennes commenceront avec '
-              'ta prochaine partie.',
-              style: GoogleFonts.nunitoSans(
-                color: Colors.white.withValues(alpha: 0.78),
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle({
     required this.icon,
@@ -682,157 +551,165 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-class _DifficultyCard extends StatelessWidget {
-  const _DifficultyCard({
-    required this.definition,
+class _GeographicBreakdown extends StatelessWidget {
+  const _GeographicBreakdown({
     required this.statistics,
-    required this.bestScore,
-    required this.stars,
-    required this.isLoading,
+    required this.countriesById,
   });
 
-  final _DifficultyDefinition definition;
-  final DifficultyStatistics statistics;
-  final int bestScore;
-  final int stars;
-  final bool isLoading;
+  final DetailedPlayerStatistics statistics;
+  final Map<String, GeoCountry> countriesById;
+
+  static const List<({String id, String label, Color color})> _continents =
+      <({String id, String label, Color color})>[
+    (id: 'africa', label: 'Afrique', color: Color(0xFFFFA75B)),
+    (id: 'americas', label: 'Amérique', color: Color(0xFF55D6A6)),
+    (id: 'asia', label: 'Asie', color: Color(0xFFFF8178)),
+    (id: 'europe', label: 'Europe', color: Color(0xFF69C4ED)),
+    (id: 'oceania', label: 'Océanie', color: Color(0xFFA985F8)),
+    (id: 'polar', label: 'Régions polaires', color: Color(0xFFDCEFF5)),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final int accuracyPercentage = (statistics.accuracy * 100).round();
+    final List<MapEntry<String, PerformanceStatistics>> countries =
+        statistics.byCountry.entries
+            .where((entry) {
+              return entry.key != 'UNKNOWN' &&
+                  entry.value.questionsPlayed > 0 &&
+                  countriesById.containsKey(entry.key);
+            })
+            .toList(growable: false)
+          ..sort((a, b) {
+            return b.value.questionsPlayed.compareTo(a.value.questionsPlayed);
+          });
+    final bool hasGeographicHistory = statistics.byContinent.values.any(
+      (PerformanceStatistics value) => value.questionsPlayed > 0,
+    );
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.09),
-        borderRadius: BorderRadius.circular(19),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        color: Colors.white.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(23),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
       ),
       child: Column(
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              Container(
-                width: 12,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: definition.color,
-                  borderRadius: BorderRadius.circular(10),
+          if (!hasGeographicHistory)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Tes anciennes données sont conservées. Cette répartition '
+                'commencera avec ta prochaine partie.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunitoSans(
+                  color: Colors.white.withValues(alpha: 0.68),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(width: 11),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      definition.label,
-                      style: GoogleFonts.fredoka(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      '${statistics.gamesPlayed} partie(s) '
-                      '• ${statistics.questionsPlayed} question(s)',
-                      style: GoogleFonts.nunitoSans(
-                        color: Colors.white.withValues(alpha: 0.52),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
+            )
+          else
+            for (int index = 0; index < _continents.length; index++) ...<Widget>[
+              _GeographicRow(
+                label: _continents[index].label,
+                color: _continents[index].color,
+                statistics: statistics.statisticsForContinent(
+                  _continents[index].id,
                 ),
               ),
-              if (isLoading)
-                const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Color(0xFFFFC857),
-                  ),
-                )
-              else
-                Text(
-                  '${'★' * stars}${'☆' * (3 - stars)}',
-                  style: const TextStyle(
-                    color: Color(0xFFFFC857),
-                    fontSize: 17,
-                    letterSpacing: 1,
-                  ),
-                ),
+              if (index != _continents.length - 1)
+                const Divider(height: 17, color: Colors.white12),
             ],
-          ),
-          const SizedBox(height: 13),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: _DifficultyMetric(
-                  label: 'Moyenne',
-                  value: statistics.hasPlayed
-                      ? statistics.averageScore.round().toString()
-                      : '—',
+          if (countries.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 18),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'PAYS LES PLUS JOUÉS',
+                style: GoogleFonts.nunitoSans(
+                  color: const Color(0xFF63D6FF),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1,
                 ),
               ),
-              Expanded(
-                child: _DifficultyMetric(
-                  label: 'Record',
-                  value: bestScore > 0 ? '$bestScore' : '—',
-                ),
-              ),
-              Expanded(
-                child: _DifficultyMetric(
-                  label: 'Réussite',
-                  value: statistics.questionsPlayed > 0
-                      ? '$accuracyPercentage %'
-                      : '—',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: statistics.questionsPlayed > 0 ? statistics.accuracy : 0,
-              minHeight: 7,
-              backgroundColor: Colors.white.withValues(alpha: 0.10),
-              valueColor: AlwaysStoppedAnimation<Color>(definition.color),
             ),
-          ),
+            const SizedBox(height: 10),
+            for (final MapEntry<String, PerformanceStatistics> entry
+                in countries.take(5)) ...<Widget>[
+              _GeographicRow(
+                label: countriesById[entry.key]?.displayNameWithFlag ?? entry.key,
+                color: const Color(0xFF63D6FF),
+                statistics: entry.value,
+              ),
+              if (entry.key != countries.take(5).last.key)
+                const Divider(height: 17, color: Colors.white12),
+            ],
+          ],
         ],
       ),
     );
   }
 }
 
-class _DifficultyMetric extends StatelessWidget {
-  const _DifficultyMetric({required this.label, required this.value});
+class _GeographicRow extends StatelessWidget {
+  const _GeographicRow({
+    required this.label,
+    required this.color,
+    required this.statistics,
+  });
 
   final String label;
-  final String value;
+  final Color color;
+  final PerformanceStatistics statistics;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final int percentage = (statistics.accuracy * 100).round();
+    return Row(
       children: <Widget>[
-        Text(
-          value,
-          style: GoogleFonts.fredoka(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
+        Container(
+          width: 10,
+          height: 36,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(8),
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(width: 11),
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.nunitoSans(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
         Text(
-          label,
+          '${statistics.questionsPlayed} questions',
           style: GoogleFonts.nunitoSans(
-            color: Colors.white.withValues(alpha: 0.48),
+            color: Colors.white.withValues(alpha: 0.55),
             fontSize: 9,
             fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 43,
+          child: Text(
+            statistics.questionsPlayed == 0 ? '—' : '$percentage %',
+            textAlign: TextAlign.right,
+            style: GoogleFonts.fredoka(
+              color: color,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
@@ -1025,17 +902,5 @@ class _ModeDefinition {
   final String id;
   final String label;
   final IconData icon;
-  final Color color;
-}
-
-class _DifficultyDefinition {
-  const _DifficultyDefinition({
-    required this.id,
-    required this.label,
-    required this.color,
-  });
-
-  final String id;
-  final String label;
   final Color color;
 }

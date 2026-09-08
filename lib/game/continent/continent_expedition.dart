@@ -40,6 +40,9 @@ class ContinentLevel {
   final bool isMaster;
 
   int get maximumScore {
+    if (modeId == 'currency' || modeId == 'language') {
+      return questionCount * 100;
+    }
     return questionCount * 120;
   }
 

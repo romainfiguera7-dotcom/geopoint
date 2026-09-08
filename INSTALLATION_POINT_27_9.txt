@@ -1,0 +1,71 @@
+GEOPOINT — POINT 27.8 — PASSAGE D'UN GRAND NIVEAU
+==================================================
+
+CONTENU DE CETTE ÉTAPE
+----------------------
+
+- Nouvelle célébration réservée au passage d'un des 12 grands niveaux.
+- Affichage de l'ancien palier et du nouveau palier.
+- Liste de toutes les récompenses obtenues pendant le passage.
+- Conservation des récompenses intermédiaires lors d'un saut de niveaux.
+- Affichage du prochain palier et de l'XP encore nécessaire.
+- Branchement dans les parties cartographiques et les finales Silhouettes.
+- Animation d'entrée courte de 420 ms.
+- Nouveau réglage indépendant « Animation de grand niveau ».
+- Respect automatique de l'option système de réduction des animations.
+- Présentation statique conservée lorsque l'animation est désactivée.
+- Aucun écran forcé pour un simple gain d'XP ou un petit palier.
+- Les récompenses des petits paliers restent acquises dans le Passeport.
+- Aucun son ni retour haptique imposé.
+- Aucun plafond quotidien ajouté : toutes les parties valides gardent leur XP.
+
+INSTALLATION POWERSHELL
+-----------------------
+
+1. Fermer l'application GeoPoint si elle tourne.
+
+2. Extraire l'archive cumulative :
+
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_point_27_etape_9_passage_grand_niveau_corrigee.zip" "D:\romai\GEOPOINT\geopoint" -Force
+
+3. Ouvrir le projet :
+
+cd D:\romai\GEOPOINT\geopoint
+
+4. Vérifier le code :
+
+flutter analyze
+
+5. Lancer tous les tests :
+
+flutter test
+
+6. Lancer sur le Pixel 10 :
+
+flutter run -d 58041FDCR00681
+
+TEST RÉEL CONSEILLÉ
+-------------------
+
+1. Jouer normalement jusqu'au passage de Premiers pas IV vers Curieux du
+   monde I, à 400 XP.
+2. Vérifier que la célébration affiche l'ancien niveau, le nouveau niveau,
+   les récompenses et le prochain objectif.
+3. Appuyer sur Continuer et vérifier l'accès normal aux résultats.
+4. Ouvrir Paramètres puis désactiver « Animation de grand niveau ».
+5. Passer un grand niveau suivant et vérifier que la même présentation apparaît
+   immédiatement, sans mouvement.
+6. Passer un simple palier interne et vérifier qu'aucune fenêtre de niveau ne
+   bloque l'écran.
+7. Ouvrir Mon Passeport > Mes collections et vérifier que la récompense du
+   petit palier est bien acquise malgré l'absence de fenêtre.
+8. Répéter le contrôle dans une finale Silhouettes.
+9. Vérifier sur Pixel 10 que la liste des récompenses reste défilable et que le
+   bouton Continuer demeure accessible.
+
+PROCHAINE ÉTAPE
+---------------
+
+Ajouter les outils de développement hors production pour simuler rapidement
+les seuils, les passages de grands niveaux, le niveau maximal et la remise à
+zéro de la seule progression XP.

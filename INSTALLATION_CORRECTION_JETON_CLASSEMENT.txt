@@ -1,0 +1,61 @@
+GEOPOINT — CORRECTION DU JETON DE CLASSEMENT FIREBASE
+=====================================================
+
+Cette archive complète inclut tous les points jusqu'au point 29.8 et corrige
+l'erreur :
+
+  [firebase_functions/unauthenticated] UNAUTHENTICATED
+
+Lorsqu'un jeton Firebase Auth ou App Check a expiré, l'application le renouvelle
+et rejoue une seule fois l'appel. Les résultats classés déjà présents dans la
+file locale sont conservés et renvoyés automatiquement.
+
+1. Dans la fenêtre où Flutter fonctionne, appuyer sur q.
+
+2. Dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   .\android\gradlew.bat --stop
+
+3. Extraire l'archive :
+
+   Expand-Archive `
+   "$env:USERPROFILE\Downloads\geopoint_point_29_8_jeton_classement_corrige.zip" `
+   "D:\romai\GEOPOINT\geopoint" -Force
+
+4. Vérifier et relancer :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   dart format lib test
+   flutter analyze
+   flutter test
+   npm --prefix functions run check
+   flutter run
+
+AUCUN DÉPLOIEMENT FIREBASE N'EST NÉCESSAIRE
+--------------------------------------------
+
+La correction se trouve uniquement dans l'application Flutter.
+
+TEST À EFFECTUER
+----------------
+
+1. Ouvrir l'écran Défis. Cette ouverture déclenche l'envoi des résultats en
+   attente ; il n'est pas nécessaire de refaire une partie.
+2. Attendre quelques secondes, puis ouvrir Classements et actualiser.
+3. Les 7 résultats en attente doivent être traités.
+
+Si le premier appel reçoit encore un ancien jeton, le terminal affichera :
+
+  GeoPoint Firebase : jeton expiré, renouvellement avant une nouvelle tentative
+
+Puis la synchronisation doit afficher 0 résultat en attente.
+
+La ligne de confirmation attendue commence par :
+
+  GeoPoint Classement : synchronisation à l'ouverture synchronized
+
+et se termine par :
+
+  0 en attente

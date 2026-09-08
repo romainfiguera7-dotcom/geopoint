@@ -1,0 +1,203 @@
+GEOPOINT — CORRECTIFS RÉPONSE, SANS-PUB ET DÉFIS V3
+===================================================
+
+Cette archive contient le dossier complet « geopoint ». Décompresse-la dans
+D:\romai\GEOPOINT, pas dans D:\romai\GEOPOINT\geopoint.
+
+
+1. INSTALLER LE CORRECTIF
+-------------------------
+
+Fermer GeoPoint, puis exécuter dans PowerShell :
+
+cd D:\romai\GEOPOINT\geopoint
+.\android\gradlew.bat --stop
+
+$copieImbriquee = "D:\romai\GEOPOINT\geopoint\geopoint"
+if (Test-Path $copieImbriquee) {
+    Remove-Item $copieImbriquee -Recurse -Force
+}
+
+cd D:\romai\GEOPOINT
+Expand-Archive `
+"$env:USERPROFILE\Downloads\geopoint_correctifs_reponse_achats_defis_v3_1.zip" `
+"D:\romai\GEOPOINT" -Force
+
+
+2. VÉRIFIER ET LANCER L'APPLICATION
+-----------------------------------
+
+cd D:\romai\GEOPOINT\geopoint
+flutter pub get
+flutter analyze
+flutter test
+npm --prefix functions run check
+flutter run -d 58041FDCR00681
+
+Le « flutter pub get » est obligatoire : il installe le module officiel
+in_app_purchase ajouté pour Google Play.
+
+
+3. DÉPLOYER LES NOUVELLES FONCTIONS FIREBASE
+---------------------------------------------
+
+Toujours depuis D:\romai\GEOPOINT\geopoint :
+
+$env:FUNCTIONS_DISCOVERY_TIMEOUT = "120"
+firebase deploy --only "functions"
+
+Le déploiement ajoute notamment :
+
+- vérification serveur de l'achat Google Play ;
+- lecture du droit sans publicité ;
+- cadeau administrateur par code ami ;
+- publication directe des packs depuis GeoPoint Studio.
+
+
+4. ACTIVER LE PRODUIT SANS PUBLICITÉ DANS GOOGLE PLAY
+-----------------------------------------------------
+
+Le paiement est bien lancé dans l'application, mais Google oblige à créer le
+produit dans la Play Console avant que le bouton puisse fonctionner.
+
+Dans Google Play Console, pour l'application
+com.romainfiguera.geopoint :
+
+1. Créer un produit intégré / produit ponctuel avec exactement cet identifiant :
+
+   geopoint_no_ads
+
+2. Nom conseillé : « GeoPoint sans publicité ».
+3. Définir le prix France à 2,99 € et laisser Google calculer les autres pays.
+4. Activer et publier le produit. Ne pas le rendre consommable.
+5. Envoyer d'abord un App Bundle signé dans le canal de test interne.
+
+Création de l'App Bundle :
+
+cd D:\romai\GEOPOINT\geopoint
+flutter build appbundle --release
+
+Fichier à envoyer dans la Play Console :
+
+D:\romai\GEOPOINT\geopoint\build\app\outputs\bundle\release\app-release.aab
+
+Pour tester un paiement sans débit réel :
+
+- Play Console > Paramètres > Test de licence : ajouter le compte Google du
+  testeur ;
+- ajouter le même compte au canal de test interne ;
+- installer GeoPoint depuis le lien Google Play de ce canal ;
+- ouvrir Paramètres > Retirer les publicités.
+
+Le prix réellement affiché dans l'application vient de Google Play. Si le
+produit n'est pas encore actif, GeoPoint indique simplement que la boutique
+n'est pas configurée, sans faire planter le jeu.
+
+
+5. AUTORISER FIREBASE À VÉRIFIER LES ACHATS
+-------------------------------------------
+
+La vérification est volontairement effectuée par Firebase et jamais seulement
+sur le téléphone.
+
+1. Dans Google Cloud Console, sélectionner le projet geopoint-dev.
+2. Activer « Google Play Android Developer API ».
+3. Dans Google Play Console > Utilisateurs et autorisations, inviter le compte
+   de service utilisé par les fonctions. Pour la configuration actuelle, le
+   compte par défaut est normalement :
+
+   843814612327-compute@developer.gserviceaccount.com
+
+4. Lui donner accès à l'application GeoPoint et les deux autorisations Google
+   demandées pour la facturation :
+
+   - consulter les données financières, commandes et réponses d'annulation ;
+   - gérer les commandes et abonnements.
+
+Aucune clé Google Play ne doit être ajoutée dans l'application ni dans le ZIP.
+Les fonctions déployées utilisent leur identité serveur automatiquement.
+
+Documentation officielle :
+https://developers.google.com/android-publisher/getting_started
+https://developer.android.com/google/play/billing/integrate
+https://pub.dev/packages/in_app_purchase
+
+
+6. S'ACCORDER LE RÔLE ADMINISTRATEUR
+------------------------------------
+
+Récupérer l'UID du compte de test dans Firebase Console > Authentication >
+Users. Générer ensuite une clé Firebase Admin et la conserver HORS du projet,
+par exemple :
+
+D:\romai\firebase-secrets\geopoint-dev-admin.json
+
+Puis exécuter :
+
+cd D:\romai\GEOPOINT\geopoint
+$env:GOOGLE_APPLICATION_CREDENTIALS = `
+"D:\romai\firebase-secrets\geopoint-dev-admin.json"
+npm --prefix functions run admin:grant -- UID_FIREBASE
+Remove-Item Env:GOOGLE_APPLICATION_CREDENTIALS
+
+Ne jamais ajouter cette clé au dossier geopoint ou à Git.
+
+
+7. OFFRIR LE COMPTE SANS PUBLICITÉ À UN AMI
+--------------------------------------------
+
+Dans une version de développement :
+
+Défis > icône GeoPoint Studio > CONTRÔLE INTERNE > OFFRIR LE SANS-PUB
+
+Saisir le code ami du destinataire, puis un motif. Le serveur vérifie le rôle
+administrateur, enregistre le cadeau sur le compte ciblé et crée une trace
+d'audit. L'ami obtient l'avantage au prochain lancement ou à la prochaine
+synchronisation.
+
+
+8. PUBLIER UN PACK DE DÉFIS DIRECTEMENT
+---------------------------------------
+
+Dans une version de développement :
+
+Défis > icône GeoPoint Studio
+
+1. Créer ou modifier les brouillons.
+2. Appuyer sur VALIDER.
+3. Appuyer sur PUBLIER DANS GEOPOINT.
+4. Confirmer la publication.
+
+La publication exige le rôle administrateur. Le serveur vérifie le JSON,
+archive l'ancien pack et active la nouvelle révision. Les six défis permanents
+officiels sont ajoutés automatiquement s'ils ne figurent pas dans le pack.
+
+
+CONTENU FONCTIONNEL DE CE CORRECTIF
+==================================
+
+- Après chaque réponse, la carte montre immédiatement le choix du joueur et la
+  réponse attendue, les relie et recadre la vue sur les deux positions.
+- La distance en kilomètres et les deux noms apparaissent dans une fiche
+  compacte ; « Suivant » reste utilisable sans ouvrir la fiche détaillée.
+- L'ancienne fiche complète reste accessible avec la flèche de développement.
+- Le module enfant est temporairement désactivé dans l'interface et les anciens
+  profils locaux repassent en mode standard.
+- Écran d'achat unique à 2,99 €, restauration Google Play et validation Firebase.
+- Le droit sans publicité supprime toutes les publicités actuelles et transforme
+  les reprises publicitaires en reprises gratuites.
+- Cadeau sans publicité par code ami depuis le contrôle administrateur.
+- Publication réelle des défis depuis GeoPoint Studio, au lieu du seul JSON.
+- Six défis classés permanents : Monde, Europe, Afrique, Amériques, Asie et
+  Océanie. La récompense est unique, mais le meilleur score reste améliorable.
+- Le challenge Préfectures est supprimé de l'expédition nationale et de
+  l'entraînement France.
+
+
+IMPORTANT
+=========
+
+Le paiement ne peut pas être essayé avec « flutter run » seul tant que le
+produit et une version de test n'existent pas dans la Play Console. Le code de
+l'application et la vérification Firebase sont prêts ; les étapes 4 et 5 sont
+la configuration commerciale obligatoire imposée par Google.

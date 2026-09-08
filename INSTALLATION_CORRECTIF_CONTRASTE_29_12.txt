@@ -1,0 +1,27 @@
+GEOPOINT — CORRECTIF DE CONTRASTE DU POINT 29.12
+================================================
+
+Ce paquet rend lisibles en blanc :
+- les champs, messages, joueurs, tentatives et traces du Contrôle interne ;
+- les boutons de contrôle ;
+- le bouton RETOUR AUX DÉFIS après une partie.
+
+Firebase est déjà déployé : aucun nouveau déploiement n'est nécessaire.
+
+1. Quitter flutter run avec q, puis exécuter :
+
+cd D:\romai\GEOPOINT\geopoint
+.\android\gradlew.bat --stop
+
+2. Décompresser l'archive cumulative :
+
+Expand-Archive `
+"$env:USERPROFILE\Downloads\geopoint_point_29_12_contraste_blanc_corrige_v3.zip" `
+"D:\romai\GEOPOINT" -Force
+
+3. Vérifier et relancer :
+
+cd D:\romai\GEOPOINT\geopoint
+flutter analyze
+flutter test
+flutter run

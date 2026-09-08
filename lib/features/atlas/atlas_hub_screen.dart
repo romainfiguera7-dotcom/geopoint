@@ -187,13 +187,13 @@ class _AtlasHubScreenState extends State<AtlasHubScreen> {
                           child: SizedBox(
                             height: 190,
                             child: GeoFeatureCard(
-                              icon: Icons.favorite_rounded,
+                              icon: Icons.bookmark_rounded,
                               title: 'À VISITER',
                               subtitle: 'Prépare ta liste de destinations rêvées.',
                               color: GeoColors.coral,
                               badge: '${_progress.wishlistCount} pays',
                               artwork: const GeoCardArtwork(
-                                primary: Icons.favorite_rounded,
+                                primary: Icons.bookmark_rounded,
                                 secondary: Icons.flag_rounded,
                                 color: GeoColors.navy,
                               ),
@@ -205,6 +205,27 @@ class _AtlasHubScreenState extends State<AtlasHubScreen> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      height: 170,
+                      child: GeoFeatureCard(
+                        icon: Icons.favorite_rounded,
+                        title: 'MES FAVORIS',
+                        subtitle:
+                            'Retrouve rapidement les pays que tu préfères.',
+                        color: GeoColors.gold,
+                        badge: '${_progress.favoriteCount} pays',
+                        artwork: const GeoCardArtwork(
+                          primary: Icons.favorite_rounded,
+                          secondary: Icons.public_rounded,
+                          color: GeoColors.navy,
+                        ),
+                        onPressed: () => _openPersonalList(
+                          context,
+                          type: AtlasPersonalListType.favorite,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 14),
                     _TravelStatisticsCard(

@@ -1,0 +1,28 @@
+GEOPOINT - CORRECTION DES SACCADES DE L'ATLAS V2
+================================================
+
+1. Fermer l'exécution Flutter avec Ctrl + C.
+
+2. Extraire le ZIP dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+   Accepter le remplacement des fichiers existants.
+
+3. Exécuter dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run --profile -d 58041FDCR00681
+
+4. Tester dans l'Atlas :
+
+   - un zoom lent avec deux doigts ;
+   - plusieurs zooms rapides ;
+   - un déplacement horizontal de la carte ;
+   - le passage de la vue Monde à un pays rapproché.
+
+Cette version ne change plus de géométrie pendant un geste. Elle désactive
+également la triangulation qui bloquait le rendu sur le téléphone. La carte
+haute définition originale reste utilisée en gros plan.

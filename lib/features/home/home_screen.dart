@@ -4,6 +4,11 @@ import 'dart:ui' show PathMetric, Tangent;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../challenges/challenge_storage.dart';
+import '../../challenges/challenge_player_state.dart';
+import '../../challenges/challenge_reward_sync.dart';
+import '../../challenges/challenge_server_connection.dart';
+import '../../challenges/challenge_wallet.dart';
 import '../../game/game_controller.dart';
 import '../../geo_engine/geo_country.dart';
 import '../../geo_engine/geojson_loader.dart';
@@ -23,6 +28,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   GameController? _gameController;
   Future<GameController>? _controllerFuture;
+  ChallengeWallet _wallet = const ChallengeWallet();
   bool _isPreparing = false;
 
   @override
@@ -34,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _preloadPlayer() async {
     try {
       await _getGameController();
+      await _reloadWallet();
 
       if (mounted) {
         setState(() {});
@@ -42,6 +49,18 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint('Préchargement du profil impossible : $error');
       debugPrintStack(stackTrace: stackTrace);
     }
+  }
+
+  Future<void> _reloadWallet() async {
+    final walletState =
+        await ChallengeStorage.load() ?? ChallengePlayerState.initial();
+    final ChallengeRewardSyncReport report =
+        await ChallengeRewardSyncService.synchronize(
+      playerState: walletState,
+      deviceNow: DateTime.now(),
+      gateway: ChallengeServerConnection.rewardValidationGateway,
+    );
+    _wallet = report.playerState.wallet;
   }
 
   Future<GameController> _getGameController() async {
@@ -97,6 +116,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
 
+      await _reloadWallet();
+
       if (mounted) {
         setState(() {});
       }
@@ -149,11 +170,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _openSettings() {
-    Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (BuildContext context) => const SettingsScreen(),
-      ),
+  Future<void> _openSettings() {
+    return _openDestination(
+      destinationName: 'les Paramètres',
+      builder: (GameController controller) {
+        return SettingsScreen(controller: controller);
+      },
     );
   }
 
@@ -166,9 +188,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final GameController? controller = _gameController;
-    final int stampCount = controller?.passport.validatedStampCount ?? 0;
     final int gameCount = controller?.passport.totalAttempts ?? 0;
     final String playerName = controller?.passport.displayName ?? 'Voyageur';
+    final profile = controller?.playerProfile;
 
     return Scaffold(
       body: Stack(
@@ -190,9 +212,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 25),
                       const _CompactLogo(),
                       const SizedBox(height: 19),
-                      _PlayerSummary(
-                        stampCount: stampCount,
+                      _PlayerProgressCard(
                         gameCount: gameCount,
+                        level: profile?.currentLevel ?? 1,
+                        levelTitle: profile?.displayLevelTitle ?? 'Voyageur I',
+                        xp: profile?.xpIntoCurrentLevel ?? 0,
+                        xpTarget: profile?.xpForNextLevel ?? 100,
+                        progress: profile?.levelProgress ?? 0,
+                        isMaximumLevel: profile?.isMaximumLevel ?? false,
+                        coins: _wallet.coins,
+                        diamonds: _wallet.diamonds,
                       ),
                       const SizedBox(height: 22),
                       _PlayCard(onPressed: _openPlay),
@@ -222,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        'GEOPOINT • EXPLORE, JOUE, APPRENDS',
+                        'POINTGEO • EXPLORE, JOUE, APPRENDS',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.nunitoSans(
                           color: Colors.white.withValues(alpha: 0.38),
@@ -317,7 +346,7 @@ class _CompactLogo extends StatelessWidget {
             text: TextSpan(
               children: <InlineSpan>[
                 TextSpan(
-                  text: 'GEO',
+                  text: 'POINT',
                   style: GoogleFonts.fredoka(
                     color: Colors.white,
                     fontSize: 36,
@@ -326,7 +355,7 @@ class _CompactLogo extends StatelessWidget {
                   ),
                 ),
                 TextSpan(
-                  text: 'POINT',
+                  text: 'GEO',
                   style: GoogleFonts.fredoka(
                     color: GeoColors.sky,
                     fontSize: 36,
@@ -343,34 +372,212 @@ class _CompactLogo extends StatelessWidget {
   }
 }
 
-class _PlayerSummary extends StatelessWidget {
-  const _PlayerSummary({
-    required this.stampCount,
+class _PlayerProgressCard extends StatelessWidget {
+  const _PlayerProgressCard({
     required this.gameCount,
+    required this.level,
+    required this.levelTitle,
+    required this.xp,
+    required this.xpTarget,
+    required this.progress,
+    required this.isMaximumLevel,
+    required this.coins,
+    required this.diamonds,
   });
 
-  final int stampCount;
   final int gameCount;
+  final int level;
+  final String levelTitle;
+  final int xp;
+  final int xpTarget;
+  final double progress;
+  final bool isMaximumLevel;
+  final int coins;
+  final int diamonds;
+
+  void _showCurrencyInfo(BuildContext context, String currency) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          icon: Icon(
+            currency == 'Pièces'
+                ? Icons.monetization_on_rounded
+                : Icons.diamond_rounded,
+            color: currency == 'Pièces' ? GeoColors.gold : GeoColors.sky,
+            size: 34,
+          ),
+          title: Text(
+            currency.toUpperCase(),
+            textAlign: TextAlign.center,
+          ),
+          content: Text(
+            'Les pièces et les diamants pourront être utilisés lors de '
+            'prochaines mises à jour.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.nunitoSans(fontWeight: FontWeight.w700),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: <Widget>[
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('COMPRIS'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        _SummaryPill(
-          icon: Icons.approval_rounded,
-          value: '$stampCount',
-          label: 'tampons',
-          color: GeoColors.gold,
+    return Container(
+      padding: const EdgeInsets.fromLTRB(15, 13, 15, 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.11),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+      ),
+      child: Column(
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'NIVEAU $level',
+                      style: GoogleFonts.nunitoSans(
+                        color: GeoColors.sky,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    Text(
+                      levelTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.fredoka(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                isMaximumLevel ? 'NIVEAU MAX' : '$xp / $xpTarget XP',
+                style: GoogleFonts.nunitoSans(
+                  color: Colors.white70,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 9),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(99),
+            child: LinearProgressIndicator(
+              value: isMaximumLevel
+                  ? 1.0
+                  : progress.clamp(0.0, 1.0).toDouble(),
+              minHeight: 9,
+              backgroundColor: Colors.black.withValues(alpha: 0.20),
+              valueColor: const AlwaysStoppedAnimation<Color>(GeoColors.gold),
+            ),
+          ),
+          const SizedBox(height: 11),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: _CurrencyButton(
+                  icon: Icons.monetization_on_rounded,
+                  value: coins,
+                  label: 'Pièces',
+                  color: GeoColors.gold,
+                  onPressed: () => _showCurrencyInfo(context, 'Pièces'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _CurrencyButton(
+                  icon: Icons.diamond_rounded,
+                  value: diamonds,
+                  label: 'Diamants',
+                  color: GeoColors.sky,
+                  onPressed: () => _showCurrencyInfo(context, 'Diamants'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _SummaryPill(
+                icon: Icons.sports_esports_rounded,
+                value: '$gameCount',
+                label: 'parties',
+                color: GeoColors.mint,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CurrencyButton extends StatelessWidget {
+  const _CurrencyButton({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final int value;
+  final String label;
+  final Color color;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  '$value $label',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.nunitoSans(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.info_outline_rounded,
+                color: Colors.white54,
+                size: 14,
+              ),
+            ],
+          ),
         ),
-        const SizedBox(width: 9),
-        _SummaryPill(
-          icon: Icons.sports_esports_rounded,
-          value: '$gameCount',
-          label: 'parties',
-          color: GeoColors.mint,
-        ),
-      ],
+      ),
     );
   }
 }

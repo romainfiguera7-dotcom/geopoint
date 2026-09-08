@@ -1,0 +1,23 @@
+{
+  "name": "geopoint-firebase-functions",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "check": "node --check index.js && node --check src/validation.js && node --check src/challenge_session.js && node --check src/challenge_wallet.js && node --check src/score_validation.js && node --check src/anti_cheat.js && node --check src/leaderboard.js && node --check src/ranking_history.js && node --check src/friends.js && node --check src/profile_safety.js && node --check src/admin_control.js && node --check src/season_reward.js && node --check scripts/grant_admin.js && node --test test/*.test.js",
+    "test": "node --test test/*.test.js",
+    "serve": "firebase emulators:start --only auth,firestore,database,functions",
+    "deploy": "firebase deploy --only firestore:rules,firestore:indexes,database,functions",
+    "admin:grant": "node scripts/grant_admin.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.3.0",
+    "firebase-functions": "^7.3.2",
+    "google-auth-library": "^10.9.1"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.29.0"
+  }
+}

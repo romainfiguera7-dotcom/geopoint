@@ -1,0 +1,58 @@
+{
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs22",
+    "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run check"]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "hosting": {
+    "public": "hosting/public",
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {"key": "X-Content-Type-Options", "value": "nosniff"},
+          {"key": "Referrer-Policy", "value": "strict-origin-when-cross-origin"},
+          {"key": "X-Frame-Options", "value": "DENY"}
+        ]
+      }
+    ]
+  },
+  "emulators": {
+    "auth": {"port": 9099},
+    "functions": {"port": 5001},
+    "firestore": {"port": 8080},
+    "database": {"port": 9000},
+    "ui": {"enabled": true, "port": 4000},
+    "singleProjectMode": true
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "geopoint-dev",
+          "appId": "1:843814612327:android:bd255ea0cd16acd69153c2",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "geopoint-dev",
+          "configurations": {
+            "android": "1:843814612327:android:bd255ea0cd16acd69153c2",
+            "ios": "1:843814612327:ios:5814d24d00e8d4209153c2"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,87 @@
+GEOPOINT — POINT 27.10 — VALIDATION ET ÉQUILIBRAGE FINAL
+=======================================================
+
+CONTENU DE CETTE ÉTAPE
+----------------------
+
+- Simulateur réutilisable des rythmes de progression XP.
+- Trois profils : occasionnel, régulier et intensif.
+- Vérification automatique des 12 grands niveaux et des 48 seuils.
+- Vérification qu'un nombre supérieur de parties donne toujours davantage d'XP.
+- Aucun plafond quotidien ajouté.
+- Rapport complet dans docs\point_27_balance_report.md.
+- Courbe conservée de 0 à 66 250 XP pour la première bêta.
+- Estimation Maître du monde IV :
+  - occasionnel : 221 semaines, environ 51 mois ;
+  - régulier : 58 semaines, environ 13 mois ;
+  - intensif : 21 semaines, environ 5 mois.
+- Estimation prudente sans les bonus uniques devenus rares :
+  - occasionnel : 272 semaines ;
+  - régulier : 71 semaines ;
+  - intensif : 25 semaines.
+- Sept nouveaux tests, soit 170 tests déclarés dans le projet.
+- Point 27 terminé côté implémentation.
+
+INSTALLATION POWERSHELL
+-----------------------
+
+1. Fermer l'application GeoPoint si elle tourne.
+
+2. Extraire l'archive cumulative :
+
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_point_27_etape_11_validation_finale.zip" "D:\romai\GEOPOINT\geopoint" -Force
+
+3. Ouvrir le projet :
+
+cd D:\romai\GEOPOINT\geopoint
+
+4. Vérifier le code :
+
+flutter analyze
+
+5. Lancer les 170 tests :
+
+flutter test
+
+6. Lancer sur le Pixel 10 :
+
+flutter run -d 58041FDCR00681
+
+VALIDATION FINALE DU POINT 27
+-----------------------------
+
+1. Ouvrir Paramètres > Outils XP de développement.
+2. Remettre l'XP à 0 et vérifier Premiers pas I, 0 XP.
+3. Vérifier dans le Passeport que le prochain objectif reste visible et que la
+   carte GeoBrain conserve les connaissances existantes.
+4. Utiliser À 1 XP du prochain palier, puis ajouter 1 XP.
+5. Vérifier le nouveau palier et l'absence de fenêtre forcée.
+6. Remettre l'XP à 0, puis utiliser Préparer le grand niveau.
+7. Vérifier 399 XP et Premiers pas IV.
+8. Jouer une partie normale valide.
+9. Vérifier la célébration Curieux du monde, les récompenses et le prochain
+   objectif.
+10. Désactiver Animation de grand niveau dans Paramètres et répéter un passage :
+    le contenu doit rester visible sans mouvement.
+11. Utiliser Atteindre le niveau maximal.
+12. Vérifier Maître du monde IV, la barre terminée et l'absence de faux niveau
+    suivant.
+13. Remettre finalement l'XP à 0 pour reprendre l'expérience normalement.
+14. Vérifier que les parties, statistiques, tampons, Atlas et GeoBrain n'ont pas
+    été effacés.
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found.
+- flutter test : All tests passed, avec 170 tests.
+- Aucun débordement visuel sur le Pixel 10.
+- Aucun écran forcé pour un petit palier.
+- Une célébration uniquement pour un grand niveau.
+- Aucun changement du GeoBrain provoqué par une commande XP.
+
+SUITE DE LA ROADMAP
+-------------------
+
+Après cette validation sur téléphone, le point 27 pourra être marqué totalement
+validé et le développement pourra passer au point 28, consacré au mode en ligne.

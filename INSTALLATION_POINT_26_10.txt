@@ -1,0 +1,74 @@
+GEOPOINT - POINT 26.10 : TESTS ET ÉQUILIBRAGE GEOBRAIN
+-----------------------------------------------------
+
+Cette version clôt le point 26 avec une campagne de tests intégrés couvrant le
+parcours pédagogique complet du GeoBrain.
+
+SIMULATIONS AJOUTÉES
+--------------------
+
+- nouveau joueur : démarrage facile, aucune fausse révision et nouveautés ;
+- joueur régulier : progression stable et difficulté relevée progressivement ;
+- joueur revenant après plusieurs semaines : baisse douce de la confiance,
+  progrès conservé et séance de révision proposée ;
+- deux joueurs aux difficultés différentes : suggestions réellement
+  différentes ;
+- comparaison systématique entre les pays suggérés et l'historique enregistré.
+
+ÉQUITÉ ET MODE ENFANT
+---------------------
+
+- un petit pays obtient le même score qu'un grand pays pour les mêmes réponses ;
+- la distance enregistrée ne pénalise pas une réponse déjà validée ;
+- tous les pays utilisent les mêmes seuils de maîtrise ;
+- les réussites aidées du mode enfant font progresser sans créer de fausse
+  maîtrise ;
+- les erreurs enfant restent informatives ;
+- le mode enfant ne force pas une hausse de la difficulté adulte.
+
+RÉPÉTITIONS ET OUBLIS
+---------------------
+
+- une connaissance maîtrisée et stable n'est pas proposée inutilement ;
+- la mémoire de sélection évite sa répétition dans deux séances consécutives ;
+- après une absence prolongée, cette connaissance revient au bon moment ;
+- la formulation reste « À réviser » et la maîtrise enregistrée n'est jamais
+  effacée.
+
+CORRECTIONS 26.9 INCLUSES
+-------------------------
+
+Cette archive contient également les deux corrections validées :
+
+- suppression des trois informations d'analyse dans game_controller.dart ;
+- largeur bornée du bouton LANCER sur l'écran GeoBrain pour éviter l'erreur de
+  rendu Flutter.
+
+INSTALLATION
+------------
+
+1. Fermer GeoPoint.
+
+2. Décompresser le ZIP dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+   en remplaçant les fichiers existants.
+
+3. Lancer dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found!
+- flutter test : 118 tests réussis
+- l'écran GeoBrain s'affiche sans erreur de rendu ;
+- les trois profils simulés reçoivent un comportement adapté ;
+- les petits pays et le mode enfant sont traités équitablement ;
+- les suggestions restent conformes à l'historique réel.

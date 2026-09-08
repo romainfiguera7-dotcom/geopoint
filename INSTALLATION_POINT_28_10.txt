@@ -1,0 +1,88 @@
+GEOPOINT — POINT 28.10
+RÉSULTATS CLASSÉS ET POSITION DU JOUEUR
+
+Cette archive est cumulative. Elle contient toute la base validée du point 27
+et les étapes 28.1 à 28.10.
+
+NOUVEAUTÉS VISIBLES
+===================
+
+- Les défis classés affichent maintenant un choix « Participer au classement »
+  avant le lancement.
+- La participation est facultative et désactivée par défaut.
+- Le joueur peut réussir le défi et recevoir sa récompense sans transmettre
+  son résultat au classement.
+- Après une partie classée volontaire, l’écran de résultat indique que la
+  position sera calculée à la prochaine connexion.
+- L’historique affiche ensuite une position validée, une attente, une
+  vérification ou un refus selon la réponse du futur serveur.
+- Une position validée montre le rang, le nombre de participants et
+  l’évolution éventuelle.
+
+ÉQUITÉ
+======
+
+- Le résultat envoyé contient le score, les bonnes réponses, la distance
+  moyenne et le temps total.
+- La signature des règles et le groupe de classement sont joints au résultat.
+- Le départage prévu est : score, puis précision, puis temps.
+- Les XP, pièces, diamants, achats et cosmétiques ne sont jamais envoyés comme
+  critères de classement.
+- Les défis classés conservent leurs questions déterministes et interdisent le
+  GeoBrain.
+- Les variantes débutant et enfant ne rejoignent pas le classement adulte.
+
+SÉCURITÉ
+========
+
+- Chaque résultat possède un identifiant permanent et ne peut être envoyé
+  deux fois.
+- Une panne conserve le résultat dans la file locale.
+- Une réponse incomplète, dupliquée ou incohérente est ignorée intégralement.
+- Le serveur pourra confirmer, refuser ou placer un résultat suspect en
+  quarantaine.
+- Une position dont le score ne correspond pas au résultat envoyé est refusée.
+- L’heure serveur reçue avec la position devient la nouvelle heure de
+  confiance.
+
+LIMITES ACTUELLES
+=================
+
+Le fournisseur distant et l’authentification ne sont pas encore connectés.
+Dans cette version, le joueur peut tester le choix de participation et voir son
+résultat rester en attente. Les positions réelles apparaîtront automatiquement
+quand le futur serveur sera branché.
+
+INSTALLATION ET TEST
+====================
+
+1. Décompresser l’archive dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+2. Accepter le remplacement des fichiers.
+3. Exécuter dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+PARCOURS À VÉRIFIER
+===================
+
+1. Ouvrir JOUER > DÉFIS.
+2. Ouvrir le défi de la semaine, qui est classé.
+3. Vérifier que « Participer au classement » est désactivé par défaut.
+4. Activer le choix et lancer le défi.
+5. Terminer le défi puis vérifier le message de position en attente.
+6. Revenir au centre et vérifier l’état dans HISTORIQUE RÉCENT.
+7. Sur un futur défi classé, laisser le choix désactivé et vérifier qu’aucun
+   résultat classé n’est créé.
+
+RÉSULTAT TECHNIQUE ATTENDU
+==========================
+
+- flutter analyze : No issues found!
+- flutter test : tous les tests réussissent.
+- 265 tests sont présents, dont 93 consacrés aux défis.

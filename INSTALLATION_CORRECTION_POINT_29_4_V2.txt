@@ -1,0 +1,41 @@
+GEOPOINT — CORRECTION DU POINT 29.4 V2
+=======================================
+
+Cette petite archive contient les deux fichiers complets corrigés :
+
+- world_quiz_engine.dart : suppression des 3 avertissements d'analyse ;
+- geopoint_design.dart : suppression du débordement visuel de 1 pixel.
+
+Dans le terminal `flutter run`, appuyer d'abord sur q.
+
+Puis exécuter dans PowerShell :
+
+cd D:\romai\GEOPOINT\geopoint
+
+Expand-Archive `
+"$env:USERPROFILE\Downloads\geopoint_point_29_4_correction_v2.zip" `
+"D:\romai\GEOPOINT\geopoint" -Force
+
+dart format `
+lib\features\quiz\world_quiz_engine.dart `
+lib\features\design\geopoint_design.dart
+
+flutter analyze
+flutter test
+flutter run
+
+Il n'est pas nécessaire de redéployer Firebase : le déploiement 29.4 est déjà
+réussi.
+
+APP CHECK
+---------
+
+Ajouter le nouveau jeton de débogage suivant dans :
+
+Firebase Console > App Check > GeoPoint Android > Jetons de débogage
+
+ab74e9fc-0dda-40b6-963f-5562ec47d07a
+
+Puis quitter et relancer l'app. Si « Unable to resolve host » persiste, vérifier
+que le Pixel est connecté à Internet, désactiver/réactiver le Wi-Fi, puis
+relancer `flutter run`.

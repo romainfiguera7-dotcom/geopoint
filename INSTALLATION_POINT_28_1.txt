@@ -1,0 +1,57 @@
+GEOPOINT — POINT 28.1
+SOCLE DES DÉFIS QUOTIDIENS ET HEBDOMADAIRES
+
+Contenu de cette étape
+======================
+
+- Modèle complet de défi piloté par les données.
+- Pack éditorial de septembre 2026 chargé depuis un fichier JSON.
+- 30 défis quotidiens couvrant chaque jour du mois.
+- 3 objectifs hebdomadaires progressifs pendant quatre semaines.
+- 1 grande épreuve mensuelle.
+- Variantes enfant adaptées, sans publicité ni relance payante.
+- Contrôle des pays, continents, modes, difficultés, dates et récompenses.
+- Interdiction du GeoBrain dans les défis classés.
+- Plafonnement des essais, relances diamant et publicités récompensées.
+- Horloge serveur avec fonctionnement hors ligne et blocage des retours
+  anormaux de l'heure du téléphone.
+- Registre empêchant l'enregistrement d'une récompense deux fois.
+- Une récompense obtenue hors ligne reste en attente de validation serveur.
+- 29 nouveaux tests automatisés.
+
+Installation
+============
+
+1. Fermer l'application GeoPoint si elle est ouverte.
+2. Décompresser l'archive directement dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+3. Accepter le remplacement des fichiers existants.
+4. Ouvrir PowerShell dans le dossier du projet.
+5. Exécuter :
+
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+Résultat attendu
+================
+
+- flutter analyze : No issues found!
+- flutter test : 180 tests réussis environ, dont les 29 nouveaux tests du
+  moteur de défis.
+- L'application actuelle continue de fonctionner comme avant : cette première
+  étape pose le moteur et les données, sans encore afficher les nouveaux
+  écrans du point 28.
+
+Important
+=========
+
+Le prochain sous-point branchera ce moteur sur les écrans des défis. Le pack
+de septembre est déjà modifiable dans :
+
+assets\data\challenge_pack_2026_09.json
+
+Le mode silhouette utilise volontairement l'identifiant interne "ultimate",
+déjà employé par GeoPoint.

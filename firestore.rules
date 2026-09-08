@@ -1,0 +1,142 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function owner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function administrator() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    // Profil privé : lecture par son propriétaire, écriture uniquement par
+    // les Cloud Functions avec le SDK Admin.
+    match /players/{userId} {
+      allow get: if owner(userId) || administrator();
+      allow list: if administrator();
+      allow create, update, delete: if false;
+    }
+
+    // Les profils publics sont filtrés par les Cloud Functions avant envoi.
+    // Aucun parcours direct de l'annuaire n'est autorisé depuis l'application.
+    match /public_profiles/{userId} {
+      allow read, write: if false;
+    }
+
+    // Codes, demandes, amitiés et blocages sont privés. Toutes les opérations
+    // sociales passent par des callables protégées par Authentication et
+    // App Check afin de ne jamais exposer un UID ou un annuaire de joueurs.
+    match /friend_codes/{friendCode} {
+      allow read, write: if false;
+    }
+
+    match /friend_requests/{requestId} {
+      allow read, write: if false;
+    }
+
+    match /friendships/{userId}/members/{friendId} {
+      allow read, write: if false;
+    }
+
+    match /friend_blocks/{userId}/blocked/{blockedId} {
+      allow read, write: if false;
+    }
+
+    // Les migrations locales sont privées et toujours écrites côté serveur.
+    match /profile_migrations/{userId}/requests/{requestId} {
+      allow read: if owner(userId) || administrator();
+      allow write: if false;
+    }
+
+    // Une session officielle est créée par le serveur avant chaque partie
+    // classée. Le joueur peut la consulter, jamais la fabriquer ni l'altérer.
+    match /challenge_sessions/{userId}/sessions/{sessionId} {
+      allow get: if owner(userId) || administrator();
+      allow list: if administrator();
+      allow write: if false;
+    }
+
+    match /challenge_session_requests/{userId}/requests/{requestId} {
+      allow read: if owner(userId) || administrator();
+      allow write: if false;
+    }
+
+    // Les tentatives et récompenses ne sont jamais modifiables par le client.
+    match /ranking_submissions/{userId}/submissions/{submissionId} {
+      allow read: if owner(userId) || administrator();
+      allow write: if false;
+    }
+
+    // Meilleur résultat privé et recalculé. Les Functions publient une copie
+    // minimale dans les classements du point 29.7.
+    match /ranking_records/{userId}/groups/{rankingGroupId} {
+      allow get: if owner(userId) || administrator();
+      allow list: if administrator();
+      allow write: if false;
+    }
+
+    // Les signaux anti-triche restent internes afin de ne pas exposer les
+    // seuils de détection aux clients. Leur traitement manuel arrivera avec
+    // les outils internes du point 29.12.
+    match /ranking_reviews/{userId}/submissions/{submissionId} {
+      allow read: if administrator();
+      allow write: if false;
+    }
+
+    match /reward_claims/{userId}/claims/{claimId} {
+      allow read: if owner(userId) || administrator();
+      allow write: if false;
+    }
+
+    // La récompense de clôture est calculée et figée par le serveur. Le client
+    // peut consulter son reçu, mais ne peut ni créer ni modifier un versement.
+    match /season_reward_claims/{userId}/seasons/{seasonKey} {
+      allow read: if owner(userId) || administrator();
+      allow write: if false;
+    }
+
+    // Les classements sont servis par une Function protégée qui retire les
+    // identifiants Firebase avant de répondre au client.
+    match /leaderboards/{leaderboardId} {
+      allow read, write: if false;
+
+      match /entries/{userId} {
+        allow read, write: if false;
+      }
+    }
+
+    // Packs et configuration sont servis par une fonction callable protégée
+    // par App Check afin de conserver une horloge serveur fiable.
+    match /challenge_packs/{packId} {
+      allow read, write: if false;
+    }
+
+    match /server_config/{documentId} {
+      allow read, write: if false;
+    }
+
+    // Les décisions manuelles et les suspensions de compétitions sont
+    // consultables uniquement par les comptes portant le claim admin.
+    // Toute écriture passe malgré tout par les Cloud Functions afin de créer
+    // une trace d'audit indissociable de l'action.
+    match /challenge_controls/{rankingGroupId} {
+      allow read: if administrator();
+      allow write: if false;
+    }
+
+    match /admin_audit_logs/{auditId} {
+      allow read: if administrator();
+      allow write: if false;
+    }
+
+    // Refus par défaut pour toute collection ajoutée sans règle explicite.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

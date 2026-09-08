@@ -18,6 +18,8 @@ import '../../game/game_difficulty.dart';
 import '../../game/game_screen.dart';
 import '../../game/learning/guided_level.dart';
 import '../../game/ultimate/ultimate_game_screen.dart';
+import '../../passport/collections/passport_collection_catalog.dart';
+import '../../passport/collections/passport_collection_item.dart';
 import 'continent_expedition_screen.dart';
 import '../exploration/national_explorations_screen.dart';
 
@@ -1151,6 +1153,7 @@ class _ExpeditionDetailScreenState extends State<ExpeditionDetailScreen> {
             MaterialPageRoute<UltimateGameResult>(
               builder: (BuildContext context) {
                 return UltimateGameScreen(
+                  controller: widget.controller,
                   availableCountries: widget.controller
                       .ultimateCountriesForDifficulty(widget.difficulty.id),
                   countryDifficulties: widget.controller.countryDifficulties,
@@ -1160,10 +1163,16 @@ class _ExpeditionDetailScreenState extends State<ExpeditionDetailScreen> {
                   onAnswer: ({
                     required String countryId,
                     required bool isCorrect,
+                    required int elapsedSeconds,
+                    required String difficultyId,
+                    String? proposedAnswerId,
                   }) {
                     return widget.controller.registerPassportSilhouetteAnswer(
                       countryId: countryId,
                       isCorrect: isCorrect,
+                      elapsedSeconds: elapsedSeconds,
+                      difficultyId: difficultyId,
+                      proposedAnswerId: proposedAnswerId,
                     );
                   },
                 );
@@ -1174,6 +1183,10 @@ class _ExpeditionDetailScreenState extends State<ExpeditionDetailScreen> {
       if (result != null) {
         final ExpeditionProgress currentProgress =
             await ExpeditionStorage.load();
+        final int previousStars = currentProgress.starsFor(
+          difficultyId: widget.difficulty.id,
+          missionId: mission.id,
+        );
 
         final ExpeditionProgress updatedProgress = currentProgress
             .registerMissionResult(
@@ -1183,7 +1196,45 @@ class _ExpeditionDetailScreenState extends State<ExpeditionDetailScreen> {
               score: result.totalScore,
             );
 
-        await ExpeditionStorage.save(updatedProgress);
+        final bool saved = await ExpeditionStorage.save(updatedProgress);
+
+        final int previousPlayerLevel =
+            widget.controller.playerProfile.currentLevel;
+        int earnedXp = 0;
+        if (saved && previousStars < 1 && result.earnedStars >= 1) {
+          final reward =
+              await widget.controller.registerExpeditionMissionCompletion(
+            expeditionId: 'classic-${widget.difficulty.id}',
+            missionId: mission.id,
+            isExam: mission.isUltimate,
+            combineWithCurrentGame: false,
+          );
+          earnedXp += reward.earnedXp;
+        }
+
+        if (saved) {
+          earnedXp += await widget.controller.refreshPassportAchievements();
+        }
+
+        if (mounted && earnedXp > 0) {
+          final List<PassportCollectionItem> unlockedRewards =
+              PassportCollectionCatalog.levelRewardsUnlockedBetween(
+            previousLevel: previousPlayerLevel,
+            newLevel: widget.controller.playerProfile.currentLevel,
+          );
+          final String rewardText = unlockedRewards.isEmpty
+              ? ''
+              : unlockedRewards.length == 1
+                  ? ' · ${unlockedRewards.single.name}'
+                  : ' · ${unlockedRewards.length} récompenses';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Progression validée : +$earnedXp XP$rewardText',
+              ),
+            ),
+          );
+        }
       }
 
       if (mounted) {

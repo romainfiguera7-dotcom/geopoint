@@ -20,6 +20,7 @@ class AtlasMap extends StatefulWidget {
     required this.selectedCountry,
     required this.visitedCountryIds,
     required this.wishlistCountryIds,
+    required this.favoriteCountryIds,
     required this.onCountrySelected,
     required this.onCitySelected,
     super.key,
@@ -32,6 +33,7 @@ class AtlasMap extends StatefulWidget {
   final GeoCountry? selectedCountry;
   final Set<String> visitedCountryIds;
   final Set<String> wishlistCountryIds;
+  final Set<String> favoriteCountryIds;
   final ValueChanged<GeoCountry> onCountrySelected;
   final ValueChanged<AtlasCity> onCitySelected;
 
@@ -73,7 +75,8 @@ class AtlasMapState extends State<AtlasMap> {
     } else if (oldWidget.selectedContinent != widget.selectedContinent ||
         oldWidget.selectedCountry?.id != widget.selectedCountry?.id ||
         oldWidget.visitedCountryIds != widget.visitedCountryIds ||
-        oldWidget.wishlistCountryIds != widget.wishlistCountryIds) {
+        oldWidget.wishlistCountryIds != widget.wishlistCountryIds ||
+        oldWidget.favoriteCountryIds != widget.favoriteCountryIds) {
       _polygons = _buildPolygons();
     }
   }
@@ -266,6 +269,12 @@ class AtlasMapState extends State<AtlasMap> {
     );
   }
 
+  bool _isFavorite(GeoCountry country) {
+    return widget.favoriteCountryIds.contains(
+      country.id.trim().toUpperCase(),
+    );
+  }
+
   bool _isVisible(LatLng point) {
     final LatLngBounds? bounds = _visibleBounds;
     return bounds == null || bounds.contains(point);
@@ -297,7 +306,9 @@ class AtlasMapState extends State<AtlasMap> {
       return true;
     }
 
-    if (_isVisited(country) || _isInWishlist(country)) {
+    if (_isVisited(country) ||
+        _isInWishlist(country) ||
+        _isFavorite(country)) {
       return true;
     }
 
@@ -327,6 +338,7 @@ class AtlasMapState extends State<AtlasMap> {
       final bool included = _matchesContinent(country);
       final bool visited = included && _isVisited(country);
       final bool wishlist = included && _isInWishlist(country);
+      final bool favorite = included && _isFavorite(country);
       final Color continentColor = _colorForContinent(country.continent);
       final Color countryColor;
 
@@ -334,6 +346,12 @@ class AtlasMapState extends State<AtlasMap> {
         countryColor = const Color(0xFFFFD166);
       } else if (!included) {
         countryColor = const Color(0xFF617084);
+      } else if (favorite) {
+        countryColor = Color.lerp(
+          continentColor,
+          const Color(0xFFFFCE59),
+          0.68,
+        )!;
       } else if (visited) {
         countryColor = Color.lerp(
           continentColor,
@@ -352,16 +370,18 @@ class AtlasMapState extends State<AtlasMap> {
 
       final Color borderColor = selected
           ? const Color(0xFF7A4B00)
-          : visited
-              ? const Color(0xFF087A59)
-              : wishlist
-                  ? const Color(0xFFA82F3B)
-                  : Colors.white.withValues(
-                      alpha: included ? 0.72 : 0.25,
-                    );
+          : favorite
+              ? const Color(0xFF9A6A00)
+              : visited
+                  ? const Color(0xFF087A59)
+                  : wishlist
+                      ? const Color(0xFFA82F3B)
+                      : Colors.white.withValues(
+                          alpha: included ? 0.72 : 0.25,
+                        );
       final double borderWidth = selected
           ? 2.3
-          : visited || wishlist
+          : favorite || visited || wishlist
               ? 1.65
               : 0.65;
 
@@ -400,22 +420,27 @@ class AtlasMapState extends State<AtlasMap> {
       final bool selected = widget.selectedCountry?.id == country.id;
       final bool visited = _isVisited(country);
       final bool wishlist = _isInWishlist(country);
+      final bool favorite = _isFavorite(country);
       final String countryLabel =
           widget.countryInfos[country.id]?.title ?? country.name;
-      final String label = visited
-          ? '✓ $countryLabel'
-          : wishlist
-              ? '♥ $countryLabel'
-              : countryLabel;
+      final String label = favorite
+          ? '♥ $countryLabel'
+          : visited
+              ? '✓ $countryLabel'
+              : wishlist
+                  ? '◆ $countryLabel'
+                  : countryLabel;
       final double width =
           (label.length * 7.0 + 18).clamp(48, 170).toDouble();
       final Color? badgeColor = selected
           ? const Color(0xFF071B3A).withValues(alpha: 0.92)
-          : visited
-              ? const Color(0xFF55D6A6).withValues(alpha: 0.94)
-              : wishlist
-                  ? const Color(0xFFFF8B82).withValues(alpha: 0.94)
-                  : null;
+          : favorite
+              ? const Color(0xFFFFCE59).withValues(alpha: 0.96)
+              : visited
+                  ? const Color(0xFF55D6A6).withValues(alpha: 0.94)
+                  : wishlist
+                      ? const Color(0xFFFF8B82).withValues(alpha: 0.94)
+                      : null;
 
       markers.add(
         Marker(

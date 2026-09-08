@@ -564,7 +564,7 @@ class _GeoFeatureCardState extends State<GeoFeatureCard> {
                         ),
                 ),
                 Padding(
-                  padding: EdgeInsets.all(widget.large ? 19 : 15),
+                  padding: EdgeInsets.all(widget.large ? 19 : 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[

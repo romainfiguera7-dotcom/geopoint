@@ -1,0 +1,89 @@
+GEOPOINT — POINT 29.3
+SOCLE FIREBASE, SCHÉMA DISTANT ET DROITS D'ACCÈS
+
+Cette archive est cumulative. Elle contient toute la base validée jusqu'au
+point 29.2, puis le point 29.3 connecté au projet Firebase geopoint-dev.
+
+CE QUI EST AJOUTÉ
+=================
+
+- Projet Firebase local prêt pour Node.js 22 et la région europe-west1.
+- Cinq fonctions callable : état serveur, inscription de l'identité, dépôt et
+  suivi d'une migration, récupération du pack actif.
+- Contrat Dart versionné et adaptateur callable testable.
+- Applications Android et iOS enregistrées avec com.romainfiguera.geopoint.
+- Firebase Core, Authentication, App Check et Cloud Functions initialisés.
+- Authentification anonyme automatique et passerelle callable europe-west1.
+- Repli automatique en mode local si Firebase ou le réseau est indisponible.
+- Liaison progressive du profil : un ancien profil reste hors classement tant
+  que sa migration n'est pas validée.
+- Règles Firestore fermées par défaut.
+- Écriture directe interdite pour les scores, récompenses, migrations, packs et
+  classements.
+- Realtime Database entièrement bloquée jusqu'au mode multijoueur.
+- Aucun mot de passe, jeton privé ou compte de service dans l'archive. Les
+  identifiants publics générés par FlutterFire sont inclus normalement.
+
+SÉCURITÉ
+========
+
+- L'UID Firebase authentifié est la seule identité distante autoritaire.
+- App Check est exigé par toutes les fonctions déployées.
+- Les migrations sont enregistrées en attente de contrôle ; elles ne donnent
+  jamais directement de l'XP ou une place au classement.
+- Le rôle administrateur dépend d'un custom claim Firebase, jamais d'un champ
+  modifiable par le joueur.
+- Les collections inconnues sont automatiquement refusées.
+
+VALIDATION FLUTTER
+==================
+
+Depuis D:\romai\GEOPOINT\geopoint :
+
+flutter analyze
+flutter test
+flutter run -d 58041FDCR00681
+
+Résultat attendu : aucune erreur d'analyse et 300 tests réussis.
+
+VALIDATION DU BACKEND
+=====================
+
+Depuis D:\romai\GEOPOINT\geopoint\functions :
+
+npm install
+npm run check
+
+Résultat attendu : 6 tests Node.js réussis.
+
+FICHIERS PRINCIPAUX
+===================
+
+- firebase.json
+- firestore.rules
+- firestore.indexes.json
+- database.rules.json
+- functions/index.js
+- functions/src/validation.js
+- functions/test/validation.test.js
+- lib/server/geopoint_server_contract.dart
+- lib/server/firebase_callable_gateway.dart
+- lib/server/flutterfire_callable_transport.dart
+- lib/server/firebase_bootstrap.dart
+- lib/firebase_options.dart
+- lib/player/player_online_link_service.dart
+- docs/firebase_schema_point_29_3.md
+
+ACTIVATION RÉELLE À FAIRE ENSEMBLE
+==================================
+
+Le projet geopoint-dev et les applications Android/iOS existent. Après
+validation de l'archive, nous ferons ensemble :
+
+1. activation de la connexion anonyme dans Firebase Authentication ;
+2. création de la base Firestore en région européenne ;
+3. enregistrement du jeton App Check de débogage du Pixel 10 ;
+4. test dans les émulateurs ;
+5. déploiement des règles et des fonctions.
+
+Ne copie jamais une clé privée de compte de service dans le projet Flutter.

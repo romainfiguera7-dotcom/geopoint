@@ -140,7 +140,7 @@ class PassportScreen extends StatelessWidget {
                   const SizedBox(height: 4),
 
                   const Text(
-                    'PASSEPORT GEOPOINT',
+                    'PASSEPORT POINTGEO',
                     textAlign:
                         TextAlign.center,
                     style: TextStyle(

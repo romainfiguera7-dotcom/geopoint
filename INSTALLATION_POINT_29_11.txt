@@ -1,0 +1,55 @@
+GEOPOINT — INSTALLATION DU POINT 29.11
+=====================================
+
+IMPORTANT
+---------
+L'archive contient déjà le dossier geopoint. Décompresse-la dans
+D:\romai\GEOPOINT et non dans D:\romai\GEOPOINT\geopoint.
+
+1. Fermer l'application lancée par Flutter puis exécuter :
+
+cd D:\romai\GEOPOINT\geopoint
+.\android\gradlew.bat --stop
+
+2. Si un ancien dossier imbriqué existe, le déplacer en sauvegarde :
+
+$duplicate = "D:\romai\GEOPOINT\geopoint\geopoint"
+$backup = "D:\romai\GEOPOINT\geopoint_duplicate_backup_$(Get-Date -Format yyyyMMdd_HHmmss)"
+if (Test-Path $duplicate) {
+  Move-Item $duplicate $backup
+}
+
+3. Décompresser l'archive :
+
+Expand-Archive `
+"$env:USERPROFILE\Downloads\geopoint_point_29_11_protection_profils_enfants_corrige_v2.zip" `
+"D:\romai\GEOPOINT" -Force
+
+4. Vérifier Flutter et Firebase :
+
+cd D:\romai\GEOPOINT\geopoint
+flutter pub get
+flutter analyze
+flutter test
+npm --prefix functions run check
+
+5. Déployer la protection serveur :
+
+$env:FUNCTIONS_DISCOVERY_TIMEOUT = "120"
+firebase deploy --only "firestore:rules,firestore:indexes,functions"
+
+6. Tester l'application :
+
+flutter run
+
+TEST CONSEILLÉ
+--------------
+Utiliser un compte Firebase de test dédié. Dans Jouer > Mode enfant,
+sélectionner une tranche d'âge puis confirmer en tant que responsable légal.
+Cette activation ne peut pas être annulée depuis l'application.
+
+Vérifier ensuite :
+- la carte affiche MODE ENFANT ACTIF ;
+- les défis affichent PROFIL ENFANT PROTÉGÉ ;
+- aucun bouton Classements ou Mes amis n'est visible ;
+- les nouvelles tentatives restent gratuites et aucune publicité n'apparaît.

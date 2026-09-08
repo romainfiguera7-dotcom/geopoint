@@ -1,0 +1,60 @@
+GEOPOINT — POINT 28.7
+SIMULATION ET CONTRÔLE INTERNE STUDIO
+
+Cette archive est cumulative. Elle contient toute la base validée du point 27
+et les étapes 28.1 à 28.7.
+
+Nouveautés
+==========
+
+- GeoPoint Studio possède maintenant une simulation joueur complète.
+- La date et l’heure peuvent être changées librement avant publication.
+- Le niveau du joueur peut être simulé de 1 à 100.
+- Le profil simulé peut basculer entre adulte et enfant.
+- L’aperçu montre exactement le défi quotidien, hebdomadaire et mensuel qui
+  sera visible avec les réglages choisis.
+- Un chevauchement affiche immédiatement un conflit dans l’aperçu.
+- Un défi peut être désactivé ou réactivé depuis son menu.
+
+Débutants et profils enfants
+============================
+
+- Le niveau minimum est maintenant configurable dans l’éditeur.
+- Si ce niveau est supérieur à 1, Studio génère automatiquement une variante
+  Découverte pour les joueurs débutants.
+- Le profil enfant utilise toujours sa variante Junior sans publicité.
+- La désactivation du défi principal désactive également ses variantes.
+
+Installation et test
+====================
+
+1. Décompresser l’archive dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+2. Accepter le remplacement des fichiers.
+3. Exécuter dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+Parcours à vérifier
+===================
+
+1. Ouvrir JOUER > DÉFIS > GEOPOINT STUDIO.
+2. Créer au moins un défi quotidien, hebdomadaire et mensuel.
+3. Dans SIMULATION JOUEUR, choisir une date comprise dans leurs périodes.
+4. Modifier le niveau puis activer le profil enfant.
+5. Vérifier que les titres Junior apparaissent pour le profil enfant.
+6. Ouvrir le menu d’un brouillon puis choisir DÉSACTIVER.
+7. Vérifier que le défi disparaît immédiatement de la simulation.
+8. Choisir RÉACTIVER pour le restaurer.
+
+Résultat technique attendu
+==========================
+
+- flutter analyze : No issues found!
+- flutter test : tous les tests réussissent.
+- Environ 235 tests sont présents, dont 63 consacrés aux défis.

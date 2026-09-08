@@ -1,0 +1,49 @@
+GEOPOINT — CORRECTION DU CLASSEMENT IMMÉDIAT
+================================================
+
+Cette archive complète inclut tous les points jusqu'au point 29.8 ainsi que la
+correction de synchronisation des scores.
+
+1. Dans la fenêtre où Flutter fonctionne, appuyer sur q.
+
+2. Dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   .\android\gradlew.bat --stop
+
+3. Extraire l'archive :
+
+   Expand-Archive `
+   "$env:USERPROFILE\Downloads\geopoint_point_29_8_classement_immediat_corrige.zip" `
+   "D:\romai\GEOPOINT\geopoint" -Force
+
+4. Vérifier et déployer :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   dart format lib test
+   flutter analyze
+   flutter test
+   npm --prefix functions run check
+   firebase deploy --only "firestore:rules,firestore:indexes,functions"
+   flutter run
+
+TEST À EFFECTUER
+----------------
+
+1. Lancer un défi quotidien.
+2. Terminer la partie.
+3. Lire la carte Classement directement sur l'écran de résultat.
+4. Le message attendu est :
+
+   Nouveau meilleur résultat validé par Firebase. Le classement est actualisé.
+
+5. Revenir aux Défis, ouvrir Classements puis actualiser.
+
+Le terminal affiche maintenant une ligne commençant par :
+
+   GeoPoint Classement : envoi immédiat
+
+Elle indique le nombre de résultats validés, refusés, placés en vérification ou
+restés en attente. En cas de coupure réseau, le score reste sauvegardé et sera
+renvoyé lors de la prochaine synchronisation.

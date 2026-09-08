@@ -1,0 +1,21 @@
+GEOPOINT — CORRECTION POINT 29.5 V2
+
+Cette correction règle l'unique test en échec :
+« une partie moins bonne ne remplace jamais le meilleur classement ».
+
+Dans PowerShell :
+
+cd D:\romai\GEOPOINT\geopoint
+
+Expand-Archive `
+"$env:USERPROFILE\Downloads\geopoint_point_29_5_correction_v2.zip" `
+"D:\romai\GEOPOINT\geopoint" -Force
+
+dart format lib\challenges\challenge_ranking.dart test\challenges\challenge_ranking_test.dart
+flutter analyze
+flutter test
+
+Si tout passe, terminer avec :
+
+firebase deploy --only "firestore:rules,firestore:indexes,functions"
+flutter run

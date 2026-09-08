@@ -1,0 +1,66 @@
+GEOPOINT — POINT 27.3 — BRANCHEMENT DES PARTIES SUR LE REGISTRE XP
+=================================================================
+
+CONTENU DE CETTE ÉTAPE
+----------------------
+
+- Identifiant XP unique créé pour chaque session de jeu.
+- Toutes les parties normales passent par le registre central avant d'ajouter
+  leur XP au profil.
+- Protection contre une double validation de la même partie.
+- Aucune limite quotidienne : chaque partie valide accorde tout son barème XP.
+- Sauvegarde groupée de l'XP accordée, du registre et des statistiques joueur.
+- L'écran de résultat affiche uniquement l'XP réellement accordée.
+- Nouveau barème adapté à la progression longue :
+  - 15 XP pour terminer une partie ;
+  - 3 XP par bonne réponse ;
+  - 10 XP de bonus parfait ;
+  - 5 XP de bonus précision ;
+  - 0 à 20 XP selon la difficulté ;
+  - maximum de 80 XP pour une partie normale experte parfaite.
+- Le tutoriel et l'entraînement restent sans XP.
+- Aucun changement du calcul, de la sélection ou de la sauvegarde GeoBrain.
+
+INSTALLATION POWERSHELL
+-----------------------
+
+1. Fermer l'application GeoPoint si elle tourne.
+
+2. Extraire l'archive cumulative dans le projet :
+
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_point_27_etape_3_sans_plafond_xp.zip" "D:\romai\GEOPOINT\geopoint" -Force
+
+3. Ouvrir le projet :
+
+cd D:\romai\GEOPOINT\geopoint
+
+4. Vérifier le code :
+
+flutter analyze
+
+5. Lancer tous les tests :
+
+flutter test
+
+6. Lancer sur le Pixel 10 :
+
+flutter run -d 58041FDCR00681
+
+TEST RÉEL CONSEILLÉ
+-------------------
+
+1. Noter l'XP affichée dans Mon Passeport.
+2. Terminer une partie normale de 10 questions.
+3. Vérifier le gain XP sur l'écran de résultat.
+4. Revenir dans Mon Passeport et vérifier le même total.
+5. Terminer plusieurs parties dans la même journée et vérifier que chacune
+   accorde toujours la totalité de son XP.
+6. Vérifier que les statistiques de partie continuent à progresser.
+7. Vérifier que le GeoBrain, les tampons, les licences et les listes restent
+   inchangés dans leur fonctionnement.
+
+PROCHAINE ÉTAPE
+---------------
+
+Ajouter la première réussite du jour, puis les récompenses uniques de première
+découverte et de première maîtrise sans permettre de double attribution.

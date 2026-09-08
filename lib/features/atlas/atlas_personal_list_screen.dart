@@ -17,6 +17,7 @@ import 'country_atlas_sheet.dart';
 enum AtlasPersonalListType {
   visited,
   wishlist,
+  favorite,
 }
 
 class AtlasPersonalListScreen extends StatefulWidget {
@@ -39,13 +40,38 @@ class _AtlasPersonalListScreenState
   late Future<_AtlasPersonalData> _dataFuture;
   AtlasPersonalProgress _progress = AtlasPersonalProgress.initial();
 
-  bool get _showsVisited => widget.type == AtlasPersonalListType.visited;
-  Color get _accentColor =>
-      _showsVisited ? GeoColors.mint : GeoColors.coral;
-  String get _title => _showsVisited ? 'MES VOYAGES' : 'À VISITER';
-  String get _subtitle => _showsVisited
-      ? 'Les pays que tu as déjà découverts'
-      : 'Tes prochaines destinations rêvées';
+  Color get _accentColor {
+    switch (widget.type) {
+      case AtlasPersonalListType.visited:
+        return GeoColors.mint;
+      case AtlasPersonalListType.wishlist:
+        return GeoColors.coral;
+      case AtlasPersonalListType.favorite:
+        return GeoColors.gold;
+    }
+  }
+
+  String get _title {
+    switch (widget.type) {
+      case AtlasPersonalListType.visited:
+        return 'MES VOYAGES';
+      case AtlasPersonalListType.wishlist:
+        return 'À VISITER';
+      case AtlasPersonalListType.favorite:
+        return 'MES FAVORIS';
+    }
+  }
+
+  String get _subtitle {
+    switch (widget.type) {
+      case AtlasPersonalListType.visited:
+        return 'Les pays que tu as déjà visités';
+      case AtlasPersonalListType.wishlist:
+        return 'Tes prochaines destinations rêvées';
+      case AtlasPersonalListType.favorite:
+        return 'Les pays que tu veux retrouver rapidement';
+    }
+  }
 
   @override
   void initState() {
@@ -88,11 +114,21 @@ class _AtlasPersonalListScreenState
     );
   }
 
+  Future<bool> _toggleFavorite(GeoCountry country) async {
+    final AtlasPersonalProgress next =
+        _progress.toggleFavorite(country.id);
+    final bool saved = await _persistProgress(next);
+
+    return saved
+        ? next.isFavorite(country.id)
+        : _progress.isFavorite(country.id);
+  }
+
   Future<AtlasCountryStatus> _saveProgress(
     AtlasPersonalProgress next,
     String countryId,
   ) async {
-    final bool saved = await AtlasPersonalStorage.save(next);
+    final bool saved = await _persistProgress(next);
 
     if (!mounted) {
       return saved
@@ -101,24 +137,36 @@ class _AtlasPersonalListScreenState
     }
 
     if (saved) {
-      await widget.controller.synchronizePassportPersonalProgress(next);
-
-      if (!mounted) {
-        return next.statusFor(countryId);
-      }
-
-      setState(() {
-        _progress = next;
-      });
       return next.statusFor(countryId);
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Impossible de sauvegarder ce pays pour le moment.'),
-      ),
-    );
     return _progress.statusFor(countryId);
+  }
+
+  Future<bool> _persistProgress(AtlasPersonalProgress next) async {
+    final bool saved = await AtlasPersonalStorage.save(next);
+
+    if (saved) {
+      await widget.controller.synchronizePassportPersonalProgress(next);
+
+      if (mounted) {
+        setState(() {
+          _progress = next;
+        });
+      }
+
+      return true;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossible de sauvegarder ce pays pour le moment.'),
+        ),
+      );
+    }
+
+    return false;
   }
 
   Future<void> _openCountry(
@@ -145,8 +193,10 @@ class _AtlasPersonalListScreenState
           capital: data.capitals[country.id],
           cities: data.citiesForCountry(country),
           initialStatus: _progress.statusFor(country.id),
+          initialFavorite: _progress.isFavorite(country.id),
           onToggleVisited: () => _toggleVisited(country),
           onToggleWishlist: () => _toggleWishlist(country),
+          onToggleFavorite: () => _toggleFavorite(country),
           onExploreCities: () => Navigator.of(context).pop(),
           showExploreCitiesButton: false,
         );
@@ -173,9 +223,19 @@ class _AtlasPersonalListScreenState
   }
 
   List<GeoCountry> _listedCountries(_AtlasPersonalData data) {
-    final Set<String> ids = _showsVisited
-        ? _progress.visitedCountryIds
-        : _progress.wishlistCountryIds;
+    final Set<String> ids;
+
+    switch (widget.type) {
+      case AtlasPersonalListType.visited:
+        ids = _progress.visitedCountryIds;
+        break;
+      case AtlasPersonalListType.wishlist:
+        ids = _progress.wishlistCountryIds;
+        break;
+      case AtlasPersonalListType.favorite:
+        ids = _progress.favoriteCountryIds;
+        break;
+    }
     final List<GeoCountry> countries = data.countries.where(
       (GeoCountry country) {
         return ids.contains(country.id.trim().toUpperCase());
@@ -239,13 +299,13 @@ class _AtlasPersonalListScreenState
                         const SizedBox(height: 24),
                         _ListSummary(
                           count: countries.length,
-                          visited: _showsVisited,
+                          type: widget.type,
                           color: _accentColor,
                           onOpenMap: _openPersonalMap,
                         ),
                         const SizedBox(height: 16),
                         if (countries.isEmpty)
-                          _EmptyPersonalList(visited: _showsVisited)
+                          _EmptyPersonalList(type: widget.type)
                         else
                           for (int index = 0;
                               index < countries.length;
@@ -255,7 +315,7 @@ class _AtlasPersonalListScreenState
                               title: data.countryInfos[countries[index].id]
                                       ?.title ??
                                   countries[index].name,
-                              visited: _showsVisited,
+                              type: widget.type,
                               onPressed: () =>
                                   _openCountry(data, countries[index]),
                             ),
@@ -278,13 +338,13 @@ class _AtlasPersonalListScreenState
 class _ListSummary extends StatelessWidget {
   const _ListSummary({
     required this.count,
-    required this.visited,
+    required this.type,
     required this.color,
     required this.onOpenMap,
   });
 
   final int count;
-  final bool visited;
+  final AtlasPersonalListType type;
   final Color color;
   final VoidCallback onOpenMap;
 
@@ -302,9 +362,11 @@ class _ListSummary extends StatelessWidget {
           Row(
             children: <Widget>[
               Icon(
-                visited
+                type == AtlasPersonalListType.visited
                     ? Icons.flight_takeoff_rounded
-                    : Icons.favorite_rounded,
+                    : type == AtlasPersonalListType.wishlist
+                        ? Icons.bookmark_rounded
+                        : Icons.favorite_rounded,
                 color: GeoColors.navy,
                 size: 31,
               ),
@@ -346,18 +408,22 @@ class _CountryTravelCard extends StatelessWidget {
   const _CountryTravelCard({
     required this.country,
     required this.title,
-    required this.visited,
+    required this.type,
     required this.onPressed,
   });
 
   final GeoCountry country;
   final String title;
-  final bool visited;
+  final AtlasPersonalListType type;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    final Color accent = visited ? GeoColors.mint : GeoColors.coral;
+    final Color accent = type == AtlasPersonalListType.visited
+        ? GeoColors.mint
+        : type == AtlasPersonalListType.wishlist
+            ? GeoColors.coral
+            : GeoColors.gold;
 
     return Material(
       color: Colors.transparent,
@@ -414,9 +480,11 @@ class _CountryTravelCard extends StatelessWidget {
                 ),
               ),
               Icon(
-                visited
+                type == AtlasPersonalListType.visited
                     ? Icons.check_circle_rounded
-                    : Icons.favorite_rounded,
+                    : type == AtlasPersonalListType.wishlist
+                        ? Icons.bookmark_rounded
+                        : Icons.favorite_rounded,
                 color: accent,
                 size: 25,
               ),
@@ -434,9 +502,9 @@ class _CountryTravelCard extends StatelessWidget {
 }
 
 class _EmptyPersonalList extends StatelessWidget {
-  const _EmptyPersonalList({required this.visited});
+  const _EmptyPersonalList({required this.type});
 
-  final bool visited;
+  final AtlasPersonalListType type;
 
   @override
   Widget build(BuildContext context) {
@@ -450,17 +518,21 @@ class _EmptyPersonalList extends StatelessWidget {
       child: Column(
         children: <Widget>[
           Icon(
-            visited
+            type == AtlasPersonalListType.visited
                 ? Icons.flight_takeoff_rounded
-                : Icons.favorite_border_rounded,
+                : type == AtlasPersonalListType.wishlist
+                    ? Icons.bookmark_border_rounded
+                    : Icons.favorite_border_rounded,
             color: Colors.white,
             size: 46,
           ),
           const SizedBox(height: 13),
           Text(
-            visited
+            type == AtlasPersonalListType.visited
                 ? 'Marque un pays comme visité depuis sa fiche Atlas.'
-                : 'Ajoute tes destinations rêvées depuis une fiche pays.',
+                : type == AtlasPersonalListType.wishlist
+                    ? 'Ajoute tes destinations rêvées depuis une fiche pays.'
+                    : 'Ajoute ici les pays que tu préfères.',
             textAlign: TextAlign.center,
             style: GoogleFonts.nunitoSans(
               color: Colors.white,

@@ -1,0 +1,67 @@
+GEOPOINT — POINT 28.3
+SIMPLIFICATION DES DÉFIS ET RECOMMENCEMENTS ILLIMITÉS
+
+Cette archive est cumulative. Elle contient toute la base validée du point 27
+et les étapes 28.1 à 28.3.
+
+Organisation visible
+====================
+
+- Un seul défi du jour.
+- Un seul défi de la semaine.
+- Un seul défi du mois.
+- Les anciennes cartes bronze, argent et or ont été remplacées par une seule
+  mission hebdomadaire.
+- Le pack de septembre contient 30 défis quotidiens, 4 hebdomadaires et
+  1 mensuel.
+
+Recommencements
+===============
+
+- Profil adulte : premier essai gratuit.
+- Après un échec : nouvelle tentative après une publicité récompensée.
+- Les recommencements publicitaires sont illimités.
+- Les relances en diamants ont été retirées du pack.
+- Profil enfant : aucune publicité et recommencements gratuits illimités.
+- Une récompense reste distribuée une seule fois, quel que soit le nombre de
+  tentatives.
+
+Sécurité éditoriale
+===================
+
+- Le validateur refuse deux défis du même rythme actifs au même moment.
+- Les variantes débutant héritent automatiquement de la règle adulte.
+- Les variantes enfant sont refusées si une publicité y est activée.
+- Le calendrier couvre chaque journée de septembre avec exactement trois
+  défis visibles.
+
+Installation
+============
+
+1. Décompresser l’archive dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+2. Accepter le remplacement des fichiers.
+3. Exécuter dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+Résultat attendu
+================
+
+- flutter analyze : No issues found!
+- flutter test : tous les tests réussissent.
+- Dans Jouer > Défis, seulement trois cartes sont affichées.
+- La fiche d’un défi adulte indique « Recommencer avec une pub — Illimité ».
+- La fiche enfant indique « Recommencer gratuitement — Illimité ».
+
+Limite actuelle
+===============
+
+Le bouton de lancement reste provisoire. Le branchement des parties réelles,
+de la publicité récompensée et de GeoPoint Studio continue dans les prochaines
+étapes du point 28.

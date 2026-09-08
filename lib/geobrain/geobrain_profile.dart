@@ -1,5 +1,8 @@
 import '../geo_engine/geo_entity_id.dart';
 import 'country_mastery.dart';
+import 'geobrain_attempt.dart';
+import 'geobrain_theme.dart';
+import 'theme_mastery.dart';
 
 class GeoBrainProfile {
   const GeoBrainProfile({
@@ -9,7 +12,7 @@ class GeoBrainProfile {
     required this.updatedAt,
   });
 
-  static const int currentSchemaVersion = 1;
+  static const int currentSchemaVersion = 5;
 
   /// Nombre maximal d’étoiles par pays.
   static const int maximumMasteryPerCountry =
@@ -56,6 +59,15 @@ class GeoBrainProfile {
         .where(
           (CountryMastery mastery) =>
               mastery.isMastered,
+        )
+        .length;
+  }
+
+  int masteredCountryCountAt(DateTime now) {
+    return countries.values
+        .where(
+          (CountryMastery mastery) =>
+              mastery.statusAt(now) == GeoBrainMasteryStatus.mastered,
         )
         .length;
   }
@@ -117,6 +129,26 @@ class GeoBrainProfile {
     );
   }
 
+  int get detailedAttemptCount {
+    return countries.values.fold<int>(
+      0,
+      (int total, CountryMastery mastery) => total + mastery.attempts.length,
+    );
+  }
+
+  List<GeoBrainAttempt> get attemptHistory {
+    final List<GeoBrainAttempt> result = countries.values
+        .expand<GeoBrainAttempt>(
+          (CountryMastery mastery) => mastery.attempts,
+        )
+        .toList(growable: false)
+      ..sort(
+        (GeoBrainAttempt a, GeoBrainAttempt b) =>
+            a.answeredAt.compareTo(b.answeredAt),
+      );
+    return List<GeoBrainAttempt>.unmodifiable(result);
+  }
+
   double get globalAccuracy {
     if (totalAttempts <= 0) {
       return 0;
@@ -124,6 +156,78 @@ class GeoBrainProfile {
 
     return totalCorrectAnswers /
         totalAttempts;
+  }
+
+  double get globalMasteryScore {
+    final List<CountryMastery> seen = countries.values
+        .where((CountryMastery mastery) => mastery.hasBeenSeen)
+        .toList(growable: false);
+    if (seen.isEmpty) {
+      return 0;
+    }
+    return seen.fold<double>(
+          0,
+          (double total, CountryMastery mastery) =>
+              total + mastery.generalScore,
+        ) /
+        seen.length;
+  }
+
+  double globalRetainedMasteryScoreAt(DateTime now) {
+    final List<CountryMastery> seen = countries.values
+        .where((CountryMastery mastery) => mastery.hasBeenSeen)
+        .toList(growable: false);
+    if (seen.isEmpty) {
+      return 0;
+    }
+    return seen.fold<double>(
+          0,
+          (double total, CountryMastery mastery) =>
+              total + mastery.retainedGeneralScoreAt(now),
+        ) /
+        seen.length;
+  }
+
+  double masteryScoreForTheme(GeoBrainTheme theme) {
+    final List<ThemeMastery> values = countries.values
+        .map<ThemeMastery>(
+          (CountryMastery mastery) => mastery.masteryForTheme(theme),
+        )
+        .where((ThemeMastery mastery) => mastery.hasBeenSeen)
+        .toList(growable: false);
+    if (values.isEmpty) {
+      return 0;
+    }
+    return values.fold<double>(
+          0,
+          (double total, ThemeMastery mastery) => total + mastery.score,
+        ) /
+        values.length;
+  }
+
+  double retainedMasteryScoreForThemeAt(
+    GeoBrainTheme theme,
+    DateTime now,
+  ) {
+    final List<CountryMastery> values = countries.values
+        .where(
+          (CountryMastery mastery) =>
+              mastery.masteryForTheme(theme).hasBeenSeen,
+        )
+        .toList(growable: false);
+    if (values.isEmpty) {
+      return 0;
+    }
+    return values.fold<double>(
+          0,
+          (double total, CountryMastery mastery) =>
+              total + mastery.retentionForTheme(theme, now).retainedScore,
+        ) /
+        values.length;
+  }
+
+  int reviewCountryCountAt(DateTime now) {
+    return countriesDueForReviewAt(now).length;
   }
 
   /// Nombre total d’étoiles obtenues.
@@ -190,6 +294,16 @@ class GeoBrainProfile {
     );
   }
 
+  GeoBrainProfile registerAttempt(GeoBrainAttempt source) {
+    final GeoBrainAttempt attempt = source.normalized();
+    final CountryMastery updatedMastery =
+        masteryFor(attempt.countryId).registerAttempt(attempt);
+    return _replaceCountry(
+      updatedMastery,
+      updatedAt: attempt.answeredAt,
+    );
+  }
+
   GeoBrainProfile toggleWishlist(
     String countryId,
   ) {
@@ -219,13 +333,13 @@ class GeoBrainProfile {
     );
   }
 
-  List<CountryMastery> get countriesDueForReview {
+  List<CountryMastery> countriesDueForReviewAt(DateTime now) {
     final List<CountryMastery> result =
         countries.values
             .where(
               (CountryMastery mastery) =>
                   mastery.hasBeenSeen &&
-                  mastery.isDueForReview,
+                  mastery.needsReviewAt(now),
             )
             .toList();
 
@@ -234,6 +348,21 @@ class GeoBrainProfile {
         CountryMastery a,
         CountryMastery b,
       ) {
+        final int repeatedComparison =
+            (b.hasRepeatedForgettingAt(now) ? 1 : 0).compareTo(
+          a.hasRepeatedForgettingAt(now) ? 1 : 0,
+        );
+        if (repeatedComparison != 0) {
+          return repeatedComparison;
+        }
+
+        final int scoreComparison = a
+            .retainedGeneralScoreAt(now)
+            .compareTo(b.retainedGeneralScoreAt(now));
+        if (scoreComparison != 0) {
+          return scoreComparison;
+        }
+
         final DateTime? aDate =
             a.nextReviewAt;
 
@@ -273,6 +402,10 @@ class GeoBrainProfile {
     return List<CountryMastery>.unmodifiable(
       result,
     );
+  }
+
+  List<CountryMastery> get countriesDueForReview {
+    return countriesDueForReviewAt(DateTime.now());
   }
 
   List<CountryMastery> get weakestCountries {
@@ -599,11 +732,7 @@ class GeoBrainProfile {
     }
 
     return GeoBrainProfile(
-      schemaVersion: _readInt(
-        json['schemaVersion'],
-        fallback:
-            currentSchemaVersion,
-      ),
+      schemaVersion: currentSchemaVersion,
       countries:
           Map<String, CountryMastery>.unmodifiable(
         countries,
@@ -623,24 +752,6 @@ class GeoBrainProfile {
     String countryId,
   ) {
     return GeoEntityId.require(countryId);
-  }
-
-  static int _readInt(
-    Object? value, {
-    required int fallback,
-  }) {
-    if (value is int) {
-      return value;
-    }
-
-    if (value is num) {
-      return value.toInt();
-    }
-
-    return int.tryParse(
-          value?.toString() ?? '',
-        ) ??
-        fallback;
   }
 
   static DateTime _readDateTime(
@@ -670,7 +781,9 @@ class GeoBrainProfile {
         'masteredCountryCount: '
         '$masteredCountryCount, '
         'worldAttempts: '
-        '$totalAttempts'
+        '$totalAttempts, '
+        'detailedAttempts: '
+        '$detailedAttemptCount'
         ')';
   }
 }

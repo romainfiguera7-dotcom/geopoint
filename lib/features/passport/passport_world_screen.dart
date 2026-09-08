@@ -6,6 +6,7 @@ import '../../geo_engine/geo_country.dart';
 import '../../passport/progress/passport_continent.dart';
 import '../../passport/progress/passport_continent_snapshot.dart';
 import '../../passport/progress/passport_progress_v2.dart';
+import '../atlas/atlas_personal_list_screen.dart';
 import '../design/geopoint_design.dart';
 import 'passport_continent_screen.dart';
 import 'passport_world_map.dart';
@@ -24,6 +25,24 @@ class PassportWorldScreen extends StatefulWidget {
 
 class _PassportWorldScreenState extends State<PassportWorldScreen> {
   PassportWorldMapMode _mapMode = PassportWorldMapMode.knowledge;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_handleControllerChanged);
+  }
+
+  void _handleControllerChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_handleControllerChanged);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +124,10 @@ class _PassportWorldScreenState extends State<PassportWorldScreen> {
                       },
                     ),
                     const SizedBox(height: 24),
-                    _PersonalWorldCard(progress: progress),
+                    _PersonalWorldCard(
+                      controller: widget.controller,
+                      progress: progress,
+                    ),
                   ],
                 ),
               ),
@@ -748,9 +770,26 @@ class _ContinentProgressLine extends StatelessWidget {
 }
 
 class _PersonalWorldCard extends StatelessWidget {
-  const _PersonalWorldCard({required this.progress});
+  const _PersonalWorldCard({
+    required this.controller,
+    required this.progress,
+  });
 
+  final GameController controller;
   final PassportProgressV2 progress;
+
+  void _openList(BuildContext context, AtlasPersonalListType type) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          return AtlasPersonalListScreen(
+            controller: controller,
+            type: type,
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -780,6 +819,9 @@ class _PersonalWorldCard extends StatelessWidget {
                   value: progress.visitedEntityCount,
                   label: 'Visités',
                   color: GeoColors.mint,
+                  onPressed: () {
+                    _openList(context, AtlasPersonalListType.visited);
+                  },
                 ),
               ),
               const SizedBox(width: 9),
@@ -788,6 +830,9 @@ class _PersonalWorldCard extends StatelessWidget {
                   value: progress.wishlistedEntityCount,
                   label: 'À visiter',
                   color: GeoColors.coral,
+                  onPressed: () {
+                    _openList(context, AtlasPersonalListType.wishlist);
+                  },
                 ),
               ),
               const SizedBox(width: 9),
@@ -796,6 +841,9 @@ class _PersonalWorldCard extends StatelessWidget {
                   value: progress.favoriteEntityCount,
                   label: 'Favoris',
                   color: GeoColors.gold,
+                  onPressed: () {
+                    _openList(context, AtlasPersonalListType.favorite);
+                  },
                 ),
               ),
             ],
@@ -811,41 +859,47 @@ class _PersonalCounter extends StatelessWidget {
     required this.value,
     required this.label,
     required this.color,
+    required this.onPressed,
   });
 
   final int value;
   final String label;
   final Color color;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 7),
-      decoration: BoxDecoration(
-        color: color,
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(17),
+      child: InkWell(
+        onTap: onPressed,
         borderRadius: BorderRadius.circular(17),
-      ),
-      child: Column(
-        children: <Widget>[
-          Text(
-            '$value',
-            style: GoogleFonts.fredoka(
-              color: GeoColors.ink,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 7),
+          child: Column(
+            children: <Widget>[
+              Text(
+                '$value',
+                style: GoogleFonts.fredoka(
+                  color: GeoColors.ink,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.nunitoSans(
+                  color: GeoColors.ink,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
           ),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.nunitoSans(
-              color: GeoColors.ink,
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

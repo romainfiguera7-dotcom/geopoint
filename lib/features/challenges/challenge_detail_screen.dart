@@ -1,0 +1,928 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../challenges/challenge_attempt_rules.dart';
+import '../../challenges/challenge_definition.dart';
+import '../../challenges/challenge_official_session.dart';
+import '../../challenges/challenge_player_state.dart';
+import '../../challenges/challenge_result.dart';
+import '../../challenges/challenge_session_service.dart';
+import '../../challenges/challenge_server_connection.dart';
+import '../../game/game_controller.dart';
+import '../../game/game_play_result.dart';
+import '../../game/game_screen.dart';
+import '../../game/ultimate/ultimate_game_screen.dart';
+import '../../geobrain/geobrain_attempt.dart';
+import '../../monetization/ad_free_entitlement.dart';
+import '../../passport/progress/passport_progress_rules.dart';
+import '../design/geopoint_design.dart';
+import 'challenge_result_screen.dart';
+import 'challenge_ui_helpers.dart';
+
+class ChallengeDetailScreen extends StatefulWidget {
+  const ChallengeDetailScreen({
+    required this.controller,
+    required this.challenge,
+    required this.progress,
+    required this.effectiveNowUtc,
+    super.key,
+  });
+
+  final GameController controller;
+  final ChallengeDefinition challenge;
+  final ChallengeAttemptProgress progress;
+  final DateTime effectiveNowUtc;
+
+  @override
+  State<ChallengeDetailScreen> createState() =>
+      _ChallengeDetailScreenState();
+}
+
+class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
+  bool _isLaunching = false;
+
+  GameController get controller => widget.controller;
+  ChallengeDefinition get challenge => widget.challenge;
+  ChallengeAttemptProgress get progress => widget.progress;
+  DateTime get effectiveNowUtc => widget.effectiveNowUtc;
+
+  Future<bool> _showRewardedAdvertisement() async {
+    if (!kDebugMode) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'La publicité récompensée est momentanément indisponible.',
+          ),
+        ),
+      );
+      return false;
+    }
+    final bool? accepted = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Publicité récompensée — test'),
+          content: const Text(
+            'En mode développement, la publicité est simulée pour vérifier '
+            'les recommencements illimités.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('ANNULER'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('TERMINER LA PUB'),
+            ),
+          ],
+        );
+      },
+    );
+    return accepted == true;
+  }
+
+  Future<GamePlayResult?> _launchMapChallenge() {
+    final int? questionCount = challenge.questionCount;
+    final int availableCountries = controller.availableTrainingCountryCount(
+      difficultyId: challenge.difficultyId,
+      modeId: challenge.modeId,
+      regionId: _challengeRegionId,
+      completeRegion: false,
+      allowedCountryIds: _challengeCountryIds,
+    );
+    if (questionCount == null || availableCountries == 0) {
+      _showInvalidConfigurationMessage();
+      return Future<GamePlayResult?>.value(null);
+    }
+    return Navigator.of(context).push<GamePlayResult>(
+      MaterialPageRoute<GamePlayResult>(
+        builder: (BuildContext context) {
+          return GameScreen(
+            controller: controller,
+            modeId: challenge.modeId,
+            difficultyId: challenge.difficultyId,
+            missionTitle: challenge.title,
+            isChallenge: true,
+            challengeId: challenge.id,
+            challengeQuestionCount: questionCount,
+            challengeRegionId: _challengeRegionId,
+            challengeCountryIds: _challengeCountryIds,
+            challengeGeoBrainPersonalizationAllowed:
+                challenge.geoBrainPersonalizationAllowed,
+          );
+        },
+      ),
+    );
+  }
+
+  Future<GamePlayResult?> _launchSilhouetteChallenge() async {
+    final int? questionCount = challenge.questionCount;
+    if (questionCount == null) {
+      _showInvalidConfigurationMessage();
+      return null;
+    }
+    final countries = controller.ultimateChallengeCountries(
+      challengeId: challenge.id,
+      difficultyId: challenge.difficultyId,
+      regionId: _challengeRegionId,
+      allowedCountryIds: _challengeCountryIds,
+      geoBrainPersonalizationAllowed:
+          challenge.geoBrainPersonalizationAllowed,
+      questionCount: questionCount,
+    );
+    if (countries.isEmpty) {
+      _showInvalidConfigurationMessage();
+      return null;
+    }
+    final UltimateGameResult? result =
+        await Navigator.of(context).push<UltimateGameResult>(
+      MaterialPageRoute<UltimateGameResult>(
+        builder: (BuildContext context) {
+          return UltimateGameScreen(
+            controller: controller,
+            availableCountries: countries,
+            countryDifficulties: controller.countryDifficulties,
+            difficultyId: challenge.difficultyId,
+            previousBestScore: progress.bestScore,
+            missionTitle: challenge.title,
+            questionCount: questionCount,
+            randomSeed: controller.challengeRandomSeed(challenge.id),
+            returnButtonLabel: 'VOIR LE RÉSULTAT DU DÉFI',
+            onAnswer: ({
+              required String countryId,
+              required bool isCorrect,
+              required int elapsedSeconds,
+              required String difficultyId,
+              String? proposedAnswerId,
+            }) {
+              return controller.registerPassportSilhouetteAnswer(
+                countryId: countryId,
+                isCorrect: isCorrect,
+                elapsedSeconds: elapsedSeconds,
+                difficultyId: difficultyId,
+                proposedAnswerId: proposedAnswerId,
+                source: PassportDiscoverySource.challenge,
+                context: GeoBrainAttemptContext.challenge,
+              );
+            },
+          );
+        },
+      ),
+    );
+    if (result == null) {
+      return null;
+    }
+    return GamePlayResult(
+      totalScore: result.totalScore,
+      correctAnswers: result.correctAnswers,
+      totalQuestions: result.totalQuestions,
+      averageDistanceInKilometers: 0,
+      totalElapsedSeconds: result.totalElapsedSeconds,
+      answerEvidence: result.answerEvidence,
+    );
+  }
+
+  String get _challengeRegionId {
+    return challenge.continentId == 'polar'
+        ? 'antarctica'
+        : challenge.continentId ?? 'world';
+  }
+
+  Set<String>? get _challengeCountryIds {
+    return challenge.countryIds.isEmpty
+        ? null
+        : challenge.countryIds.toSet();
+  }
+
+  Future<void> _playChallenge() async {
+    if (_isLaunching || (progress.isCompleted && !challenge.isRanked)) {
+      return;
+    }
+    setState(() => _isLaunching = true);
+    ChallengeAttemptProgress currentProgress = progress;
+    try {
+      bool keepPlaying = true;
+      while (keepPlaying && mounted) {
+        final ChallengeAttemptKind kind = currentProgress.canUseFreeAttempt(
+          challenge.retryPolicy,
+          allowAfterCompletion: challenge.isRanked,
+        )
+            ? ChallengeAttemptKind.free
+            : ChallengeAttemptKind.rewardedAdvertisementRetry;
+        final ChallengeAttemptDecision decision =
+            ChallengeAttemptRules.authorize(
+          challenge: challenge,
+          progress: currentProgress,
+          kind: kind,
+          availableDiamonds: 0,
+          isChildProfile: false,
+        );
+        if (!decision.isAllowed) {
+          _showUnavailableMessage();
+          break;
+        }
+        final bool usesAdvertisement =
+            kind == ChallengeAttemptKind.rewardedAdvertisementRetry;
+        if (usesAdvertisement &&
+            !AdFreeAccess.instance.isActive &&
+            !await _showRewardedAdvertisement()) {
+          break;
+        }
+        if (!mounted) {
+          break;
+        }
+        ChallengeOfficialSession? officialSession;
+        if (challenge.isRanked) {
+          final ChallengeOfficialSessionStartReport sessionReport =
+              await ChallengeOfficialSessionService.start(
+            challenge: challenge,
+            participationEnabled: true,
+            launchId: 'launch_${DateTime.now().microsecondsSinceEpoch}_'
+                '${currentProgress.attemptsUsed + 1}',
+            gateway: ChallengeServerConnection.officialSessionGateway,
+          );
+          if (!mounted) {
+            break;
+          }
+          if (!sessionReport.wasStarted) {
+            _showOfficialSessionUnavailableMessage();
+            break;
+          }
+          final ChallengeOfficialSession createdSession =
+              sessionReport.session!;
+          officialSession = createdSession;
+          debugPrint(
+            'GeoPoint Classement : session officielle '
+            '${createdSession.sessionId} créée pour ${challenge.id}.',
+          );
+        }
+        final GamePlayResult? gameResult = challenge.modeId == 'ultimate'
+            ? await _launchSilhouetteChallenge()
+            : await _launchMapChallenge();
+        if (gameResult == null || !mounted) {
+          break;
+        }
+        final ChallengeSessionOutcome outcome =
+            await ChallengeSessionService.complete(
+          challenge: challenge,
+          performance: ChallengePerformance(
+            score: gameResult.totalScore,
+            correctAnswers: gameResult.correctAnswers,
+            averageDistanceKilometers:
+                gameResult.averageDistanceInKilometers,
+            elapsedSeconds: gameResult.totalElapsedSeconds,
+            answerEvidence: gameResult.answerEvidence,
+          ),
+          usedRewardedAdvertisementRetry: usesAdvertisement,
+          participateInRanking:
+              challenge.isRanked,
+          officialSessionId: officialSession?.sessionId,
+          serverNow: officialSession?.serverNowUtc.add(
+            Duration(seconds: gameResult.totalElapsedSeconds),
+          ),
+          rankingGateway: ChallengeServerConnection.rankingGateway,
+          playerIdentity: controller.playerIdentity,
+        );
+        final rankingSync = outcome.rankingSync;
+        if (rankingSync != null) {
+          debugPrint(
+            'GeoPoint Classement : envoi immédiat '
+            '${rankingSync.status.name} • '
+            '${rankingSync.confirmedCount} validé(s), '
+            '${rankingSync.quarantinedCount} en vérification, '
+            '${rankingSync.rejectedCount} refusé(s), '
+            '${rankingSync.pendingAfter} en attente'
+            '${rankingSync.failureReason == null ? '' : ' • ${rankingSync.failureReason}'}',
+          );
+        }
+        int awardedXp = 0;
+        if (outcome.rewardCanBeDelivered) {
+          awardedXp = await controller.registerChallengeXpReward(
+            rewardClaimId: challenge.rewardClaimId,
+            xp: challenge.reward.xp,
+            completedAt: outcome.clock.effectiveNowUtc,
+          );
+        }
+        if (!mounted) {
+          break;
+        }
+        final ChallengeResultAction? action =
+            await Navigator.of(context).push<ChallengeResultAction>(
+          MaterialPageRoute<ChallengeResultAction>(
+            builder: (BuildContext context) {
+              return ChallengeResultScreen(
+                challenge: challenge,
+                outcome: outcome,
+                awardedXp: awardedXp,
+                rankingSync: outcome.rankingSync,
+                adFree: AdFreeAccess.instance.isActive,
+              );
+            },
+          ),
+        );
+        currentProgress = outcome.playerState.progressFor(challenge.id);
+        keepPlaying = action == ChallengeResultAction.retry &&
+            (!currentProgress.isCompleted || challenge.isRanked);
+        if (!keepPlaying && mounted) {
+          Navigator.of(context).pop(true);
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLaunching = false);
+      }
+    }
+  }
+
+  void _showUnavailableMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Aucune nouvelle tentative n’est disponible.'),
+      ),
+    );
+  }
+
+  void _showInvalidConfigurationMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Ce défi ne contient pas assez de questions jouables.',
+        ),
+      ),
+    );
+  }
+
+  void _showOfficialSessionUnavailableMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'La partie classée n’a pas pu être sécurisée. '
+          'Vérifie ta connexion puis réessaie dans un instant.',
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Duration remaining =
+        challenge.validUntilUtc.difference(effectiveNowUtc);
+    return Scaffold(
+      body: Stack(
+        children: <Widget>[
+          const Positioned.fill(child: GeoAdventureBackground()),
+          SafeArea(
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(18, 12, 18, 34),
+                  children: <Widget>[
+                    GeoGameTopBar(
+                      title: 'RÈGLES DU DÉFI',
+                      subtitle: challenge.period.label,
+                      onBack: () => Navigator.of(context).pop(),
+                    ),
+                    const SizedBox(height: 26),
+                    _ChallengeHero(
+                      challenge: challenge,
+                      progress: progress,
+                      remaining: remaining,
+                    ),
+                    const SizedBox(height: 16),
+                    _RulesCard(challenge: challenge),
+                    const SizedBox(height: 16),
+                    _RewardsCard(reward: challenge.reward),
+                    const SizedBox(height: 16),
+                    _RetryCard(
+                      challenge: challenge,
+                      progress: progress,
+                      adFree: AdFreeAccess.instance.isActive,
+                    ),
+                    if (challenge.isRanked ||
+                        challenge.geoBrainPersonalizationAllowed) ...<Widget>[
+                      const SizedBox(height: 16),
+                      _FairnessCard(
+                        challenge: challenge,
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      onPressed: (progress.isCompleted && !challenge.isRanked) ||
+                              _isLaunching
+                          ? null
+                          : _playChallenge,
+                      icon: Icon(
+                        progress.isCompleted && challenge.isRanked
+                            ? Icons.replay_rounded
+                            : progress.isCompleted
+                            ? Icons.check_rounded
+                            : Icons.play_arrow_rounded,
+                      ),
+                      label: Text(
+                        progress.isCompleted && challenge.isRanked
+                            ? 'Améliorer mon score'
+                            : progress.isCompleted
+                            ? 'Défi terminé'
+                            : _isLaunching
+                                ? 'Préparation…'
+                                : 'Jouer ce défi',
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Les récompenses sont accordées une seule fois.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.nunitoSans(
+                        color: Colors.white.withValues(alpha: 0.64),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChallengeHero extends StatelessWidget {
+  const _ChallengeHero({
+    required this.challenge,
+    required this.progress,
+    required this.remaining,
+  });
+
+  final ChallengeDefinition challenge;
+  final ChallengeAttemptProgress progress;
+  final Duration remaining;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[GeoColors.coral, Color(0xFFFFA26B)],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.16),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: <Widget>[
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.23),
+              borderRadius: BorderRadius.circular(23),
+            ),
+            child: Icon(
+              challengeIcon(challenge.modeId),
+              color: GeoColors.navy,
+              size: 39,
+            ),
+          ),
+          const SizedBox(height: 15),
+          Text(
+            challenge.title,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.fredoka(
+              color: GeoColors.navy,
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              height: 1.05,
+            ),
+          ),
+          const SizedBox(height: 9),
+          Text(
+            challenge.description,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.nunitoSans(
+              color: GeoColors.navy.withValues(alpha: 0.78),
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(99),
+            ),
+            child: Text(
+              challenge.period == ChallengePeriod.permanent
+                  ? progress.isCompleted
+                      ? 'RÉCOMPENSE OBTENUE • SCORE AMÉLIORABLE'
+                      : 'TOUJOURS DISPONIBLE'
+                  : progress.isCompleted
+                  ? 'TERMINÉ'
+                  : challengeTimeRemaining(remaining).toUpperCase(),
+              style: GoogleFonts.nunitoSans(
+                color: GeoColors.navy,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RulesCard extends StatelessWidget {
+  const _RulesCard({required this.challenge});
+
+  final ChallengeDefinition challenge;
+
+  @override
+  Widget build(BuildContext context) {
+    final ChallengeSuccessCondition condition = challenge.successCondition;
+    return _WhiteCard(
+      title: 'Conditions de réussite',
+      icon: Icons.rule_rounded,
+      child: Column(
+        children: <Widget>[
+          _InfoRow(
+            icon: challengeIcon(challenge.modeId),
+            label: 'Mode',
+            value: _modeLabel(challenge.modeId),
+          ),
+          _InfoRow(
+            icon: Icons.speed_rounded,
+            label: 'Difficulté',
+            value: challengeDifficultyLabel(challenge.difficultyId),
+          ),
+          _InfoRow(
+            icon: Icons.quiz_rounded,
+            label: 'Format',
+            value: challenge.questionCount != null
+                ? '${challenge.questionCount} questions'
+                : '${challenge.durationSeconds} secondes',
+          ),
+          _InfoRow(
+            icon: Icons.check_circle_outline_rounded,
+            label: 'Bonnes réponses',
+            value: '${condition.minimumCorrectAnswers} minimum',
+          ),
+          if (condition.minimumScore > 0)
+            _InfoRow(
+              icon: Icons.stars_rounded,
+              label: 'Score',
+              value: '${condition.minimumScore} points minimum',
+            ),
+          if (condition.maximumAverageDistanceKilometers != null)
+            _InfoRow(
+              icon: Icons.straighten_rounded,
+              label: 'Distance moyenne',
+              value:
+                  '${condition.maximumAverageDistanceKilometers!.round()} km maximum',
+              isLast: true,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RewardsCard extends StatelessWidget {
+  const _RewardsCard({required this.reward});
+
+  final ChallengeReward reward;
+
+  @override
+  Widget build(BuildContext context) {
+    return _WhiteCard(
+      title: 'Récompenses',
+      icon: Icons.card_giftcard_rounded,
+      child: Wrap(
+        spacing: 9,
+        runSpacing: 9,
+        children: <Widget>[
+          if (reward.xp > 0)
+            _RewardChip(
+              icon: Icons.bolt_rounded,
+              label: '${reward.xp} XP',
+              color: GeoColors.blue,
+            ),
+          if (reward.coins > 0)
+            _RewardChip(
+              icon: Icons.monetization_on_rounded,
+              label: '${reward.coins} pièces',
+              color: GeoColors.gold,
+            ),
+          if (reward.diamonds > 0)
+            _RewardChip(
+              icon: Icons.diamond_rounded,
+              label: '${reward.diamonds} diamant${reward.diamonds > 1 ? 's' : ''}',
+              color: GeoColors.sky,
+            ),
+          if (reward.emblemId != null)
+            const _RewardChip(
+              icon: Icons.workspace_premium_rounded,
+              label: 'Emblème spécial',
+              color: GeoColors.purple,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RetryCard extends StatelessWidget {
+  const _RetryCard({
+    required this.challenge,
+    required this.progress,
+    required this.adFree,
+  });
+
+  final ChallengeDefinition challenge;
+  final ChallengeAttemptProgress progress;
+  final bool adFree;
+
+  @override
+  Widget build(BuildContext context) {
+    final ChallengeRetryPolicy policy = challenge.retryPolicy;
+    final int freeRemaining =
+        (policy.maximumAttempts - progress.attemptsUsed).clamp(0, 999).toInt();
+    return _WhiteCard(
+      title: 'Essai et recommencement',
+      icon: Icons.replay_rounded,
+      child: Column(
+        children: <Widget>[
+          _InfoRow(
+            icon: Icons.sports_esports_rounded,
+            label: policy.unlimitedFreeAttempts
+                ? 'Essais gratuits'
+                : 'Premier essai',
+            value: policy.unlimitedFreeAttempts
+                ? 'Illimités'
+                : freeRemaining > 0
+                    ? 'Disponible'
+                    : 'Utilisé',
+          ),
+          _InfoRow(
+            icon: Icons.ondemand_video_rounded,
+            label: policy.rewardedAdvertisementAllowed && !adFree
+                ? 'Recommencer avec une pub'
+                : 'Recommencer gratuitement',
+            value: policy.unlimitedRewardedAdvertisementRetries ||
+                    policy.unlimitedFreeAttempts
+                ? 'Illimité'
+                : 'Indisponible',
+            isLast: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FairnessCard extends StatelessWidget {
+  const _FairnessCard({required this.challenge});
+
+  final ChallengeDefinition challenge;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool ranked = challenge.isRanked;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ranked ? GeoColors.purple : GeoColors.mint,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(
+                ranked ? Icons.leaderboard_rounded : Icons.psychology_rounded,
+                color: GeoColors.navy,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  ranked
+                      ? 'Défi classé : ton meilleur résultat parmi toutes tes tentatives est conservé.'
+                      : 'Défi personnel : le GeoBrain peut adapter la sélection à tes besoins.',
+                  style: GoogleFonts.nunitoSans(
+                    color: GeoColors.navy,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    height: 1.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (ranked) ...<Widget>[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.34),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Row(
+                children: <Widget>[
+                  Icon(Icons.verified_user_rounded, color: GeoColors.navy),
+                  SizedBox(width: 9),
+                  Expanded(
+                    child: Text(
+                      'Classement automatique activé',
+                      style: TextStyle(
+                        color: GeoColors.navy,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Ton meilleur score, ta précision et ton temps sont vérifiés '
+              'automatiquement par le serveur.',
+              style: GoogleFonts.nunitoSans(
+                color: GeoColors.navy.withValues(alpha: 0.72),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w800,
+                height: 1.3,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _WhiteCard extends StatelessWidget {
+  const _WhiteCard({
+    required this.title,
+    required this.icon,
+    required this.child,
+  });
+
+  final String title;
+  final IconData icon;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: GeoColors.cream,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(icon, color: GeoColors.blue, size: 23),
+              const SizedBox(width: 9),
+              Text(
+                title,
+                style: GoogleFonts.fredoka(
+                  color: GeoColors.ink,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.isLast = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+      child: Row(
+        children: <Widget>[
+          Icon(icon, color: GeoColors.mutedInk, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.nunitoSans(
+                color: GeoColors.mutedInk,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: GoogleFonts.nunitoSans(
+                color: GeoColors.ink,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RewardChip extends StatelessWidget {
+  const _RewardChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(icon, color: GeoColors.ink, size: 18),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.nunitoSans(
+              color: GeoColors.ink,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _modeLabel(String modeId) {
+  switch (modeId) {
+    case 'find_capital':
+      return 'Capitales';
+    case 'find_flag':
+      return 'Drapeaux';
+    case 'ultimate':
+      return 'Silhouettes';
+    case 'mixed':
+      return 'Épreuve mixte';
+    default:
+      return 'Trouver le pays';
+  }
+}

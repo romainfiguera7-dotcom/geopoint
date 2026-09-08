@@ -2,6 +2,8 @@ import '../../features/atlas/atlas_personal_progress.dart';
 import '../../geo_engine/geo_entity_id.dart';
 import '../../geobrain/country_mastery.dart';
 import '../../geobrain/geobrain_profile.dart';
+import '../../geobrain/geobrain_theme.dart';
+import '../../geobrain/theme_mastery.dart';
 import '../../game/passport/player_passport.dart';
 import '../../player/player_profile.dart';
 import 'passport_entity_progress.dart';
@@ -49,17 +51,46 @@ class PassportProgressMigrator {
           <PassportKnowledgeTheme, PassportThemeProgress>{};
 
       if (mastery != null && mastery.hasBeenSeen) {
-        themes[PassportKnowledgeTheme.location] = PassportThemeProgress(
-          masteryLevel: mastery.masteryLevel,
-          correctAnswers: mastery.correctAnswers,
-          wrongAnswers: mastery.wrongAnswers,
-          totalAttempts: mastery.totalAttempts,
-          firstSeenAt: discoveredAt,
-          lastAnsweredAt: mastery.lastReviewedAt,
-          currentStreak: mastery.currentStreak,
-          bestStreak: mastery.bestStreak,
-          nextReviewAt: mastery.nextReviewAt,
-        );
+        if (mastery.themeMasteries.isEmpty) {
+          themes[PassportKnowledgeTheme.location] = PassportThemeProgress(
+            masteryLevel: mastery.masteryLevel,
+            correctAnswers: mastery.correctAnswers,
+            wrongAnswers: mastery.wrongAnswers,
+            totalAttempts: mastery.totalAttempts,
+            firstSeenAt: discoveredAt,
+            lastAnsweredAt: mastery.lastReviewedAt,
+            currentStreak: mastery.currentStreak,
+            bestStreak: mastery.bestStreak,
+            nextReviewAt: mastery.nextReviewAt,
+          );
+        } else {
+          for (final MapEntry<GeoBrainTheme, ThemeMastery> entry
+              in mastery.themeMasteries.entries) {
+            if (!entry.value.hasBeenSeen) {
+              continue;
+            }
+            final PassportKnowledgeTheme? passportTheme =
+                PassportKnowledgeTheme.fromId(entry.key.id);
+            if (passportTheme == null) {
+              continue;
+            }
+            final ThemeMastery themeMastery = entry.value;
+            themes[passportTheme] = PassportThemeProgress(
+              masteryLevel: (themeMastery.score / 20).round().clamp(
+                    PassportProgressRules.minimumMasteryLevel,
+                    PassportProgressRules.masteredMasteryLevel,
+                  ),
+              correctAnswers: themeMastery.correctAnswers,
+              wrongAnswers: themeMastery.wrongAnswers,
+              totalAttempts: themeMastery.totalAttempts,
+              firstSeenAt: themeMastery.firstLearnedAt ?? discoveredAt,
+              lastAnsweredAt: themeMastery.lastReviewedAt,
+              currentStreak: themeMastery.currentStreak,
+              bestStreak: themeMastery.bestStreak,
+              nextReviewAt: themeMastery.nextReviewAt,
+            );
+          }
+        }
       }
 
       entities[entityId] = PassportEntityProgress.migrated(
@@ -157,6 +188,9 @@ class PassportProgressMigrator {
       licenseProgress: passport,
       playerProfile: playerProfile,
       entities: Map<String, PassportEntityProgress>.unmodifiable(entities),
+      unlockedCollectionItemIds: existingProgress.unlockedCollectionItemIds,
+      completedAchievementTierDates:
+          existingProgress.completedAchievementTierDates,
       migratedFromSchemaVersions: <String, int>{
         ...existingProgress.migratedFromSchemaVersions,
         ...legacySnapshot.migratedFromSchemaVersions,

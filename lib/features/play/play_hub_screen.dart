@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 
 import '../../game/game_controller.dart';
+import '../challenges/challenges_screen.dart';
 import '../design/geopoint_design.dart';
 import '../expeditions/expeditions_screen.dart';
 import '../training/training_screen.dart';
 
-class PlayHubScreen extends StatelessWidget {
+class PlayHubScreen extends StatefulWidget {
   const PlayHubScreen({required this.controller, super.key});
 
   final GameController controller;
+
+  @override
+  State<PlayHubScreen> createState() => _PlayHubScreenState();
+}
+
+class _PlayHubScreenState extends State<PlayHubScreen> {
+  GameController get controller => widget.controller;
 
   void _openExpeditions(BuildContext context) {
     Navigator.of(context).push<void>(
@@ -25,6 +33,16 @@ class PlayHubScreen extends StatelessWidget {
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return TrainingScreen(controller: controller);
+        },
+      ),
+    );
+  }
+
+  void _openChallenges(BuildContext context) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          return ChallengesScreen(controller: controller);
         },
       ),
     );
@@ -108,23 +126,16 @@ class PlayHubScreen extends StatelessWidget {
                             child: GeoFeatureCard(
                               icon: Icons.emoji_events_rounded,
                               title: 'DÉFIS',
-                              subtitle: 'Défis quotidiens et événements spéciaux.',
+                              subtitle:
+                                  'Défis du jour, de la semaine, du mois et permanents.',
                               color: GeoColors.coral,
-                              badge: 'Bientôt',
+                              badge: 'Nouveau',
                               artwork: const GeoCardArtwork(
                                 primary: Icons.emoji_events_rounded,
                                 secondary: Icons.auto_awesome_rounded,
                                 color: GeoColors.navy,
                               ),
-                              onPressed: () => _showSoon(
-                                context,
-                                title: 'Les défis arrivent',
-                                message:
-                                    'Tu retrouveras ici les défis quotidiens, '
-                                    'hebdomadaires et les événements limités.',
-                                icon: Icons.emoji_events_rounded,
-                                color: GeoColors.coral,
-                              ),
+                              onPressed: () => _openChallenges(context),
                             ),
                           ),
                         ),
@@ -135,7 +146,8 @@ class PlayHubScreen extends StatelessWidget {
                             child: GeoFeatureCard(
                               icon: Icons.public_rounded,
                               title: 'EN LIGNE',
-                              subtitle: 'Affronte bientôt les joueurs du monde entier.',
+                              subtitle:
+                                  'Affronte bientôt les joueurs du monde entier.',
                               color: GeoColors.purple,
                               badge: 'Bientôt',
                               artwork: const GeoCardArtwork(
@@ -151,38 +163,6 @@ class PlayHubScreen extends StatelessWidget {
                                     'seront accessibles depuis cet espace.',
                                 icon: Icons.public_rounded,
                                 color: GeoColors.purple,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Expanded(
-                          child: SizedBox(
-                            height: 190,
-                            child: GeoFeatureCard(
-                              icon: Icons.child_care_rounded,
-                              title: 'MODE ENFANT',
-                              subtitle: 'Une progression douce, visuelle et sécurisée.',
-                              color: GeoColors.sky,
-                              badge: 'Bientôt',
-                              artwork: const GeoCardArtwork(
-                                primary: Icons.child_care_rounded,
-                                secondary: Icons.star_rounded,
-                                color: GeoColors.navy,
-                              ),
-                              onPressed: () => _showSoon(
-                                context,
-                                title: 'Mode enfant',
-                                message:
-                                    'Des profils enfants et des parcours adaptés '
-                                    'à chaque âge seront proposés ici.',
-                                icon: Icons.child_care_rounded,
-                                color: GeoColors.sky,
                               ),
                             ),
                           ),

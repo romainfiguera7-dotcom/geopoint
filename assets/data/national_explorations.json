@@ -26,8 +26,6 @@
       ],
       "cityIds": ["2988507", "2995469", "2996944", "2972315"],
       "featureIds": [
-        "seine-river",
-        "mont-blanc",
         "eiffel-tower",
         "english-channel",
         "lascaux-cave",
@@ -56,32 +54,6 @@
     {"id":"FRA-YT","countryId":"FRA","name":"Mayotte","kind":"overseas_region","position":{"latitude":-12.83,"longitude":45.17}}
   ],
   "features": [
-    {
-      "id": "seine-river",
-      "type": "river",
-      "name": "Seine",
-      "countryIds": ["FRA"],
-      "regionIdsByCountry": {"FRA": ["FRA-BFC", "FRA-IDF", "FRA-NOR"]},
-      "position": {"latitude": 48.39, "longitude": 2.96},
-      "shortDescription": "La Seine traverse notamment Paris avant de rejoindre la Manche au Havre.",
-      "difficulty": "easy",
-      "aliases": [],
-      "quizEligible": true,
-      "sources": ["Référentiel géographique national à vérifier avant publication"]
-    },
-    {
-      "id": "mont-blanc",
-      "type": "mountain",
-      "name": "Mont Blanc",
-      "countryIds": ["FRA", "ITA"],
-      "regionIdsByCountry": {"FRA": ["FRA-ARA"]},
-      "position": {"latitude": 45.8326, "longitude": 6.8652},
-      "shortDescription": "Le Mont Blanc est le sommet le plus élevé des Alpes, à la frontière franco-italienne.",
-      "difficulty": "easy",
-      "aliases": ["Monte Bianco"],
-      "quizEligible": true,
-      "sources": ["Référentiel géographique national à vérifier avant publication"]
-    },
     {
       "id": "eiffel-tower",
       "type": "monument",

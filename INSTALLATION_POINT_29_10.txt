@@ -1,0 +1,58 @@
+GEOPOINT — POINT 29.10 — AMIS PAR CODE
+======================================
+
+Cette archive est cumulative : elle inclut les points 29.1 à 29.10.
+
+1. Fermer l'application et arrêter Flutter avec la touche q si nécessaire.
+
+2. Depuis PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   .\android\gradlew.bat --stop
+
+3. Extraire l'archive dans D:\romai\GEOPOINT :
+
+   Expand-Archive `
+   "$env:USERPROFILE\Downloads\geopoint_point_29_10_amis_par_code.zip" `
+   "D:\romai\GEOPOINT" -Force
+
+4. Vérifier Flutter et les fonctions :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   dart format lib test
+   flutter analyze
+   flutter test
+   npm --prefix functions run check
+
+5. Déployer les règles, les index et les quatre fonctions concernées :
+
+   $env:FUNCTIONS_DISCOVERY_TIMEOUT = "120"
+   firebase deploy --only "firestore:rules,firestore:indexes,functions:getFriendDashboard,functions:sendFriendRequest,functions:updateFriendRelation,functions:getChallengeLeaderboards"
+
+6. Relancer :
+
+   flutter run
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found!
+- flutter test : All tests passed!
+- npm : 47 tests réussis
+- CLASSEMENTS affiche MONDE et AMIS
+- le bouton avec deux personnes ouvre MES AMIS
+- un code personnel GP-XXXX-XXXX est créé automatiquement
+- le Passeport contient un raccourci MES AMIS
+
+TEST À DEUX COMPTES
+-------------------
+
+Le même compte ne peut pas s'ajouter lui-même. Utiliser deux téléphones ou
+deux installations reliées à deux comptes Firebase distincts :
+
+1. Copier le code du joueur A.
+2. Le saisir chez le joueur B.
+3. Accepter la demande chez le joueur A.
+4. Jouer un défi avec les deux comptes.
+5. Ouvrir CLASSEMENTS > AMIS et vérifier JOUR, SEMAINE et SAISON.

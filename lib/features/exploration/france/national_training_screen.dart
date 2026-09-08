@@ -17,9 +17,6 @@ class _NationalTrainingScreenState extends State<NationalTrainingScreen> {
     _NationalTopic('region', 'RÉGIONS', Icons.map_rounded, FranceQuestionKind.region),
     _NationalTopic('department', 'DÉPARTEMENTS', Icons.grid_on_rounded, FranceQuestionKind.department),
     _NationalTopic('city', 'GRANDES VILLES', Icons.location_city_rounded, FranceQuestionKind.point),
-    _NationalTopic('prefecture', 'PRÉFECTURES', Icons.account_balance_rounded, FranceQuestionKind.point),
-    _NationalTopic('river', 'FLEUVES', Icons.water_rounded, FranceQuestionKind.point),
-    _NationalTopic('mountain', 'RELIEFS', Icons.landscape_rounded, FranceQuestionKind.point),
     _NationalTopic('monument', 'MONUMENTS', Icons.account_balance_rounded, FranceQuestionKind.point),
     _NationalTopic('mixed', 'MIXTE', Icons.shuffle_rounded, FranceQuestionKind.mixed),
   ];

@@ -1,11 +1,11 @@
 {
-    "name": "geopoint",
-    "short_name": "geopoint",
+    "name": "PointGeo – Jeu de géographie",
+    "short_name": "PointGeo",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "PointGeo, le jeu pour explorer, jouer et apprendre la géographie.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

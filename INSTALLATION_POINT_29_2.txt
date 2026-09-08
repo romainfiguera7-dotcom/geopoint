@@ -1,0 +1,63 @@
+GEOPOINT — POINT 29.2
+IDENTITÉ JOUEUR EN LIGNE
+
+Cette archive est cumulative. Elle contient toute la base validée jusqu'au
+point 29.1, puis le point 29.2.
+
+IDENTITÉ LOCALE STABLE
+======================
+
+- Au premier démarrage, GeoPoint crée un identifiant d'installation et un
+  identifiant joueur uniques.
+- Ces identifiants sont conservés au redémarrage.
+- Les anciens profils nommés `local_player` sont automatiquement rattachés à
+  cette identité stable.
+- L'XP, les statistiques, le niveau, les tampons et le Passeport existants ne
+  sont pas remis à zéro.
+- Une migration interrompue peut être réparée au démarrage suivant.
+
+PRÉPARATION DU COMPTE EN LIGNE
+==============================
+
+- L'identité ne dépend pas encore de Firebase, Supabase ou d'un autre service.
+- Elle prévoit trois états : local, migration en attente et compte en ligne.
+- Un compte n'est considéré en ligne qu'après confirmation de la migration.
+- Aucun mot de passe, jeton de connexion ou e-mail n'est enregistré dans cette
+  sauvegarde locale.
+
+CLASSEMENTS
+===========
+
+- Un résultat classé reste en attente tant que le joueur n'a pas de compte en
+  ligne confirmé.
+- Le futur envoi serveur contient l'identifiant public du joueur.
+- Une identité locale seule ne peut jamais être présentée comme un compte
+  officiel.
+- Les tentatives déjà jouées restent conservées dans la file d'attente.
+
+FICHIERS PRINCIPAUX
+===================
+
+- lib/player/player_online_identity.dart
+- lib/player/player_identity_storage.dart
+- lib/player/player_identity_service.dart
+- lib/game/game_controller.dart
+- lib/challenges/challenge_ranking_sync.dart
+- lib/challenges/challenge_hub_service.dart
+- lib/features/challenges/challenges_screen.dart
+- test/player/player_online_identity_test.dart
+- test/player/player_identity_service_test.dart
+
+VÉRIFICATION
+============
+
+Depuis D:\romai\GEOPOINT\geopoint :
+
+flutter analyze
+flutter test
+flutter run -d 58041FDCR00681
+
+Résultat attendu : aucune erreur d'analyse et 282 tests réussis.
+
+L'écran de création/connexion au compte et le véritable fournisseur distant
+seront ajoutés avec le service serveur du point 29.3.

@@ -1,0 +1,62 @@
+GEOPOINT — POINT 27.5 — XP DES MISSIONS D’EXPÉDITION
+====================================================
+
+CONTENU DE CETTE ÉTAPE
+----------------------
+
+- 40 XP lors de la première validation d'une mission ordinaire.
+- 100 XP lors de la première validation d'un examen, d'un niveau Maître ou
+  d'une finale Silhouettes.
+- Une validation nécessite au moins une étoile.
+- Aucun nouveau bonus lors d'une amélioration ultérieure du score ou des étoiles.
+- Aucun gain rétroactif pour une ancienne mission déjà validée.
+- Identifiant permanent combinant l'expédition et la mission.
+- Le bonus est ajouté au détail XP du résultat des parties cartographiques.
+- Une confirmation du gain apparaît au retour des finales Silhouettes.
+- Aucun plafond quotidien.
+- Passport, GeoBrain, statistiques et progression d'expédition restent séparés.
+- Les défis restent sans XP tant que leur véritable mode de jeu n'existe pas.
+
+INSTALLATION POWERSHELL
+-----------------------
+
+1. Fermer l'application GeoPoint si elle tourne.
+
+2. Extraire l'archive cumulative :
+
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_point_27_etape_5_missions_expedition_xp.zip" "D:\romai\GEOPOINT\geopoint" -Force
+
+3. Ouvrir le projet :
+
+cd D:\romai\GEOPOINT\geopoint
+
+4. Vérifier le code :
+
+flutter analyze
+
+5. Lancer tous les tests :
+
+flutter test
+
+6. Lancer sur le Pixel 10 :
+
+flutter run -d 58041FDCR00681
+
+TEST RÉEL CONSEILLÉ
+-------------------
+
+1. Choisir une mission d'expédition encore à 0 étoile.
+2. Terminer la mission avec au moins une étoile.
+3. Vérifier la ligne « Mission d'expédition » à +40 XP dans le résultat.
+4. Rejouer cette mission et vérifier que le bonus ne revient pas.
+5. Valider un examen, un niveau Maître ou une finale Silhouettes encore inédit.
+6. Vérifier le bonus unique de +100 XP.
+7. Vérifier qu'une mission terminée avec 0 étoile ne donne aucun bonus.
+8. Vérifier que les parties conservent leur XP normale sans plafond.
+9. Vérifier Passport, GeoBrain, les statistiques et les étoiles d'expédition.
+
+PROCHAINE ÉTAPE
+---------------
+
+Brancher les accomplissements avec une initialisation neutre qui protège contre
+toute récompense rétroactive liée aux anciennes statistiques.

@@ -684,7 +684,7 @@
       "turc"
     ],
     "shortFact": "Chypre du Nord est une entité reconnue uniquement par la Turquie.",
-    "history": "Cette entité fut proclamée en 1983 dans la partie nord de Chypre, occupée par la Turquie depuis 1974. Elle n’est reconnue comme État que par la Turquie et est exclue du jeu selon les règles de GeoPoint."
+    "history": "Cette entité fut proclamée en 1983 dans la partie nord de Chypre, occupée par la Turquie depuis 1974. Elle n’est reconnue comme État que par la Turquie et est exclue du jeu selon les règles de PointGeo."
   },
   {
     "entityId": "VAT",

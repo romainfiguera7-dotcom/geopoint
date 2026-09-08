@@ -1,0 +1,64 @@
+GEOPOINT — POINT 27.8 — PASSEPORT : XP ET MAÎTRISE SÉPARÉES
+===========================================================
+
+CONTENU DE CETTE ÉTAPE
+----------------------
+
+- Nouvelle carte Niveau joueur consacrée à l'activité et à l'XP.
+- Affichage du grand niveau et du palier, par exemple Premiers pas II.
+- Badge d'en-tête corrigé pour afficher le niveau interne réel de 1 à 48.
+- Barre avec XP du palier et XP totale.
+- Prochain palier toujours visible.
+- Nombre exact d'XP restant avant ce palier.
+- Nom et catégorie de la prochaine récompense.
+- Gestion des paliers offrant plusieurs récompenses.
+- État final propre pour Maître du monde IV.
+- Nouvelle carte Maîtrise GeoBrain consacrée aux connaissances réelles.
+- Pourcentage de maîtrise retenue, pays maîtrisés et pays à réviser.
+- Texte explicite : l'XP et le GeoBrain sont deux mesures indépendantes.
+- Accès direct au tableau GeoBrain depuis sa carte.
+- Aucun classement de connaissance calculé à partir de l'XP.
+
+INSTALLATION POWERSHELL
+-----------------------
+
+1. Fermer l'application GeoPoint si elle tourne.
+
+2. Extraire l'archive cumulative :
+
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_point_27_etape_8_passeport_xp_geobrain.zip" "D:\romai\GEOPOINT\geopoint" -Force
+
+3. Ouvrir le projet :
+
+cd D:\romai\GEOPOINT\geopoint
+
+4. Vérifier le code :
+
+flutter analyze
+
+5. Lancer tous les tests :
+
+flutter test
+
+6. Lancer sur le Pixel 10 :
+
+flutter run -d 58041FDCR00681
+
+TEST RÉEL CONSEILLÉ
+-------------------
+
+1. Ouvrir Mon Passeport depuis l'accueil.
+2. Vérifier la carte bleue Niveau joueur et la carte verte Maîtrise GeoBrain.
+3. Vérifier le titre complet avec le chiffre romain du palier.
+4. Vérifier l'XP du palier, l'XP totale et l'XP restante.
+5. Vérifier que la prochaine récompense correspond à Mes collections.
+6. Jouer une partie puis vérifier l'actualisation de l'objectif.
+7. Ouvrir la carte GeoBrain et vérifier l'accès au tableau détaillé.
+8. Vérifier sur téléphone que les deux cartes ne débordent pas en largeur.
+9. Vérifier que la maîtrise GeoBrain ne change pas simplement en gagnant de l'XP.
+
+PROCHAINE ÉTAPE
+---------------
+
+Créer l'écran court et positif de passage vers un nouveau grand niveau avec ses
+récompenses et le prochain objectif, sans écran forcé aux petits paliers.

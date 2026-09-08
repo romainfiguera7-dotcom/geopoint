@@ -1,0 +1,59 @@
+GEPOINT — POINT 27.1 — SOCLE DE LA PROGRESSION LONGUE
+=====================================================
+
+CONTENU DE CETTE ÉTAPE
+----------------------
+
+- 12 grands niveaux et 4 paliers par niveau.
+- 48 paliers internes au total.
+- Nouvelle courbe d'XP progressive.
+- Affichage du type « Premiers pas I » dans le Passeport.
+- Distinction technique entre petit palier et grand niveau.
+- Réinitialisation unique de l'ancienne XP joueur à 0.
+- Conservation des statistiques, du Passeport et du GeoBrain.
+- Titres de collection harmonisés avec les 12 nouveaux niveaux.
+- Tests unitaires du catalogue, de la sauvegarde et des passages de niveau.
+- Roadmap complète dans docs/roadmap_point_27.md.
+
+INSTALLATION POWERSHELL
+-----------------------
+
+1. Fermer l'application GeoPoint si elle tourne.
+
+2. Extraire l'archive dans le projet :
+
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_point_27_etape_1_socle_progression.zip" "D:\romai\GEOPOINT\geopoint" -Force
+
+3. Ouvrir le projet :
+
+cd D:\romai\GEOPOINT\geopoint
+
+4. Vérifier le code :
+
+flutter analyze
+
+5. Lancer tous les tests :
+
+flutter test
+
+6. Lancer sur le Pixel 10 :
+
+flutter run -d 58041FDCR00681
+
+VÉRIFICATIONS DANS L'APPLICATION
+--------------------------------
+
+- Ouvrir Mon Passeport.
+- Vérifier « NIV. 1 » et « Premiers pas I ».
+- Vérifier que la barre indique 0/100 XP avant la première nouvelle partie.
+- Terminer une partie normale.
+- Vérifier que l'XP augmente.
+- Vérifier que le GeoBrain conserve sa progression séparément.
+- Le tutoriel et le mode entraînement doivent toujours rester sans XP.
+
+IMPORTANT
+---------
+
+L'ancienne XP joueur est volontairement remise à zéro une seule fois.
+Les statistiques historiques et les connaissances GeoBrain ne sont pas effacées.
+Après la première sauvegarde avec cette version, la nouvelle XP est conservée normalement.

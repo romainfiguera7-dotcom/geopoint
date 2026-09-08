@@ -1,0 +1,63 @@
+GEOPOINT — POINT 27.7 — RÉCOMPENSES DES 48 PALIERS
+==================================================
+
+CONTENU DE CETTE ÉTAPE
+----------------------
+
+- Une récompense visuelle est définie pour chacun des 48 paliers joueur.
+- Palier I : titre du nouveau grand niveau.
+- Palier II : cadre de Passeport.
+- Palier III : arrière-plan de Passeport.
+- Palier IV : objet d'avatar.
+- 36 nouvelles récompenses complètent les 12 titres déjà présents.
+- Les catégories Cadres et Arrière-plans apparaissent dans Mes collections.
+- Les raretés progressent de Commune à Légendaire selon le grand niveau.
+- Un saut de plusieurs niveaux conserve toutes les récompenses intermédiaires.
+- Les récompenses simultanées sont regroupées dans la fenêtre de progression.
+- Les finales Silhouettes indiquent aussi les récompenses obtenues avec l'XP.
+- Aucun objet n'améliore le score, le temps, la précision ou le GeoBrain.
+- Aucun mode principal n'est bloqué.
+
+INSTALLATION POWERSHELL
+-----------------------
+
+1. Fermer l'application GeoPoint si elle tourne.
+
+2. Extraire l'archive cumulative :
+
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_point_27_etape_7_recompenses_niveaux.zip" "D:\romai\GEOPOINT\geopoint" -Force
+
+3. Ouvrir le projet :
+
+cd D:\romai\GEOPOINT\geopoint
+
+4. Vérifier le code :
+
+flutter analyze
+
+5. Lancer tous les tests :
+
+flutter test
+
+6. Lancer sur le Pixel 10 :
+
+flutter run -d 58041FDCR00681
+
+TEST RÉEL CONSEILLÉ
+-------------------
+
+1. Ouvrir Passeport > Mes collections.
+2. Vérifier les nouvelles catégories Cadres et Arrière-plans.
+3. Au niveau 1, vérifier que le titre Premiers pas est déjà possédé.
+4. Atteindre Premiers pas II et vérifier le Cadre du départ.
+5. Atteindre Premiers pas III et vérifier Aube du voyage.
+6. Atteindre Premiers pas IV et vérifier le Foulard azur.
+7. Atteindre Curieux du monde I et vérifier le nouveau titre plus visible.
+8. Vérifier que plusieurs niveaux gagnés ensemble donnent toutes les récompenses.
+9. Vérifier qu'aucune récompense ne modifie le gameplay ou le GeoBrain.
+
+PROCHAINE ÉTAPE
+---------------
+
+Renforcer le Passeport avec le prochain objectif toujours visible, sa récompense
+associée et une séparation encore plus claire entre XP joueur et maîtrise.

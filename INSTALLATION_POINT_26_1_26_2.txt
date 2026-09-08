@@ -1,0 +1,49 @@
+GEOPOINT - POINT 26.1 ET 26.2
+--------------------------------
+
+Cette version ajoute le nouveau socle GeoBrain :
+
+- une maîtrise indépendante pour la localisation, les capitales, les drapeaux,
+  les silhouettes, les villes, les monnaies et les langues ;
+- un score général qui conserve le détail de chaque thème ;
+- les statuts Inconnu, Découvert, Fragile, En progression, Acquis et Maîtrisé ;
+- l'historique détaillé des nouvelles tentatives ;
+- la migration automatique de l'ancien GeoBrain sans perte des compteurs,
+  étoiles, pays visités ou pays à visiter ;
+- l'enregistrement des parties classiques, entraînements, expéditions,
+  tutoriels et quiz Villes / Monnaies / Langues.
+
+INSTALLATION
+------------
+
+1. Fermer l'application GeoPoint si elle est lancée.
+
+2. Décompresser le ZIP dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+   en remplaçant les fichiers existants.
+
+3. Ouvrir PowerShell dans le projet puis lancer :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found!
+- flutter test : 60 tests réussis
+- l'ancienne progression reste présente après le premier démarrage ;
+- les nouvelles réponses alimentent désormais les thèmes détaillés GeoBrain.
+
+IMPORTANT
+---------
+
+Les anciennes réponses individuelles ne contenaient pas leur mode, leur temps
+ou leur difficulté. Elles sont donc conservées sous forme de résumé historique
+dans le thème Localisation. Toutes les nouvelles réponses disposent du détail
+complet prévu par le point 26.2.

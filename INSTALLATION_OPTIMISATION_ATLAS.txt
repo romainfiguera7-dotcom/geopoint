@@ -1,0 +1,33 @@
+GEOPOINT - OPTIMISATION DE L'ATLAS AVANT PUBLICATION
+===================================================
+
+1. Fermer l'application GeoPoint si elle tourne encore.
+
+2. Extraire le ZIP directement dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+   Accepter le remplacement des fichiers existants.
+
+3. Ouvrir PowerShell puis exécuter :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+4. Dans l'application :
+
+   - ouvrir Atlas > Explorer l'Atlas ;
+   - déplacer rapidement la carte du monde ;
+   - zoomer et dézoomer avec deux doigts ;
+   - sélectionner plusieurs pays et afficher leurs villes ;
+   - vérifier les petites îles en zoom rapproché.
+
+RÉSULTAT ATTENDU
+----------------
+
+- déplacements et zooms nettement plus fluides ;
+- même apparence générale des frontières ;
+- précision originale complète automatiquement utilisée en zoom rapproché ;
+- pays, villes, fiches et listes personnelles inchangés.

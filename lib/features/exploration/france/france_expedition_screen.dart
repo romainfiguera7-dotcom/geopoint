@@ -56,6 +56,8 @@ class _FranceExpeditionScreenState extends State<FranceExpeditionScreen> {
         levelId: level.id,
         stars: result.stars,
         score: result.score,
+        correctAnswers: result.correctAnswers,
+        totalAnswers: result.questionCount,
       ),
     );
     if (mounted) {
@@ -106,6 +108,8 @@ class _FranceExpeditionScreenState extends State<FranceExpeditionScreen> {
                       total: FranceExpeditionCatalog.levels.length,
                       stars: stars,
                     ),
+                    const SizedBox(height: 14),
+                    _NationalStatisticsCard(progress: progress),
                     const SizedBox(height: 18),
                     Text(
                       'PARCOURS NATIONAL',
@@ -212,7 +216,7 @@ class _FranceHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Régions, villes, fleuves, reliefs et monuments.',
+                  'Régions, villes et monuments.',
                   style: GoogleFonts.nunitoSans(
                     color: Colors.white70,
                     fontSize: 12,
@@ -274,6 +278,94 @@ class _ProgressCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _NationalStatisticsCard extends StatelessWidget {
+  const _NationalStatisticsCard({required this.progress});
+
+  final NationalExpeditionProgress progress;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.96),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              'STATISTIQUES FRANCE',
+              style: GoogleFonts.nunitoSans(
+                color: GeoColors.blue,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: <Widget>[
+                _NationalStat(
+                  icon: Icons.sports_esports_rounded,
+                  value: '${progress.gamesPlayed}',
+                  label: 'Parties',
+                ),
+                _NationalStat(
+                  icon: Icons.track_changes_rounded,
+                  value: '${progress.accuracyPercent} %',
+                  label: 'Précision',
+                ),
+                _NationalStat(
+                  icon: Icons.emoji_events_rounded,
+                  value: '${progress.bestScore}',
+                  label: 'Record',
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+}
+
+class _NationalStat extends StatelessWidget {
+  const _NationalStat({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+        child: Column(
+          children: <Widget>[
+            Icon(icon, color: GeoColors.coral, size: 22),
+            const SizedBox(height: 5),
+            Text(
+              value,
+              style: GoogleFonts.fredoka(
+                color: GeoColors.ink,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFF58708D),
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      );
 }
 
 class _FranceLevelCard extends StatelessWidget {

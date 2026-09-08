@@ -1,0 +1,97 @@
+POINTGEO V1 — INFORMATIONS LÉGALES ET CONFIDENTIALITÉ
+====================================================
+
+Cette version prépare PointGeo pour un public de 16 ans et plus.
+
+INSTALLATION
+------------
+
+Dans PowerShell :
+
+cd D:\romai\GEOPOINT\geopoint
+.\android\gradlew.bat --stop
+
+cd D:\romai\GEOPOINT
+$copieImbriquee = "D:\romai\GEOPOINT\geopoint\geopoint"
+if (Test-Path "$copieImbriquee\pubspec.yaml") {
+    Remove-Item $copieImbriquee -Recurse -Force -ErrorAction Stop
+}
+
+Expand-Archive "$env:USERPROFILE\Downloads\pointgeo_legal_confidentialite_v1.zip" "D:\romai\GEOPOINT" -Force
+
+# Si la suppression de la copie imbriquée est refusée, fermer Android Studio
+# et les fenêtres ouvertes dans ce dossier, puis relancer ces commandes.
+
+cd D:\romai\GEOPOINT\geopoint
+flutter pub get
+flutter analyze
+flutter test
+npm --prefix functions run check
+
+PUBLICATION FIREBASE
+--------------------
+
+La nouvelle fonction de suppression de compte et les pages publiques doivent
+être déployées ensemble :
+
+firebase deploy --only "functions,hosting"
+
+Vérifier ensuite ces adresses :
+
+https://geopoint-dev.web.app/confidentialite
+https://geopoint-dev.web.app/supprimer-compte
+https://geopoint-dev.web.app/mentions-legales
+https://geopoint-dev.web.app/conditions
+
+À RENSEIGNER DANS GOOGLE PLAY CONSOLE
+-------------------------------------
+
+- Nom public : PointGeo – Jeu de géographie
+- Public cible : 16 ans et plus ; ne pas sélectionner les enfants
+- Présence de publicités : oui
+- URL de confidentialité :
+  https://geopoint-dev.web.app/confidentialite
+- URL de suppression de compte :
+  https://geopoint-dev.web.app/supprimer-compte
+- Compléter honnêtement le formulaire Sécurité des données avec Firebase,
+  Google Sign-In, Google Play Billing et Google AdMob.
+
+ADMOB — À FAIRE APRÈS LA CRÉATION DE L’APPLICATION
+--------------------------------------------------
+
+Les identifiants publicitaires actuels sont les identifiants de test officiels
+de Google. Avant une version publique :
+
+1. Créer l’application PointGeo dans AdMob.
+2. Créer une annonce interstitielle.
+3. Créer et publier un message RGPD dans Confidentialité et messages.
+4. Remplacer uniquement les identifiants de test AdMob par ceux de PointGeo.
+5. Tester le formulaire de consentement et une publicité depuis une piste de
+   test Google Play avant la production.
+
+POINT JURIDIQUE À COMPLÉTER AVANT D’ENCAISSER
+---------------------------------------------
+
+Les pages contiennent les informations actuellement fournies : Romain Figuera,
+3B rue du Salaison, 34740 Vendargues, et vipers34170@gmail.com.
+
+Comme PointGeo prévoit des publicités et un achat à 2,99 €, il faut faire
+valider le statut professionnel adapté avant d’activer la monétisation. Une
+fois ce statut créé, compléter les mentions avec le numéro SIREN/RNE et un
+numéro de téléphone professionnel, puis faire vérifier les conditions de vente
+de l’achat numérique. Ces informations ne sont pas inventées dans le code.
+
+CE QUI EST INTÉGRÉ DANS L’APPLICATION
+-------------------------------------
+
+- Mentions légales, politique de confidentialité et conditions d’utilisation.
+- Confirmation « 16 ans ou plus » avant la création/association d’un compte.
+- Gestion du consentement Google AdMob avant toute demande publicitaire.
+- Accès permanent aux choix publicitaires depuis les Paramètres.
+- Suppression du compte dans Paramètres > Mon compte.
+- Effacement Firebase des données du profil, portefeuille, progression,
+  défis, classements, amis et éléments publics associés.
+- Page web externe de demande de suppression pour Google Play.
+
+Les identifiants techniques existants (package Android, projet Firebase,
+dossiers et classes GeoPoint) restent inchangés afin de ne pas casser la V1.

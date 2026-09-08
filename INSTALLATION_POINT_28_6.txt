@@ -1,0 +1,57 @@
+GEOPOINT — POINT 28.6
+RÉCOMPENSES DES DÉFIS
+
+Cette archive est cumulative. Elle contient toute la base validée du point 27
+et les étapes 28.1 à 28.6.
+
+Nouveautés
+==========
+
+- Les récompenses des défis possèdent maintenant un portefeuille persistant.
+- Les pièces, diamants et points de progression sont réellement enregistrés.
+- Les objets cosmétiques, tampons et emblèmes peuvent être débloqués.
+- L’écran Défis affiche les soldes et le nombre de récompenses en attente.
+- L’écran de résultat détaille les récompenses réellement versées.
+- L’XP reste reliée au profil joueur et à son registre d’attribution unique.
+
+Sécurité
+========
+
+- Une récompense hors ligne reste en attente de validation serveur.
+- Un identifiant de versement est enregistré indépendamment du solde.
+- Le même défi ne peut donc jamais créditer deux fois le portefeuille.
+- Après une interruption, une récompense confirmée mais incomplètement traitée
+  est récupérée automatiquement à l’ouverture de l’écran Défis.
+- Les anciennes sauvegardes sans portefeuille sont mises à niveau sans perte.
+
+Installation et test
+====================
+
+1. Décompresser l’archive dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+2. Accepter le remplacement des fichiers.
+3. Exécuter dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+Parcours à vérifier
+===================
+
+1. Ouvrir JOUER > DÉFIS.
+2. Vérifier la nouvelle carte MES RÉCOMPENSES.
+3. Terminer un défi disponible.
+4. Vérifier le message de récompense en attente si aucun serveur n’est relié.
+5. Vérifier que les soldes ne sont jamais augmentés par une simple relance ou
+   par la réouverture de l’écran.
+
+Résultat technique attendu
+==========================
+
+- flutter analyze : No issues found!
+- flutter test : tous les tests réussissent.
+- Environ 228 tests sont présents, dont 56 consacrés aux défis.

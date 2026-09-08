@@ -1,0 +1,66 @@
+GEOPOINT — POINT 28.2
+ÉCRANS DU CENTRE DE DÉFIS
+
+Cette archive est cumulative : elle contient la base validée du point 27,
+l’étape .1 du moteur de défis et les nouveaux écrans de l’étape 28.2.
+
+Nouveautés visibles
+===================
+
+- La carte DÉFIS de l’espace Jouer porte maintenant le badge NOUVEAU.
+- Elle ouvre le nouveau centre des défis.
+- Le défi quotidien est mis en avant.
+- Les trois objectifs hebdomadaires sont présentés par difficulté.
+- La grande aventure mensuelle est affichée séparément.
+- Chaque défi ouvre sa fiche détaillée avant lancement.
+- Mode, difficulté, nombre de questions, réussite, score et précision sont
+  expliqués clairement.
+- Les essais gratuits, relances diamant et publicités récompensées sont
+  visibles avant de commencer.
+- Les récompenses XP, pièces, diamants et emblèmes sont affichées.
+- L’historique récent est préparé.
+
+Adaptation du joueur
+====================
+
+- Un joueur avancé reçoit les règles normales du défi.
+- Un adulte débutant reçoit automatiquement une variante accessible.
+- Un profil enfant reçoit une variante dédiée sans publicité ni relance
+  payante.
+- Un défi classé reste identique pour tous les joueurs de son classement.
+- GeoBrain ne personnalise que les défis personnels.
+
+GeoPoint Studio
+===============
+
+GeoPoint Studio est officiellement ajouté à la roadmap du point 28 dans :
+
+docs\roadmap_point_28.md
+
+Le Studio comportera une interface locale de création et prévisualisation,
+puis une version privée connectée pour programmer, publier ou désactiver les
+défis sans mettre à jour l’application sur les stores.
+
+Installation
+============
+
+1. Décompresser l’archive dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+2. Accepter le remplacement des fichiers.
+3. Exécuter dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+Résultat attendu
+================
+
+- flutter analyze : No issues found!
+- flutter test : environ 187 tests réussis, dont 36 consacrés aux défis.
+- Dans Jouer, la carte DÉFIS ouvre le nouvel écran.
+- Le bouton JOUER CE DÉFI affiche encore un message provisoire : le branchement
+  des parties réelles constitue la prochaine étape.

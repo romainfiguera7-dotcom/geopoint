@@ -11,11 +11,14 @@ void main() {
       SharedPreferences.setMockInitialValues(<String, Object>{});
     });
 
-    test('active l’animation des tampons par défaut', () {
+    test('active les animations du Passeport par défaut', () {
       final PassportDisplayPreferences preferences =
           PassportDisplayPreferences.initial();
 
       expect(preferences.stampAnimationsEnabled, isTrue);
+      expect(preferences.majorLevelAnimationsEnabled, isTrue);
+      expect(preferences.soundEffectsEnabled, isTrue);
+      expect(preferences.hapticsEnabled, isTrue);
       expect(
         preferences.schemaVersion,
         PassportDisplayPreferences.currentSchemaVersion,
@@ -27,6 +30,29 @@ void main() {
           PassportDisplayPreferences.fromJson(<String, dynamic>{});
 
       expect(preferences.stampAnimationsEnabled, isTrue);
+      expect(preferences.majorLevelAnimationsEnabled, isTrue);
+      expect(preferences.soundEffectsEnabled, isTrue);
+      expect(preferences.hapticsEnabled, isTrue);
+    });
+
+    test('sauvegarde les sons et les vibrations séparément', () async {
+      final PassportDisplayPreferences disabled =
+          PassportDisplayPreferences.initial().copyWith(
+        soundEffectsEnabled: false,
+        hapticsEnabled: false,
+      );
+
+      expect(
+        await PassportDisplayPreferencesStorage.save(disabled),
+        isTrue,
+      );
+
+      final PassportDisplayPreferences restored =
+          await PassportDisplayPreferencesStorage.load();
+
+      expect(restored.soundEffectsEnabled, isFalse);
+      expect(restored.hapticsEnabled, isFalse);
+      expect(restored.stampAnimationsEnabled, isTrue);
     });
 
     test('sauvegarde le choix de désactiver l’animation', () async {
@@ -48,6 +74,24 @@ void main() {
         restored.schemaVersion,
         PassportDisplayPreferences.currentSchemaVersion,
       );
+    });
+
+    test('sauvegarde séparément l’animation des grands niveaux', () async {
+      final PassportDisplayPreferences disabled =
+          PassportDisplayPreferences.initial().copyWith(
+        majorLevelAnimationsEnabled: false,
+      );
+
+      expect(
+        await PassportDisplayPreferencesStorage.save(disabled),
+        isTrue,
+      );
+
+      final PassportDisplayPreferences restored =
+          await PassportDisplayPreferencesStorage.load();
+
+      expect(restored.stampAnimationsEnabled, isTrue);
+      expect(restored.majorLevelAnimationsEnabled, isFalse);
     });
   });
 }

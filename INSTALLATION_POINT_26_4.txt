@@ -1,0 +1,58 @@
+GEOPOINT - POINT 26.4 : DÉTECTION PROGRESSIVE DES OUBLIS
+-------------------------------------------------------
+
+Cette version permet à GeoBrain d'identifier une connaissance autrefois
+acquise qui mérite une nouvelle révision, sans supprimer le score enregistré.
+
+FONCTIONNEMENT
+--------------
+
+- le meilleur score atteint par thème est mémorisé ;
+- la date de la dernière réussite confirmée est conservée ;
+- une connaissance acquise dispose de 21 jours avant la baisse progressive ;
+- une connaissance maîtrisée dispose de 45 jours ;
+- après ce délai, la confiance baisse de 0,35 point par jour de retard ;
+- la baisse est plafonnée à 35 % du score enregistré : les progrès ne sont
+  jamais effacés brutalement ;
+- une erreur isolée reste une erreur occasionnelle ;
+- deux erreurs consécutives, ou trois erreurs parmi les cinq dernières,
+  signalent un oubli répété ;
+- la formulation destinée au joueur est toujours « À réviser », jamais
+  « Perdu » ;
+- l'écran Statistiques utilise le score de conservation actuel pour séparer
+  les pays maîtrisés des connaissances à réviser.
+
+MIGRATION
+---------
+
+Le schéma GeoBrain passe en version 4. Les anciennes sauvegardes reçoivent
+automatiquement un meilleur score historique et une dernière date de réussite
+à partir des informations déjà disponibles. Les scores, compteurs, listes et
+tentatives existants sont conservés.
+
+INSTALLATION
+------------
+
+1. Fermer GeoPoint.
+
+2. Décompresser le ZIP dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+   en remplaçant les fichiers existants.
+
+3. Lancer dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found!
+- flutter test : 74 tests réussis
+- les connaissances anciennes apparaissent « À réviser » sans perdre leur
+  score enregistré.

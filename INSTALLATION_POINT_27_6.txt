@@ -1,0 +1,62 @@
+GEOPOINT — POINT 27.6 — XP DES ACCOMPLISSEMENTS
+===============================================
+
+CONTENU DE CETTE ÉTAPE
+----------------------
+
+- 25 XP lors du premier déblocage d'un palier d'accomplissement normal.
+- 75 XP lors du premier déblocage d'un palier majeur.
+- Plusieurs paliers franchis dans une même partie sont additionnés.
+- Chaque palier possède un identifiant permanent empêchant toute double XP.
+- Une référence initiale neutre enregistre les anciens paliers sans donner d'XP.
+- Aucun accomplissement déjà terminé n'est donc récompensé rétroactivement.
+- Les accomplissements de voyage personnel restent sans XP.
+- Les paliers d'étoiles et d'étapes sont vérifiés après les finales Silhouettes.
+- Une amélioration d'étoiles peut ainsi déclencher un nouveau palier.
+- Le détail « Accomplissement validé » apparaît dans le bilan XP.
+- Aucun plafond quotidien.
+- XP joueur, Passeport, GeoBrain et voyage personnel restent séparés.
+
+INSTALLATION POWERSHELL
+-----------------------
+
+1. Fermer l'application GeoPoint si elle tourne.
+
+2. Extraire l'archive cumulative :
+
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_point_27_etape_6_accomplissements_xp.zip" "D:\romai\GEOPOINT\geopoint" -Force
+
+3. Ouvrir le projet :
+
+cd D:\romai\GEOPOINT\geopoint
+
+4. Vérifier le code :
+
+flutter analyze
+
+5. Lancer tous les tests :
+
+flutter test
+
+6. Lancer sur le Pixel 10 :
+
+flutter run -d 58041FDCR00681
+
+TEST RÉEL CONSEILLÉ
+-------------------
+
+1. Ouvrir une première fois une partie avec d'anciens accomplissements présents.
+2. Vérifier que l'XP ne monte pas au chargement de cette référence initiale.
+3. Franchir un nouveau palier normal et vérifier le bonus unique de 25 XP.
+4. Franchir un nouveau palier majeur et vérifier le bonus unique de 75 XP.
+5. Rejouer ensuite sans nouveau palier et vérifier l'absence de second bonus.
+6. Vérifier la ligne « Accomplissement validé » dans le bilan de partie.
+7. Ajouter un pays dans le voyage personnel et vérifier qu'aucune XP n'est donnée.
+8. Vérifier une finale Silhouettes faisant franchir un seuil d'étoiles.
+9. Vérifier Passport, GeoBrain, statistiques et progression d'expédition.
+
+PROCHAINE ÉTAPE
+---------------
+
+Définir et brancher les récompenses visuelles des petits paliers et des passages
+vers un nouveau grand niveau, sans avantage compétitif.

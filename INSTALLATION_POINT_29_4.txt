@@ -1,0 +1,75 @@
+GEOPOINT — POINT 29.4 V2 : SESSIONS OFFICIELLES DE DÉFI
+=======================================================
+
+Cette archive est cumulative. Elle contient tout le projet, y compris la
+configuration Firebase validée du point 29.3.
+
+1. Arrêter Flutter et Gradle
+----------------------------
+
+Dans le terminal où `flutter run` fonctionne, appuyer sur :
+
+q
+
+Puis, dans PowerShell :
+
+cd D:\romai\GEOPOINT\geopoint
+.\android\gradlew.bat --stop
+
+2. Importer l'archive
+---------------------
+
+Expand-Archive `
+"$env:USERPROFILE\Downloads\geopoint_point_29_4_sessions_officielles_v2.zip" `
+"D:\romai\GEOPOINT\geopoint" -Force
+
+3. Valider le code
+------------------
+
+cd D:\romai\GEOPOINT\geopoint
+flutter pub get
+dart format lib test
+flutter analyze
+flutter test
+npm --prefix functions ci
+
+4. Déployer le point 29.4
+-------------------------
+
+firebase deploy --only "firestore:rules,firestore:indexes,functions"
+
+Le résultat doit mentionner :
+
+functions[startOfficialChallengeSession(europe-west1)]
+
+5. Vérifier sur le Pixel
+------------------------
+
+flutter run
+
+Dans l'app :
+
+- ouvrir le défi hebdomadaire classé ;
+- activer « Participer au classement » ;
+- démarrer une partie.
+
+Le terminal doit afficher une ligne de cette forme :
+
+GeoPoint Classement : session officielle cs_... créée pour weekly_01.
+
+Dans Firestore, un document doit apparaître sous :
+
+challenge_sessions / UID_DU_JOUEUR / sessions / cs_...
+
+REMARQUES
+---------
+
+- Une migration `pending_server_validation` n'empêche pas de jouer. La session
+  mémorise toutefois que le score ne doit pas encore être publié.
+- Le warning Kotlin KGP est un avertissement futur de Flutter, pas un échec du
+  build actuel.
+- Le message GoogleApiManager DEVELOPER_ERROR du Pixel peut être ignoré tant
+  que GeoPoint affiche « connexion prête » et crée la session officielle.
+- Si le terminal affiche un nouveau jeton App Check de débogage, il faut
+  l'ajouter dans Firebase Console > App Check > GeoPoint Android > jetons de
+  débogage. Une réinstallation peut produire un jeton différent.

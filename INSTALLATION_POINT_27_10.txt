@@ -1,0 +1,76 @@
+GEOPOINT — POINT 27.9 — OUTILS XP DE DÉVELOPPEMENT
+=================================================
+
+CONTENU DE CETTE ÉTAPE
+----------------------
+
+- Nouvelle entrée Outils XP de développement dans les Paramètres.
+- Entrée visible uniquement avec flutter run ou une compilation debug.
+- Seconde protection dans le contrôleur contre toute utilisation en production.
+- Ajout d'une quantité précise d'XP.
+- Positionnement à 1 XP du prochain palier interne.
+- Positionnement à 1 XP du prochain grand niveau.
+- Accès direct au niveau maximal Maître du monde IV à 66 250 XP.
+- Remise à zéro de l'XP avec confirmation.
+- Réinitialisation du registre XP uniquement lors de cette remise à zéro.
+- Conservation des parties, statistiques, scores, tampons, Atlas et GeoBrain.
+- Sauvegarde et actualisation immédiates du Passeport, sans redémarrage.
+- Aucun plafond quotidien ajouté.
+- Sept nouveaux tests unitaires, soit 163 tests déclarés dans le projet.
+
+INSTALLATION POWERSHELL
+-----------------------
+
+1. Fermer l'application GeoPoint si elle tourne.
+
+2. Extraire l'archive cumulative :
+
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_point_27_etape_10_outils_xp_debug.zip" "D:\romai\GEOPOINT\geopoint" -Force
+
+3. Ouvrir le projet :
+
+cd D:\romai\GEOPOINT\geopoint
+
+4. Vérifier le code :
+
+flutter analyze
+
+5. Lancer tous les tests :
+
+flutter test
+
+6. Lancer la version debug sur le Pixel 10 :
+
+flutter run -d 58041FDCR00681
+
+TEST RÉEL CONSEILLÉ
+-------------------
+
+1. Depuis l'accueil, ouvrir Paramètres.
+2. Ouvrir la carte rouge Outils XP de développement.
+3. Noter le nombre de parties, les statistiques et la maîtrise GeoBrain avant
+   les essais.
+4. Tester l'ajout de 100 XP et vérifier l'actualisation immédiate du niveau.
+5. Utiliser À 1 XP du prochain palier et vérifier l'XP restante.
+6. Utiliser Préparer le grand niveau : depuis 0 XP, le profil doit arriver à
+   399 XP, soit 1 XP avant Curieux du monde I.
+7. Jouer une partie normale valide et vérifier l'apparition de la célébration
+   du nouveau grand niveau.
+8. Tester Atteindre le niveau maximal et vérifier Maître du monde IV ainsi que
+   l'état final du prochain objectif dans le Passeport.
+9. Utiliser Remettre l'XP à 0 et confirmer.
+10. Vérifier que l'XP revient à zéro mais que les parties, statistiques,
+    tampons, Atlas et GeoBrain sont identiques aux valeurs notées au départ.
+
+CONTRÔLE DE LA VERSION PUBLIÉE
+------------------------------
+
+La carte Outils XP de développement ne doit pas apparaître dans une compilation
+release. Elle est destinée uniquement aux essais locaux et ne sera jamais une
+fonction accessible aux joueurs.
+
+PROCHAINE ÉTAPE
+---------------
+
+Terminer le point 27 avec les scénarios de joueurs occasionnels, réguliers et
+intensifs, puis valider l'équilibrage final sur téléphone.

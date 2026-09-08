@@ -115,8 +115,10 @@ class _AtlasScreenState extends State<AtlasScreen> {
           capital: data.capitals[country.id],
           cities: countryCities,
           initialStatus: _personalProgress.statusFor(country.id),
+          initialFavorite: _personalProgress.isFavorite(country.id),
           onToggleVisited: () => _toggleVisited(country),
           onToggleWishlist: () => _toggleWishlist(country),
+          onToggleFavorite: () => _toggleFavorite(country),
           onExploreCities: () => Navigator.of(context).pop(),
         );
       },
@@ -268,11 +270,21 @@ class _AtlasScreenState extends State<AtlasScreen> {
     return _savePersonalProgress(next, country.id);
   }
 
+  Future<bool> _toggleFavorite(GeoCountry country) async {
+    final AtlasPersonalProgress next =
+        _personalProgress.toggleFavorite(country.id);
+    final bool saved = await _persistPersonalProgress(next);
+
+    return saved
+        ? next.isFavorite(country.id)
+        : _personalProgress.isFavorite(country.id);
+  }
+
   Future<AtlasCountryStatus> _savePersonalProgress(
     AtlasPersonalProgress next,
     String countryId,
   ) async {
-    final bool saved = await AtlasPersonalStorage.save(next);
+    final bool saved = await _persistPersonalProgress(next);
 
     if (!mounted) {
       return saved
@@ -281,24 +293,40 @@ class _AtlasScreenState extends State<AtlasScreen> {
     }
 
     if (saved) {
-      await widget.controller.synchronizePassportPersonalProgress(next);
-
-      if (!mounted) {
-        return next.statusFor(countryId);
-      }
-
-      setState(() {
-        _personalProgress = next;
-      });
       return next.statusFor(countryId);
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Impossible de sauvegarder ce pays pour le moment.'),
-      ),
-    );
     return _personalProgress.statusFor(countryId);
+  }
+
+  Future<bool> _persistPersonalProgress(
+    AtlasPersonalProgress next,
+  ) async {
+    final bool saved = await AtlasPersonalStorage.save(next);
+
+    if (!saved) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impossible de sauvegarder ce pays pour le moment.'),
+          ),
+        );
+      }
+
+      return false;
+    }
+
+    await widget.controller.synchronizePassportPersonalProgress(next);
+
+    if (!mounted) {
+      return true;
+    }
+
+    setState(() {
+      _personalProgress = next;
+    });
+
+    return true;
   }
 
   void _selectContinent(String continent) {
@@ -386,6 +414,8 @@ class _AtlasScreenState extends State<AtlasScreen> {
                       _personalProgress.visitedCountryIds,
                   wishlistCountryIds:
                       _personalProgress.wishlistCountryIds,
+                  favoriteCountryIds:
+                      _personalProgress.favoriteCountryIds,
                   onCountrySelected: (GeoCountry country) {
                     _openCountrySheet(data, country, focusCountry: true);
                   },

@@ -1,0 +1,58 @@
+import 'package:geopoint/challenges/challenge_definition.dart';
+
+ChallengeDefinition challengeFixture({
+  String id = 'daily_test',
+  ChallengePeriod period = ChallengePeriod.daily,
+  DateTime? validFromUtc,
+  DateTime? validUntilUtc,
+  String modeId = 'find_country',
+  String difficultyId = 'easy',
+  String? continentId = 'world',
+  List<String> countryIds = const <String>[],
+  int? questionCount = 5,
+  int? durationSeconds,
+  ChallengeSuccessCondition successCondition =
+      const ChallengeSuccessCondition(
+    minimumCorrectAnswers: 4,
+    minimumScore: 250,
+  ),
+  ChallengeRetryPolicy retryPolicy = const ChallengeRetryPolicy(
+    maximumAttempts: 1,
+    rewardedAdvertisementAllowed: true,
+    unlimitedRewardedAdvertisementRetries: true,
+  ),
+  ChallengeReward reward = const ChallengeReward(xp: 60, coins: 25),
+  int minimumPlayerLevel = 1,
+  ChallengeAudience audience = ChallengeAudience.standard,
+  String? beginnerVariantId,
+  String? childVariantId,
+  String? rankingGroupId,
+  bool geoBrainPersonalizationAllowed = false,
+  bool disabled = false,
+}) {
+  return ChallengeDefinition(
+    id: id,
+    period: period,
+    title: 'Défi de test',
+    description: 'Description de test.',
+    illustrationAsset: 'builtin:test',
+    validFromUtc: validFromUtc ?? DateTime.utc(2026, 9, 4),
+    validUntilUtc: validUntilUtc ?? DateTime.utc(2026, 9, 5),
+    modeId: modeId,
+    difficultyId: difficultyId,
+    continentId: continentId,
+    countryIds: countryIds,
+    questionCount: questionCount,
+    durationSeconds: durationSeconds,
+    successCondition: successCondition,
+    retryPolicy: retryPolicy,
+    reward: reward,
+    minimumPlayerLevel: minimumPlayerLevel,
+    audience: audience,
+    beginnerVariantId: beginnerVariantId,
+    childVariantId: childVariantId,
+    rankingGroupId: rankingGroupId,
+    geoBrainPersonalizationAllowed: geoBrainPersonalizationAllowed,
+    disabled: disabled,
+  );
+}

@@ -10,6 +10,10 @@ class AtlasPersonalStorage {
   static const String _recordType = 'atlas_personal_progress';
 
   static Future<AtlasPersonalProgress> load() async {
+    return await loadOrNull() ?? AtlasPersonalProgress.initial();
+  }
+
+  static Future<AtlasPersonalProgress?> loadOrNull() async {
     try {
       final Map<String, dynamic>? json =
           await VersionedLocalStorage.loadData(
@@ -17,7 +21,7 @@ class AtlasPersonalStorage {
       );
 
       if (json == null) {
-        return AtlasPersonalProgress.initial();
+        return null;
       }
 
       return AtlasPersonalProgress.fromJson(json);
@@ -26,7 +30,7 @@ class AtlasPersonalStorage {
         'GeoPoint : chargement de l’Atlas personnel impossible : $error',
       );
       debugPrintStack(stackTrace: stackTrace);
-      return AtlasPersonalProgress.initial();
+      return null;
     }
   }
 

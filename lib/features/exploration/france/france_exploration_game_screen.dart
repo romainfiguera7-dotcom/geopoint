@@ -6,6 +6,8 @@ import 'package:latlong2/latlong.dart';
 
 import '../../design/geo_vector_map.dart';
 import '../../design/geopoint_design.dart';
+import '../../../monetization/interstitial_ad_service.dart';
+import '../../settings/gameplay_feedback.dart';
 import 'france_expedition_catalog.dart';
 import 'france_exploration_data.dart';
 import 'france_exploration_loader.dart';
@@ -143,6 +145,8 @@ class _FranceExplorationGameScreenState
       }
       for (final FranceExplorationItem item in data.items) {
         if (item.category != 'overseas' &&
+            item.category != 'river' &&
+            item.category != 'mountain' &&
             _difficultyRank(item.difficulty) <=
                 _difficultyRank(widget.difficulty)) {
           pool.add(_FranceQuestion.item(item, FranceQuestionKind.point));
@@ -268,9 +272,6 @@ class _FranceExplorationGameScreenState
       default:
         base = 130;
     }
-    if (category == 'river' || category == 'mountain') {
-      return base * 1.35;
-    }
     return base;
   }
 
@@ -307,6 +308,7 @@ class _FranceExplorationGameScreenState
       _selectedAreaCode = selectedAreaCode;
       _selectedPoint = selectedPoint;
     });
+    GameplayFeedback.answer(isCorrect: correct);
   }
 
   void _nextQuestion() {
@@ -795,7 +797,12 @@ class _FranceExplorationGameScreenState
                         width: double.infinity,
                         height: 58,
                         child: FilledButton.icon(
-                          onPressed: () => Navigator.of(context).pop(result),
+                          onPressed: () async {
+                            await InterstitialAdService.instance
+                                .registerCompletedGame();
+                            if (!mounted) return;
+                            Navigator.of(context).pop(result);
+                          },
                           style: FilledButton.styleFrom(
                             backgroundColor: GeoColors.gold,
                             foregroundColor: GeoColors.navy,
@@ -897,12 +904,6 @@ class _FranceQuestion {
     switch (item!.category) {
       case 'city':
         return 'Place la ville de ${item!.name}';
-      case 'prefecture':
-        return 'Place la préfecture ${item!.name}';
-      case 'river':
-        return 'Repère ${item!.name}';
-      case 'mountain':
-        return 'Repère ${item!.name}';
       case 'monument':
         return 'Place ${item!.name}';
       default:

@@ -1,0 +1,61 @@
+GEOPOINT — POINT 27.4 — RÉUSSITE, DÉCOUVERTE ET MAÎTRISE
+========================================================
+
+CONTENU DE CETTE ÉTAPE
+----------------------
+
+- 20 XP pour la première partie réussie de chaque journée locale.
+- Une partie est réussie lorsqu'elle contient au moins une bonne réponse.
+- 5 XP lors de la première découverte d'un pays.
+- 40 XP lorsqu'un pays atteint réellement le statut GeoBrain « Maîtrisé ».
+- Aucune récompense rétroactive pour les pays déjà connus avant le démarrage
+  de la nouvelle progression XP.
+- Identifiants permanents empêchant de gagner plusieurs fois la récompense
+  d'un même pays ou d'une même journée.
+- Aucun plafond quotidien : toutes les parties valides gardent leur XP normale.
+- Détail des gains affiché dans le résultat de partie.
+- Passport, statistiques et GeoBrain restent enregistrés séparément.
+- Le tutoriel, l'entraînement, les publicités et les achats restent sans XP.
+
+INSTALLATION POWERSHELL
+-----------------------
+
+1. Fermer l'application GeoPoint si elle tourne.
+
+2. Extraire l'archive cumulative :
+
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_point_27_etape_4_bonus_decouverte_maitrise.zip" "D:\romai\GEOPOINT\geopoint" -Force
+
+3. Ouvrir le projet :
+
+cd D:\romai\GEOPOINT\geopoint
+
+4. Vérifier le code :
+
+flutter analyze
+
+5. Lancer tous les tests :
+
+flutter test
+
+6. Lancer sur le Pixel 10 :
+
+flutter run -d 58041FDCR00681
+
+TEST RÉEL CONSEILLÉ
+-------------------
+
+1. Terminer une première partie avec au moins une bonne réponse.
+2. Vérifier la ligne « Première réussite du jour » à +20 XP.
+3. Rejouer une partie réussie et vérifier que ce bonus ne revient pas.
+4. Rencontrer un pays encore inconnu et vérifier le bonus de +5 XP.
+5. Rejouer ce pays et vérifier que le bonus de découverte ne revient pas.
+6. Si un pays passe à « Maîtrisé », vérifier le bonus unique de +40 XP.
+7. Vérifier que toutes les parties donnent encore leur XP sans plafond.
+8. Vérifier que Passport, GeoBrain et les statistiques restent cohérents.
+
+PROCHAINE ÉTAPE
+---------------
+
+Brancher les défis, les missions d'expédition et les objectifs sur le registre
+XP, toujours sans achat d'XP ni avantage compétitif.

@@ -1,0 +1,79 @@
+GEOPOINT — POINT 28.9
+SYNCHRONISATION SÉCURISÉE DES RÉCOMPENSES
+
+Cette archive est cumulative. Elle contient toute la base validée du point 27
+et les étapes 28.1 à 28.9.
+
+Nouveautés
+==========
+
+- Les récompenses gagnées hors ligne possèdent maintenant un vrai protocole
+  de validation distante.
+- Chaque demande contient un identifiant permanent, la date du gain, le
+  meilleur score, le nombre de bonnes réponses, les tentatives et les relances
+  publicitaires utilisées.
+- Le serveur devra confirmer ou refuser chaque demande.
+- La récompense versée provient de la réponse autoritaire du serveur et non du
+  montant conservé sur l’appareil.
+- L’heure renvoyée par le serveur devient la nouvelle heure de confiance.
+- Le centre des défis affiche l’état de la synchronisation sous MES
+  RÉCOMPENSES.
+
+SÉCURITÉ
+========
+
+- Une panne réseau conserve toutes les récompenses en attente.
+- Une réponse incomplète, dupliquée ou liée à un identifiant inconnu est
+  ignorée intégralement.
+- Une récompense refusée est clôturée sans créditer le portefeuille.
+- Une récompense confirmée n’est versée qu’une seule fois, même après un
+  redémarrage ou une nouvelle synchronisation.
+- Une sauvegarde locale modifiée ne peut pas imposer le montant de la
+  récompense au serveur.
+
+BRANCHEMENT FUTUR
+=================
+
+Le moteur reste indépendant de l’hébergeur. Un point de connexion unique est
+prêt pour recevoir plus tard une implémentation Firebase, Supabase ou serveur
+personnel pour :
+
+- télécharger les packs publiés ;
+- récupérer l’heure serveur ;
+- valider les récompenses en attente.
+
+Aucun compte ni service payant n’est nécessaire pour tester cette étape. Tant
+que le serveur réel n’est pas connecté, les gains hors ligne restent simplement
+en attente comme auparavant.
+
+INSTALLATION ET TEST
+====================
+
+1. Décompresser l’archive dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+2. Accepter le remplacement des fichiers.
+3. Exécuter dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+PARCOURS À VÉRIFIER
+===================
+
+1. Ouvrir JOUER > DÉFIS.
+2. Terminer un défi sans serveur connecté.
+3. Revenir au centre des défis.
+4. Vérifier que MES RÉCOMPENSES indique que le gain sera validé à la prochaine
+   connexion.
+5. Vérifier que les pièces et diamants ne sont pas crédités avant validation.
+
+RÉSULTAT TECHNIQUE ATTENDU
+==========================
+
+- flutter analyze : No issues found!
+- flutter test : tous les tests réussissent.
+- Environ 249 tests sont présents, dont 77 consacrés aux défis.

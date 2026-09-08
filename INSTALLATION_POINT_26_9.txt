@@ -1,0 +1,94 @@
+GEOPOINT - POINT 26.9 : ÉCRAN GEOBRAIN
+--------------------------------------
+
+Cette version ajoute au Passeport un véritable tableau de bord pédagogique.
+Il présente ce que le joueur connaît aujourd'hui, les connaissances à
+consolider et la prochaine séance conseillée.
+
+ACCÈS
+-----
+
+Une nouvelle entrée GEOBRAIN apparaît dans le Passeport. Elle affiche le score
+de maîtrise conservée du joueur et ouvre l'écran complet.
+
+RÉSUMÉ GLOBAL
+-------------
+
+Le résumé indique :
+
+- la maîtrise globale conservée ;
+- le nombre de pays découverts ;
+- le nombre de pays maîtrisés ;
+- le nombre de connaissances à réviser ;
+- le taux de réussite réel.
+
+Le score tient compte de l'oubli progressif. Il ne supprime jamais les scores
+enregistrés et ne modifie aucune tentative.
+
+FORCES ET RÉVISIONS
+-------------------
+
+GeoBrain affiche les trois thèmes les plus solides du joueur. Les connaissances
+arrivées à révision sont présentées positivement dans la zone « À réviser ».
+Un bouton permet de lancer directement « Réviser mes difficultés ».
+
+PROGRESSION
+-----------
+
+L'écran contient :
+
+- une progression indépendante pour localisation, capitales, drapeaux,
+  silhouettes, villes, monnaies et langues ;
+- une progression pour l'Afrique, l'Amérique, l'Asie, l'Europe, l'Océanie et
+  les régions polaires ;
+- la prochaine séance recommandée par le moteur du point 26.8 ;
+- une explication positive de cette recommandation ;
+- les actions LANCER et IGNORER sans pénalité.
+
+DÉTAIL PAYS PAR PAYS
+--------------------
+
+Le détail complet est placé sur un second écran afin de ne pas surcharger le
+tableau de bord. Il permet :
+
+- de rechercher un pays ;
+- de filtrer uniquement les pays à réviser ;
+- de consulter le statut général et la maîtrise conservée ;
+- de voir les sept thèmes, leur score, leur nombre de tentatives et leur statut
+  lisible : Inconnu, Découvert, Fragile, En progression, Acquis ou Maîtrisé.
+
+SAUVEGARDE
+----------
+
+Cette étape ne modifie pas le schéma GeoBrain. L'écran lit les données déjà
+sauvegardées et ne crée aucune tentative à lui seul.
+
+INSTALLATION
+------------
+
+1. Fermer GeoPoint.
+
+2. Décompresser le ZIP dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+   en remplaçant les fichiers existants.
+
+3. Lancer dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found!
+- flutter test : 105 tests réussis
+- l'entrée GEOBRAIN apparaît dans le Passeport ;
+- l'écran affiche le résumé, les forces, les révisions, les thèmes et les
+  continents ;
+- une fiche pays donne accès aux sept maîtrises détaillées ;
+- lancer ou ignorer une suggestion ne modifie pas les scores hors tentative.

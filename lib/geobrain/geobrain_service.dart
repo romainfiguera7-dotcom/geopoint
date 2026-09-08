@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'country_mastery.dart';
+import 'geobrain_attempt.dart';
 import 'geobrain_profile.dart';
 import 'geobrain_storage.dart';
 
@@ -61,6 +62,18 @@ class GeoBrainService {
     );
   }
 
+  Future<void> registerAttempt(GeoBrainAttempt attempt) async {
+    _profile = _profile.registerAttempt(attempt);
+    await save();
+
+    final CountryMastery mastery = masteryFor(attempt.countryId);
+    debugPrint(
+      'GeoBrain : ${attempt.countryId} • ${attempt.theme.label} -> '
+      '${attempt.isCorrect ? "bonne réponse" : "mauvaise réponse"} '
+      '(${mastery.status.label}, ${mastery.generalScore.round()} %)',
+    );
+  }
+
   Future<void> toggleWishlist(
     String countryId,
   ) async {
@@ -98,6 +111,10 @@ class GeoBrainService {
       get countriesDueForReview {
     return _profile
         .countriesDueForReview;
+  }
+
+  List<CountryMastery> countriesDueForReviewAt(DateTime now) {
+    return _profile.countriesDueForReviewAt(now);
   }
 
   List<CountryMastery>

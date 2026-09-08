@@ -1,0 +1,56 @@
+GEOPOINT - POINT 26.3 : CALCUL INTELLIGENT DE LA MAÎTRISE
+---------------------------------------------------------
+
+Cette version remplace le score GeoBrain provisoire par une règle commune à
+tous les pays et territoires.
+
+LE NOUVEAU CALCUL PREND EN COMPTE
+---------------------------------
+
+- la récence : les réponses récentes comptent davantage ;
+- la régularité : plusieurs jours d'apprentissage valent mieux qu'une seule
+  longue série ;
+- les erreurs récentes : une erreur isolée est tolérée, une série fait baisser
+  la confiance ;
+- la quantité de preuves : une seule bonne réponse ne peut pas maîtriser un
+  élément ;
+- la difficulté : une réponse autonome en difficile ou expert confirme mieux ;
+- les aides : tutoriels, mode enfant et réponses assistées ont un poids limité ;
+- la progression existante : le schéma GeoBrain 3 conserve la base migrée des
+  anciennes versions.
+
+SEUILS COMMUNS
+--------------
+
+- Inconnu : aucune tentative ;
+- Découvert : moins de 25 % ;
+- Fragile : de 25 à moins de 45 % ;
+- En progression : de 45 à moins de 65 % ;
+- Acquis : de 65 à moins de 80 % ;
+- Maîtrisé : au moins 80 % et au moins 8 tentatives utiles.
+
+INSTALLATION
+------------
+
+1. Fermer GeoPoint.
+
+2. Décompresser le ZIP dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+   en remplaçant les fichiers existants.
+
+3. Lancer dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found!
+- flutter test : 67 tests réussis
+- la progression et les tampons existants sont conservés.

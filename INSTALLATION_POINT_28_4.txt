@@ -1,0 +1,71 @@
+GEOPOINT — POINT 28.4
+DÉFIS RÉELLEMENT JOUABLES
+
+Cette archive est cumulative. Elle contient toute la base validée du point 27
+et les étapes 28.1 à 28.4.
+
+Nouveautés
+==========
+
+- Le bouton JOUER CE DÉFI lance maintenant une vraie partie GeoPoint.
+- Le mode, la difficulté, le continent, les pays et le nombre de questions
+  proviennent directement du défi.
+- Pays, Capitales, Drapeaux, Mixte et Silhouettes sont pris en charge.
+- Les défis classés utilisent une sélection et une graine identiques afin de
+  conserver des questions comparables.
+- GeoBrain ne choisit le contenu que dans les défis personnels autorisés.
+- Les réponses sont enregistrées dans le Passeport avec la source Défi.
+
+Résultat
+========
+
+- Un nouvel écran vérifie les bonnes réponses, le score et la distance moyenne.
+- Une tentative échouée est sauvegardée sans récompense.
+- Une réussite est enregistrée et ne peut distribuer sa récompense qu’une fois.
+- Hors ligne, la récompense reste en attente de validation serveur.
+- L’historique et les cartes se mettent à jour au retour dans le centre.
+
+Recommencements
+===============
+
+- Le premier essai adulte est gratuit.
+- Après un échec, RECOMMENCER demande une publicité récompensée.
+- En mode debug, une fenêtre simule la publicité pour tester les relances
+  illimitées.
+- En production, aucune fausse publicité n’est accordée : le vrai branchement
+  AdMob sera ajouté avec les identifiants du compte publicitaire.
+- Un profil enfant conserve ses essais gratuits illimités et sans publicité.
+
+Installation et test
+====================
+
+1. Décompresser l’archive dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+2. Accepter le remplacement des fichiers.
+3. Exécuter dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+Parcours à vérifier
+===================
+
+1. Ouvrir JOUER > DÉFIS.
+2. Ouvrir le défi du jour puis JOUER CE DÉFI.
+3. Terminer les questions et appuyer sur CONTINUER.
+4. Vérifier l’écran DÉFI RÉUSSI ou PRESQUE.
+5. En cas d’échec, choisir RECOMMENCER puis TERMINER LA PUB.
+6. Vérifier qu’une nouvelle partie démarre.
+7. Revenir au centre et vérifier l’état de la carte.
+
+Résultat technique attendu
+==========================
+
+- flutter analyze : No issues found!
+- flutter test : tous les tests réussissent.
+- Environ 215 tests sont présents, dont 43 consacrés aux défis et 1 à la
+  graine de questions classées.

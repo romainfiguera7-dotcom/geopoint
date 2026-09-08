@@ -39,7 +39,7 @@ class NationalExplorationsScreen extends StatelessWidget {
                         icon: Icons.flag_rounded,
                         title: 'France',
                         subtitle:
-                            '9 étapes • régions, villes, fleuves, reliefs et monuments',
+                            '8 étapes • régions, villes et monuments',
                         color: const Color(0xFF5AD7FF),
                         badge: 'PILOTE',
                         large: true,

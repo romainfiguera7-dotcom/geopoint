@@ -1,0 +1,27 @@
+GEOPOINT — POINT 29.6 — ANTI-TRICHE ET QUARANTAINE
+
+Cette archive s'installe après le point 29.5 corrigé V2.
+Elle ne remplace aucun fichier Flutter : aucun dart format n'est nécessaire.
+
+Dans PowerShell :
+
+cd D:\romai\GEOPOINT\geopoint
+
+Expand-Archive `
+"$env:USERPROFILE\Downloads\geopoint_point_29_6_antitriche.zip" `
+"D:\romai\GEOPOINT\geopoint" -Force
+
+flutter analyze
+flutter test
+npm --prefix functions run check
+firebase deploy --only "firestore:rules,firestore:indexes,functions"
+flutter run
+
+Résultat attendu :
+
+- tous les tests Flutter passent ;
+- 24 tests serveur passent ;
+- submitRankedResults est mise à jour dans europe-west1 ;
+- une tentative normale reste validée et peut améliorer ranking_records ;
+- une tentative suspecte serait enregistrée dans ranking_reviews sans modifier
+  le meilleur score.

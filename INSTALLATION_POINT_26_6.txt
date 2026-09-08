@@ -1,0 +1,68 @@
+GEOPOINT - POINT 26.6 : SÉLECTION PERSONNALISÉE DES QUESTIONS
+------------------------------------------------------------
+
+Cette version utilise les connaissances réelles du joueur pour composer chaque
+mission GeoBrain, tout en respectant la zone, le mode, la difficulté et le
+nombre de questions choisis.
+
+SÉLECTION ÉQUILIBRÉE
+--------------------
+
+- priorité aux connaissances fragiles, oubliées ou arrivées à révision ;
+- au maximum trois révisions prioritaires dans une partie normale lorsque le
+  catalogue permet de proposer autre chose ;
+- quelques connaissances maîtrisées reviennent pour vérifier leur conservation ;
+- la part de nouveautés diminue progressivement à mesure que le joueur découvre
+  le catalogue ;
+- les questions sont mélangées avant leur présentation ;
+- les douze derniers pays sélectionnés sont temporairement évités lorsque le
+  catalogue contient assez d'alternatives.
+
+RÉVISER MES DIFFICULTÉS
+-----------------------
+
+Une nouvelle carte RÉVISER est disponible dans le Passeport. Elle ouvre une
+séance personnalisée dans laquelle environ 70 % des questions ciblent les
+fragilités et révisions nécessaires. Le reste permet de confirmer quelques
+acquis et d'introduire progressivement des nouveautés.
+
+Le joueur conserve le choix :
+
+- de la zone géographique ;
+- du thème Pays, Capitales, Drapeaux ou Mixte ;
+- de la difficulté ;
+- de 10, 20, 30 ou 50 questions.
+
+SAUVEGARDE
+----------
+
+Cette étape ne modifie pas le schéma GeoBrain. Les scores, historiques,
+calendriers de révision, pays visités et listes personnelles existants sont
+conservés.
+
+INSTALLATION
+------------
+
+1. Fermer GeoPoint.
+
+2. Décompresser le ZIP dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+   en remplaçant les fichiers existants.
+
+3. Lancer dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found!
+- flutter test : 86 tests réussis
+- le Passeport affiche la carte RÉVISER ;
+- deux profils aux difficultés différentes reçoivent des sélections différentes.

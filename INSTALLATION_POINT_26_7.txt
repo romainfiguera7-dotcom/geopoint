@@ -1,0 +1,82 @@
+GEOPOINT - POINT 26.7 : DIFFICULTÉ ÉVOLUTIVE
+-------------------------------------------
+
+Cette version ajoute une difficulté ADAPTATIVE aux entraînements et aux
+séances « Réviser mes difficultés ». Elle est sélectionnée par défaut, mais le
+joueur peut toujours choisir manuellement Facile, Normal, Difficile ou Expert.
+
+CHOIX DU NIVEAU
+---------------
+
+GeoBrain analyse séparément le thème et la zone géographique choisis :
+
+- au maximum les 12 réponses utiles les plus récentes sont prises en compte ;
+- un nouveau joueur commence en Facile ;
+- au moins 6 réponses sont nécessaires avant une première augmentation ;
+- des réussites régulières et non assistées font monter d'un seul palier ;
+- trois erreurs consécutives rapprochent temporairement les repères en faisant
+  redescendre la séance suivante d'un palier ;
+- les réponses données avec une aide ne comptent que partiellement ;
+- les tutoriels et le futur mode enfant ne modifient pas le niveau du profil
+  principal.
+
+RÈGLES ÉVOLUTIVES
+-----------------
+
+Quand le niveau augmente :
+
+- le repère continental du mode Facile disparaît à partir du niveau Normal ;
+- la carte démarre sur une vue mondiale plus large et sans ciblage ;
+- le temps passe progressivement de 20 à 17, 14 puis 10 secondes ;
+- la précision demandée pour les capitales passe de 220 à 150, 90 puis 50 km ;
+- les catalogues Difficile et Expert peuvent proposer des éléments plus fins.
+
+Quand plusieurs erreurs récentes sont détectées, GeoBrain revient
+temporairement à un niveau plus accessible. Les nouvelles réussites permettent
+ensuite de remonter naturellement.
+
+INFORMATION DU JOUEUR
+---------------------
+
+Avant une séance adaptative, une fenêtre indique :
+
+- le niveau choisi par GeoBrain ;
+- la raison de cette proposition ;
+- le ciblage, le temps et la précision applicables ;
+- que ces règles resteront fixes jusqu'à la fin de la séance.
+
+Le bouton MODIFIER permet de revenir au choix manuel sans pénalité.
+
+SAUVEGARDE
+----------
+
+Cette étape ne modifie pas le schéma de sauvegarde. Elle exploite l'historique
+GeoBrain déjà enregistré par les étapes précédentes.
+
+INSTALLATION
+------------
+
+1. Fermer GeoPoint.
+
+2. Décompresser le ZIP dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+   en remplaçant les fichiers existants.
+
+3. Lancer dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found!
+- flutter test : 94 tests réussis
+- l'entraînement propose ADAPTATIVE par défaut ;
+- le niveau et les règles sont affichés avant le lancement ;
+- les règles ne changent jamais au milieu d'une séance.

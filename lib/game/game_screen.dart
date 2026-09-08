@@ -8,20 +8,34 @@ import '../features/atlas/atlas_personal_progress.dart';
 import '../features/atlas/atlas_personal_storage.dart';
 import '../features/design/geopoint_design.dart';
 import '../features/passport/passport_country_stamp_view.dart';
+import '../features/passport/passport_major_level_up_overlay.dart';
 import '../geo_engine/country_info.dart';
 import '../geo_engine/country_info_loader.dart';
 import '../geo_engine/flag_emoji.dart';
 import '../geo_engine/geo_country.dart';
 import '../geo_engine/geopoint_map.dart';
+import '../monetization/interstitial_ad_service.dart';
+import '../passport/achievements/passport_achievement.dart';
+import '../passport/achievements/passport_achievement_catalog.dart';
+import '../passport/achievements/passport_achievement_progress.dart';
+import '../passport/achievements/passport_achievement_snapshot_builder.dart';
+import '../passport/achievements/passport_achievement_storage.dart';
+import '../passport/collections/passport_collection_item.dart';
+import '../passport/notifications/passport_progress_notification.dart';
+import '../passport/progress/passport_progress_v2.dart';
 import '../passport/progress/passport_stamp_unlock_event.dart';
+import '../passport/progression/passport_major_level_up.dart';
 import '../passport/settings/passport_display_preferences.dart';
 import '../passport/settings/passport_display_preferences_storage.dart';
+import '../player/level_result.dart';
+import '../player/player_profile.dart';
 import 'continent/continent_expedition.dart';
 import 'continent/continent_progress.dart';
 import 'continent/continent_storage.dart';
 import 'expedition/expedition_progress.dart';
 import 'expedition/expedition_storage.dart';
 import 'game_controller.dart';
+import 'game_play_result.dart';
 import 'game_question.dart';
 import 'learning/guided_level.dart';
 import 'passport/passport_result.dart';
@@ -41,6 +55,14 @@ class GameScreen extends StatefulWidget {
     this.trainingQuestionCount = 10,
     this.trainingRegionId = 'world',
     this.completeTraining = false,
+    this.reviewDifficultiesOnly = false,
+    this.trainingCountryIds,
+    this.isChallenge = false,
+    this.challengeId,
+    this.challengeQuestionCount,
+    this.challengeRegionId = 'world',
+    this.challengeCountryIds,
+    this.challengeGeoBrainPersonalizationAllowed = false,
     super.key,
   });
 
@@ -65,6 +87,14 @@ class GameScreen extends StatefulWidget {
   final int trainingQuestionCount;
   final String trainingRegionId;
   final bool completeTraining;
+  final bool reviewDifficultiesOnly;
+  final Set<String>? trainingCountryIds;
+  final bool isChallenge;
+  final String? challengeId;
+  final int? challengeQuestionCount;
+  final String challengeRegionId;
+  final Set<String>? challengeCountryIds;
+  final bool challengeGeoBrainPersonalizationAllowed;
 
   @override
   State<GameScreen> createState() {
@@ -76,8 +106,9 @@ class _GameScreenState extends State<GameScreen> {
   late final GameController _controller;
 
   bool _showGameOverPanel = false;
-  bool _isResultPanelCollapsed = false;
+  bool _isResultPanelCollapsed = true;
   bool _missionProgressSaved = false;
+  bool _advertisementCounted = false;
   int _previousMissionRecord = 0;
   bool _missionRecordLoaded = false;
   Map<String, CountryInfo> _countryInfos =
@@ -90,7 +121,18 @@ class _GameScreenState extends State<GameScreen> {
   Timer? _stampUnlockOverlayTimer;
   PassportStampUnlockEvent? _stampUnlockOverlayEvent;
   bool _stampAnimationsEnabled = true;
+  bool _majorLevelAnimationsEnabled = true;
   int _handledStampUnlockSequence = 0;
+  late final PassportProgressV2 _progressAtGameStart;
+  late final PlayerProfile _profileAtGameStart;
+  late final int _licenseIdAtGameStart;
+  ExpeditionProgress _expeditionAtGameStart = ExpeditionProgress.initial();
+  ContinentProgress _continentAtGameStart = ContinentProgress.initial();
+  PassportAchievementProgress _achievementsAtGameStart =
+      PassportAchievementProgress.initial();
+  Future<void>? _notificationBaselineFuture;
+  PassportProgressNotificationBatch? _progressNotificationBatch;
+  PassportMajorLevelUp? _majorLevelUp;
 
   @override
   void initState() {
@@ -106,13 +148,26 @@ class _GameScreenState extends State<GameScreen> {
     final ContinentLevel? continentLevel =
         widget.continentLevel;
 
-    if (widget.isTraining) {
+    if (widget.isChallenge) {
+      _controller.startChallengeMission(
+        challengeId: widget.challengeId ?? 'challenge',
+        difficultyId: widget.difficultyId,
+        modeId: widget.modeId,
+        questionCount: widget.challengeQuestionCount ?? 10,
+        regionId: widget.challengeRegionId,
+        allowedCountryIds: widget.challengeCountryIds,
+        geoBrainPersonalizationAllowed:
+            widget.challengeGeoBrainPersonalizationAllowed,
+      );
+    } else if (widget.isTraining) {
       _controller.startTrainingMission(
         difficultyId: widget.difficultyId,
         modeId: widget.modeId,
         questionCount: widget.trainingQuestionCount,
         regionId: widget.trainingRegionId,
         completeRegion: widget.completeTraining,
+        reviewDifficultiesOnly: widget.reviewDifficultiesOnly,
+        allowedCountryIds: widget.trainingCountryIds,
       );
     } else if (guidedLevel != null) {
       _controller.startGuidedMission(
@@ -133,6 +188,10 @@ class _GameScreenState extends State<GameScreen> {
 
     _showGameOverPanel = false;
     _missionProgressSaved = false;
+    _progressAtGameStart = _controller.passportProgress;
+    _profileAtGameStart = _controller.playerProfile;
+    _licenseIdAtGameStart = _controller.passport.currentLicenseId;
+    _notificationBaselineFuture = _loadProgressNotificationBaseline();
 
     unawaited(
       _loadMissionRecord(),
@@ -156,8 +215,42 @@ class _GameScreenState extends State<GameScreen> {
 
   }
 
+  Future<void> _loadProgressNotificationBaseline() async {
+    final List<Object> values = await Future.wait<Object>(<Future<Object>>[
+      PassportAchievementStorage.load(),
+      ExpeditionStorage.load(),
+      ContinentStorage.load(),
+    ]);
+    _expeditionAtGameStart = values[1] as ExpeditionProgress;
+    _continentAtGameStart = values[2] as ContinentProgress;
+
+    final PassportAchievementSnapshot initialSnapshot =
+        PassportAchievementSnapshotBuilder.build(
+      progress: _progressAtGameStart,
+      profile: _profileAtGameStart,
+      countries: _controller.countries,
+      expeditionProgress: _expeditionAtGameStart,
+      continentProgress: _continentAtGameStart,
+    );
+    final PassportAchievementProgress loaded =
+        (values[0] as PassportAchievementProgress).mergeCompletedTierDates(
+      _progressAtGameStart.completedAchievementTierDates,
+    );
+    _achievementsAtGameStart = loaded.synchronize(snapshot: initialSnapshot);
+    await _controller.ensureAchievementXpBaseline(
+      _achievementsAtGameStart.completedAtByTierId.keys,
+    );
+    if (!identical(loaded, _achievementsAtGameStart)) {
+      await _controller.synchronizePassportAchievementProgress(
+        _achievementsAtGameStart,
+      );
+    }
+  }
+
   Future<void> _loadMissionRecord() async {
-    if (widget.guidedLevel != null || widget.isTraining) {
+    if (widget.guidedLevel != null ||
+        widget.isTraining ||
+        widget.isChallenge) {
       _missionRecordLoaded = true;
       return;
     }
@@ -253,6 +346,13 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  Future<void> _toggleAtlasFavorite(GeoCountry country) async {
+    await _saveAtlasProgress(
+      country,
+      _atlasProgress.toggleFavorite(country.id),
+    );
+  }
+
   Future<void> _saveAtlasProgress(
     GeoCountry country,
     AtlasPersonalProgress next,
@@ -268,6 +368,10 @@ class _GameScreenState extends State<GameScreen> {
     });
 
     final bool saved = await AtlasPersonalStorage.save(next);
+
+    if (saved) {
+      await _controller.synchronizePassportPersonalProgress(next);
+    }
 
     if (!mounted) {
       return;
@@ -317,6 +421,8 @@ class _GameScreenState extends State<GameScreen> {
 
       setState(() {
         _stampAnimationsEnabled = preferences.stampAnimationsEnabled;
+        _majorLevelAnimationsEnabled =
+            preferences.majorLevelAnimationsEnabled;
       });
     } on Object catch (_) {
       // Une préférence illisible ne doit jamais empêcher de jouer.
@@ -390,6 +496,10 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
 
+    // La correction s'ouvre d'abord sous forme compacte afin de laisser la
+    // carte cadrer immédiatement le point choisi et la réponse attendue.
+    _isResultPanelCollapsed = true;
+
     _controller.submitAnswer(
       selectedPoint: selectedPoint,
       selectedCountry: selectedCountry,
@@ -398,14 +508,170 @@ class _GameScreenState extends State<GameScreen> {
     _pendingSelectedPoint = null;
   }
 
+  PassportCollectionSnapshot _collectionSnapshot({
+    required PassportProgressV2 progress,
+    required PlayerProfile profile,
+    required PassportAchievementSnapshot achievementSnapshot,
+    required int licenseId,
+  }) {
+    return PassportCollectionSnapshot(
+      playerLevel: profile.currentLevel,
+      discoveredEntities: progress.discoveredEntityCount,
+      masteredEntities: progress.masteredEntityCount,
+      countryStamps: progress.unlockedCountryStampCount,
+      visitedEntities: progress.visitedEntityCount,
+      gamesPlayed: profile.gamesPlayed,
+      questionsPlayed: profile.totalAnswers,
+      expeditionStars: achievementSnapshot.valueFor(
+        PassportAchievementMetric.expeditionStars,
+      ),
+      completedExpeditionLevels: achievementSnapshot.valueFor(
+        PassportAchievementMetric.completedExpeditionLevels,
+      ),
+      currentLicenseId: licenseId,
+      explicitlyUnlockedItemIds: progress.unlockedCollectionItemIds,
+    );
+  }
+
+  Future<PassportProgressNotificationBatch>
+      _prepareProgressNotifications() async {
+    try {
+      await _notificationBaselineFuture;
+      await _controller.waitForPassportProgressSynchronization();
+
+      final List<Object> values = await Future.wait<Object>(<Future<Object>>[
+        ExpeditionStorage.load(),
+        ContinentStorage.load(),
+      ]);
+      final ExpeditionProgress currentExpedition =
+          values[0] as ExpeditionProgress;
+      final ContinentProgress currentContinent =
+          values[1] as ContinentProgress;
+      final PassportProgressV2 progressBeforeRewards =
+          _controller.passportProgress;
+      PlayerProfile currentProfile = _controller.playerProfile;
+
+      final PassportAchievementSnapshot beforeAchievementSnapshot =
+          PassportAchievementSnapshotBuilder.build(
+        progress: _progressAtGameStart,
+        profile: _profileAtGameStart,
+        countries: _controller.countries,
+        expeditionProgress: _expeditionAtGameStart,
+        continentProgress: _continentAtGameStart,
+      );
+      final PassportAchievementSnapshot afterAchievementSnapshot =
+          PassportAchievementSnapshotBuilder.build(
+        progress: progressBeforeRewards,
+        profile: currentProfile,
+        countries: _controller.countries,
+        expeditionProgress: currentExpedition,
+        continentProgress: currentContinent,
+      );
+      final PassportAchievementProgress updatedAchievements =
+          _achievementsAtGameStart.synchronize(
+        snapshot: afterAchievementSnapshot,
+      );
+
+      final Set<String> newTierIds = updatedAchievements
+          .newlyCompletedTierIdsComparedWith(_achievementsAtGameStart);
+      await _controller.registerAchievementCompletions(
+        tierIds: newTierIds,
+      );
+      currentProfile = _controller.playerProfile;
+
+      if (!identical(_achievementsAtGameStart, updatedAchievements)) {
+        await _controller.synchronizePassportAchievementProgress(
+          updatedAchievements,
+        );
+      }
+
+      final Map<String, PassportAchievementTier> tiersById =
+          <String, PassportAchievementTier>{
+        for (final PassportAchievementTier tier
+            in PassportAchievementCatalog.allTiers())
+          tier.id.toLowerCase(): tier,
+      };
+      for (final String tierId in newTierIds) {
+        final String? rewardItemId = tiersById[tierId]?.rewardItemId;
+        if (rewardItemId != null) {
+          await _controller.unlockPassportCollectionItem(rewardItemId);
+        }
+      }
+      await _controller.waitForPassportProgressSynchronization();
+
+      final PassportProgressV2 currentProgress =
+          _controller.passportProgress;
+      final PassportCollectionSnapshot beforeCollections =
+          _collectionSnapshot(
+        progress: _progressAtGameStart,
+        profile: _profileAtGameStart,
+        achievementSnapshot: beforeAchievementSnapshot,
+        licenseId: _licenseIdAtGameStart,
+      );
+      final PassportCollectionSnapshot afterCollections =
+          _collectionSnapshot(
+        progress: currentProgress,
+        profile: currentProfile,
+        achievementSnapshot: afterAchievementSnapshot,
+        licenseId: _controller.passport.currentLicenseId,
+      );
+
+      return PassportProgressNotificationBuilder.build(
+        beforeProgress: _progressAtGameStart,
+        afterProgress: currentProgress,
+        beforeProfile: _profileAtGameStart,
+        afterProfile: currentProfile,
+        beforeCollections: beforeCollections,
+        afterCollections: afterCollections,
+        beforeAchievements: _achievementsAtGameStart,
+        afterAchievements: updatedAchievements,
+        countries: _controller.countries,
+      );
+    } on Object catch (error, stackTrace) {
+      debugPrint(
+        'GeoPoint : préparation des notifications impossible : $error',
+      );
+      debugPrintStack(stackTrace: stackTrace);
+      return PassportProgressNotificationBatch.fromItems(
+        const <PassportProgressNotification>[],
+      );
+    }
+  }
+
   Future<void> _handleNextQuestion() async {
     _pendingSelectedPoint = null;
-    _isResultPanelCollapsed = false;
+    _isResultPanelCollapsed = true;
 
     if (_controller.session.isLastQuestion &&
         _controller.hasAnswered) {
       if (widget.guidedLevel == null && !widget.isTraining) {
-        await _saveMissionProgress();
+        await _controller.waitForCurrentGameCompletion();
+
+        if (!mounted) {
+          return;
+        }
+
+        if (!widget.isChallenge) {
+          await _saveMissionProgress();
+        }
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      PassportProgressNotificationBatch? notificationBatch;
+      PassportMajorLevelUp? majorLevelUp;
+      if (widget.guidedLevel == null && !widget.isTraining) {
+        final PassportProgressNotificationBatch prepared =
+            await _prepareProgressNotifications();
+        if (prepared.isNotEmpty) {
+          notificationBatch = prepared;
+        }
+        majorLevelUp = PassportMajorLevelUp.between(
+          beforeProfile: _profileAtGameStart,
+          afterProfile: _controller.playerProfile,
+        );
       }
 
       if (!mounted) {
@@ -414,6 +680,8 @@ class _GameScreenState extends State<GameScreen> {
 
       setState(() {
         _showGameOverPanel = true;
+        _progressNotificationBatch = notificationBatch;
+        _majorLevelUp = majorLevelUp;
       });
 
       return;
@@ -492,12 +760,17 @@ class _GameScreenState extends State<GameScreen> {
         expeditionId: continentExpeditionId,
         levelId: continentLevel.id,
       );
+      final int previousStars = currentProgress.starsFor(
+        expeditionId: continentExpeditionId,
+        levelId: continentLevel.id,
+      );
+      final int earnedStars = _calculateEarnedStars();
 
       final ContinentProgress updatedProgress =
           currentProgress.registerLevelResult(
         expeditionId: continentExpeditionId,
         levelId: continentLevel.id,
-        stars: _calculateEarnedStars(),
+        stars: earnedStars,
         score: _controller.session.totalScore,
       );
 
@@ -509,6 +782,14 @@ class _GameScreenState extends State<GameScreen> {
       if (!saved) {
         _missionProgressSaved = false;
         return;
+      }
+
+      if (previousStars < 1 && earnedStars >= 1) {
+        await _controller.registerExpeditionMissionCompletion(
+          expeditionId: continentExpeditionId,
+          missionId: continentLevel.id,
+          isExam: continentLevel.isExam || continentLevel.isMaster,
+        );
       }
 
       if (mounted) {
@@ -529,6 +810,11 @@ class _GameScreenState extends State<GameScreen> {
       difficultyId: widget.difficultyId,
       missionId: widget.modeId,
     );
+    final int previousStars = currentProgress.starsFor(
+      difficultyId: widget.difficultyId,
+      missionId: widget.modeId,
+    );
+    final int earnedStars = _calculateEarnedStars();
 
     final ExpeditionProgress updatedProgress =
         currentProgress.registerMissionResult(
@@ -537,7 +823,7 @@ class _GameScreenState extends State<GameScreen> {
       missionId:
           widget.modeId,
       stars:
-          _calculateEarnedStars(),
+          earnedStars,
       score:
           _controller.session.totalScore,
     );
@@ -552,6 +838,13 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
 
+    if (previousStars < 1 && earnedStars >= 1) {
+      await _controller.registerExpeditionMissionCompletion(
+        expeditionId: 'classic-${widget.difficultyId}',
+        missionId: widget.modeId,
+      );
+    }
+
     if (mounted) {
       setState(() {
         _previousMissionRecord =
@@ -561,13 +854,37 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  void _handleBackToHome() {
-    Navigator.of(context).pop();
+  Future<void> _handleBackToHome() async {
+    if (!_advertisementCounted &&
+        _showGameOverPanel &&
+        (widget.isTraining || widget.continentLevel != null)) {
+      _advertisementCounted = true;
+      await InterstitialAdService.instance.registerCompletedGame();
+      if (!mounted) return;
+    }
+    if (!widget.isChallenge) {
+      Navigator.of(context).pop();
+      return;
+    }
+    Navigator.of(context).pop<GamePlayResult>(
+      GamePlayResult(
+        totalScore: _controller.session.totalScore,
+        correctAnswers: _controller.correctAnswers,
+        totalQuestions: _controller.session.totalQuestions,
+        averageDistanceInKilometers:
+            _controller.averageDistanceInKilometers,
+        totalElapsedSeconds: _controller.totalElapsedSeconds,
+        answerEvidence: _controller.currentChallengeAnswerEvidence,
+      ),
+    );
   }
 
   String _expeditionLabel(
     String difficultyId,
   ) {
+    if (widget.isChallenge) {
+      return 'Défi';
+    }
     if (widget.completeTraining) {
       return 'Parcours complet';
     }
@@ -849,6 +1166,10 @@ class _GameScreenState extends State<GameScreen> {
                                 : _atlasProgress.statusFor(
                                     _controller.answerCountry!.id,
                                   ),
+                        countryFavorite: _controller.answerCountry != null &&
+                            _atlasProgress.isFavorite(
+                              _controller.answerCountry!.id,
+                            ),
                         isSavingCountry:
                             _controller.answerCountry != null &&
                                 _isSavingAtlasCountry,
@@ -862,6 +1183,12 @@ class _GameScreenState extends State<GameScreen> {
                             _controller.answerCountry == null
                                 ? null
                                 : () => _toggleAtlasWishlist(
+                                      _controller.answerCountry!,
+                                    ),
+                        onToggleFavorite:
+                            _controller.answerCountry == null
+                                ? null
+                                : () => _toggleAtlasFavorite(
                                       _controller.answerCountry!,
                                     ),
                         isLastQuestion:
@@ -922,6 +1249,10 @@ class _GameScreenState extends State<GameScreen> {
                           : _atlasProgress.statusFor(
                               _controller.answerCountry!.id,
                             ),
+                  countryFavorite: _controller.answerCountry != null &&
+                      _atlasProgress.isFavorite(
+                        _controller.answerCountry!.id,
+                      ),
                   isSavingCountry:
                       _controller.answerCountry != null &&
                           _isSavingAtlasCountry,
@@ -935,6 +1266,12 @@ class _GameScreenState extends State<GameScreen> {
                       _controller.answerCountry == null
                           ? null
                           : () => _toggleAtlasWishlist(
+                                _controller.answerCountry!,
+                              ),
+                  onToggleFavorite:
+                      _controller.answerCountry == null
+                          ? null
+                          : () => _toggleAtlasFavorite(
                                 _controller.answerCountry!,
                               ),
                   isLastQuestion:
@@ -1000,14 +1337,17 @@ class _GameScreenState extends State<GameScreen> {
                               .lastLevelResult
                               ?.earnedXp ??
                           0,
+                  xpRewards:
+                      _controller.lastLevelResult?.rewardBreakdown ??
+                          const <PlayerXpRewardSummary>[],
                   playerLevel:
                       _controller
                           .playerProfile
-                          .currentLevel,
+                          .majorLevel,
                   playerTitle:
                       _controller
                           .playerProfile
-                          .title,
+                          .displayLevelTitle,
                   levelProgress:
                       _controller
                           .playerProfile
@@ -1024,6 +1364,8 @@ class _GameScreenState extends State<GameScreen> {
                       _toggleAtlasVisited,
                   onToggleWishlist:
                       _toggleAtlasWishlist,
+                  onToggleFavorite:
+                      _toggleAtlasFavorite,
                   onBackToHome:
                       _handleBackToHome,
                       ),
@@ -1038,6 +1380,27 @@ class _GameScreenState extends State<GameScreen> {
                       stampUnlockCountry.id,
                     ),
                   ),
+                ),
+              ),
+
+            if (_progressNotificationBatch != null)
+              Positioned.fill(
+                child: _ProgressNotificationOverlay(
+                  batch: _progressNotificationBatch!,
+                  onContinue: () {
+                    setState(() => _progressNotificationBatch = null);
+                  },
+                ),
+              ),
+
+            if (_majorLevelUp != null)
+              Positioned.fill(
+                child: PassportMajorLevelUpOverlay(
+                  transition: _majorLevelUp!,
+                  animationsEnabled: _majorLevelAnimationsEnabled,
+                  onContinue: () {
+                    setState(() => _majorLevelUp = null);
+                  },
                 ),
               ),
           ],
@@ -1305,9 +1668,11 @@ class _TutorialResultPanel
     required this.answerCountry,
     required this.answerCapitalName,
     required this.countryStatus,
+    required this.countryFavorite,
     required this.isSavingCountry,
     required this.onToggleVisited,
     required this.onToggleWishlist,
+    required this.onToggleFavorite,
     required this.isLastQuestion,
     required this.onNext,
   });
@@ -1317,9 +1682,11 @@ class _TutorialResultPanel
   final GeoCountry? answerCountry;
   final String? answerCapitalName;
   final AtlasCountryStatus countryStatus;
+  final bool countryFavorite;
   final bool isSavingCountry;
   final VoidCallback? onToggleVisited;
   final VoidCallback? onToggleWishlist;
+  final VoidCallback? onToggleFavorite;
   final bool isLastQuestion;
   final VoidCallback onNext;
 
@@ -1404,12 +1771,15 @@ class _TutorialResultPanel
           const SizedBox(height: 13),
           if (answerCountry != null &&
               onToggleVisited != null &&
-              onToggleWishlist != null) ...<Widget>[
+              onToggleWishlist != null &&
+              onToggleFavorite != null) ...<Widget>[
             _GameTravelActions(
               status: countryStatus,
+              favorite: countryFavorite,
               busy: isSavingCountry,
               onToggleVisited: onToggleVisited!,
               onToggleWishlist: onToggleWishlist!,
+              onToggleFavorite: onToggleFavorite!,
             ),
             const SizedBox(height: 10),
           ],
@@ -1435,6 +1805,54 @@ class _TutorialResultPanel
   }
 }
 
+class _CompactAnswerLabel extends StatelessWidget {
+  const _CompactAnswerLabel({
+    required this.eyebrow,
+    required this.flag,
+    required this.name,
+    required this.color,
+    this.alignEnd = false,
+  });
+
+  final String eyebrow;
+  final String flag;
+  final String name;
+  final Color color;
+  final bool alignEnd;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment:
+          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          eyebrow,
+          maxLines: 1,
+          style: TextStyle(
+            color: color.withValues(alpha: 0.82),
+            fontSize: 9,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.45,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          '${flag.isEmpty ? '' : '$flag '}$name',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: alignEnd ? TextAlign.end : TextAlign.start,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ResultPanel extends StatelessWidget {
   const _ResultPanel({
     required this.modeId,
@@ -1452,9 +1870,11 @@ class _ResultPanel extends StatelessWidget {
     required this.answerOfficialCapitalName,
     required this.usesReferenceOverride,
     required this.countryStatus,
+    required this.countryFavorite,
     required this.isSavingCountry,
     required this.onToggleVisited,
     required this.onToggleWishlist,
+    required this.onToggleFavorite,
     required this.isLastQuestion,
     required this.isCollapsed,
     required this.onToggleCollapsed,
@@ -1480,9 +1900,11 @@ class _ResultPanel extends StatelessWidget {
 
   final bool usesReferenceOverride;
   final AtlasCountryStatus countryStatus;
+  final bool countryFavorite;
   final bool isSavingCountry;
   final VoidCallback? onToggleVisited;
   final VoidCallback? onToggleWishlist;
+  final VoidCallback? onToggleFavorite;
   final bool isLastQuestion;
   final bool isCollapsed;
 
@@ -1543,6 +1965,15 @@ class _ResultPanel extends StatelessWidget {
     final String selectedCountryName =
         selectedCountry?.displayNameWithFlag ??
             '🌊 Océan';
+
+    final String compactSelectedCountryName =
+        selectedCountry?.name.trim().isNotEmpty == true
+            ? selectedCountry!.name.trim()
+            : 'Océan';
+
+    final String selectedFlag = FlagEmoji.fromIsoA2(
+      selectedCountry?.isoA2 ?? '',
+    );
 
     final String infoTitle =
         countryInfo?.title.trim() ?? '';
@@ -1628,12 +2059,7 @@ class _ResultPanel extends StatelessWidget {
           constraints: const BoxConstraints(
             maxWidth: 520,
           ),
-          padding: const EdgeInsets.fromLTRB(
-            12,
-            8,
-            10,
-            10,
-          ),
+          padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
           decoration: BoxDecoration(
             color: GeoColors.navy.withValues(alpha: 0.94),
             borderRadius:
@@ -1683,19 +2109,6 @@ class _ResultPanel extends StatelessWidget {
                                 FontWeight.w900,
                           ),
                         ),
-                        const SizedBox(height: 1),
-                        Text(
-                          '${flag.isEmpty ? '' : '$flag '}$countryName',
-                          maxLines: 1,
-                          overflow:
-                              TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight:
-                                FontWeight.w700,
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -1719,7 +2132,89 @@ class _ResultPanel extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 7),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.07),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: resultColor.withValues(alpha: 0.24),
+                  ),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: _CompactAnswerLabel(
+                        eyebrow: isCorrect ? 'TA RÉPONSE' : 'TON CHOIX',
+                        flag: selectedFlag,
+                        name: compactSelectedCountryName,
+                        color: isCorrect
+                            ? const Color(0xFF80ED99)
+                            : const Color(0xFFFFD166),
+                      ),
+                    ),
+                    if (distanceText.isNotEmpty) ...<Widget>[
+                      const SizedBox(width: 7),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: GeoColors.blue.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: GeoColors.sky.withValues(alpha: 0.48),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            const Icon(
+                              Icons.straighten_rounded,
+                              color: GeoColors.sky,
+                              size: 15,
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              distanceText,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 7),
+                    ] else
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 7),
+                        child: Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white54,
+                          size: 19,
+                        ),
+                      ),
+                    Expanded(
+                      child: _CompactAnswerLabel(
+                        eyebrow: 'RÉPONSE',
+                        flag: flag,
+                        name: countryName,
+                        color: const Color(0xFF80ED99),
+                        alignEnd: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
@@ -2141,13 +2636,16 @@ class _ResultPanel extends StatelessWidget {
 
             if (answerCountry != null &&
                 onToggleVisited != null &&
-                onToggleWishlist != null) ...<Widget>[
+                onToggleWishlist != null &&
+                onToggleFavorite != null) ...<Widget>[
               const SizedBox(height: 10),
               _GameTravelActions(
                 status: countryStatus,
+                favorite: countryFavorite,
                 busy: isSavingCountry,
                 onToggleVisited: onToggleVisited!,
                 onToggleWishlist: onToggleWishlist!,
+                onToggleFavorite: onToggleFavorite!,
               ),
             ],
 
@@ -2262,39 +2760,59 @@ class _ResultPanel extends StatelessWidget {
 class _GameTravelActions extends StatelessWidget {
   const _GameTravelActions({
     required this.status,
+    required this.favorite,
     required this.busy,
     required this.onToggleVisited,
     required this.onToggleWishlist,
+    required this.onToggleFavorite,
   });
 
   final AtlasCountryStatus status;
+  final bool favorite;
   final bool busy;
   final VoidCallback onToggleVisited;
   final VoidCallback onToggleWishlist;
+  final VoidCallback onToggleFavorite;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: <Widget>[
-        Expanded(
-          child: _GameTravelButton(
-            label: 'VISITÉ',
-            icon: Icons.flight_takeoff_rounded,
-            active: status == AtlasCountryStatus.visited,
-            activeColor: const Color(0xFF55D6A6),
-            busy: busy,
-            onPressed: onToggleVisited,
-          ),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: _GameTravelButton(
+                label: 'VISITÉ',
+                icon: Icons.flight_takeoff_rounded,
+                active: status == AtlasCountryStatus.visited,
+                activeColor: const Color(0xFF55D6A6),
+                busy: busy,
+                onPressed: onToggleVisited,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _GameTravelButton(
+                label: 'À VISITER',
+                icon: Icons.bookmark_rounded,
+                active: status == AtlasCountryStatus.wishlist,
+                activeColor: const Color(0xFFFF756B),
+                busy: busy,
+                onPressed: onToggleWishlist,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        Expanded(
+        const SizedBox(height: 7),
+        SizedBox(
+          width: double.infinity,
           child: _GameTravelButton(
-            label: 'À VISITER',
+            label: 'FAVORI',
             icon: Icons.favorite_rounded,
-            active: status == AtlasCountryStatus.wishlist,
-            activeColor: const Color(0xFFFF756B),
+            active: favorite,
+            activeColor: const Color(0xFFFFCE59),
             busy: busy,
-            onPressed: onToggleWishlist,
+            onPressed: onToggleFavorite,
           ),
         ),
       ],
@@ -2515,6 +3033,233 @@ class _TutorialCompletePanel
   }
 }
 
+class _ProgressNotificationOverlay extends StatelessWidget {
+  const _ProgressNotificationOverlay({
+    required this.batch,
+    required this.onContinue,
+  });
+
+  final PassportProgressNotificationBatch batch;
+  final VoidCallback onContinue;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: GeoColors.navy.withValues(alpha: 0.88),
+      child: SafeArea(
+        child: Center(
+          child: TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 360),
+            curve: Curves.easeOutBack,
+            tween: Tween<double>(begin: 0.82, end: 1),
+            builder: (BuildContext context, double value, Widget? child) {
+              return Transform.scale(
+                scale: value,
+                child: Opacity(opacity: value.clamp(0, 1), child: child),
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              constraints: BoxConstraints(
+                maxWidth: 520,
+                maxHeight: MediaQuery.sizeOf(context).height * 0.84,
+              ),
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F7FF),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.32),
+                    blurRadius: 24,
+                    offset: const Offset(0, 12),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: GeoColors.gold.withValues(alpha: 0.28),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.celebration_rounded,
+                      color: GeoColors.ink,
+                      size: 34,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'BELLE PROGRESSION !',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.fredoka(
+                      color: GeoColors.ink,
+                      fontSize: 27,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    batch.items.length == 1
+                        ? 'Une nouveauté rejoint ton Passeport.'
+                        : '${batch.items.length} nouveautés réunies dans ton Passeport.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunitoSans(
+                      color: GeoColors.mutedInk,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 17),
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: batch.items.length,
+                      separatorBuilder: (BuildContext context, int index) {
+                        return const SizedBox(height: 9);
+                      },
+                      itemBuilder: (BuildContext context, int index) {
+                        return _ProgressNotificationRow(
+                          item: batch.items[index],
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 17),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: onContinue,
+                      icon: const Icon(Icons.arrow_forward_rounded),
+                      label: const Text('VOIR MES RÉSULTATS'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: GeoColors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        textStyle: GoogleFonts.fredoka(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProgressNotificationRow extends StatelessWidget {
+  const _ProgressNotificationRow({required this.item});
+
+  final PassportProgressNotification item;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = _notificationColor(item.type);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
+      ),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 43,
+            height: 43,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.17),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              _notificationIcon(item.type),
+              color: color,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  item.title.toUpperCase(),
+                  style: GoogleFonts.nunitoSans(
+                    color: color,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  item.detail,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.fredoka(
+                    color: GeoColors.ink,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Color _notificationColor(PassportProgressNotificationType type) {
+  switch (type) {
+    case PassportProgressNotificationType.stamp:
+      return GeoColors.blue;
+    case PassportProgressNotificationType.mastery:
+      return const Color(0xFF18A879);
+    case PassportProgressNotificationType.level:
+      return GeoColors.gold;
+    case PassportProgressNotificationType.title:
+      return GeoColors.purple;
+    case PassportProgressNotificationType.collection:
+      return GeoColors.coral;
+    case PassportProgressNotificationType.achievement:
+      return const Color(0xFFDD7B14);
+  }
+}
+
+IconData _notificationIcon(PassportProgressNotificationType type) {
+  switch (type) {
+    case PassportProgressNotificationType.stamp:
+      return Icons.approval_rounded;
+    case PassportProgressNotificationType.mastery:
+      return Icons.school_rounded;
+    case PassportProgressNotificationType.level:
+      return Icons.trending_up_rounded;
+    case PassportProgressNotificationType.title:
+      return Icons.workspace_premium_rounded;
+    case PassportProgressNotificationType.collection:
+      return Icons.redeem_rounded;
+    case PassportProgressNotificationType.achievement:
+      return Icons.emoji_events_rounded;
+  }
+}
+
 class _GameOverPanel extends StatelessWidget {
   const _GameOverPanel({
     required this.missionTitle,
@@ -2530,6 +3275,7 @@ class _GameOverPanel extends StatelessWidget {
     required this.passportResult,
     required this.earnedStars,
     required this.earnedXp,
+    required this.xpRewards,
     required this.playerLevel,
     required this.playerTitle,
     required this.levelProgress,
@@ -2539,6 +3285,7 @@ class _GameOverPanel extends StatelessWidget {
     required this.savingAtlasCountryIds,
     required this.onToggleVisited,
     required this.onToggleWishlist,
+    required this.onToggleFavorite,
     required this.onBackToHome,
   });
 
@@ -2560,6 +3307,7 @@ class _GameOverPanel extends StatelessWidget {
 
   final int earnedStars;
   final int earnedXp;
+  final List<PlayerXpRewardSummary> xpRewards;
   final int playerLevel;
   final String playerTitle;
   final double levelProgress;
@@ -2570,12 +3318,13 @@ class _GameOverPanel extends StatelessWidget {
   final Set<String> savingAtlasCountryIds;
   final Future<void> Function(GeoCountry) onToggleVisited;
   final Future<void> Function(GeoCountry) onToggleWishlist;
+  final Future<void> Function(GeoCountry) onToggleFavorite;
 
   final VoidCallback onBackToHome;
 
   String _getRank() {
     if (totalScore >= 1151) {
-      return 'Légende GeoPoint';
+      return 'Légende PointGeo';
     }
 
     if (totalScore >= 1001) {
@@ -2972,14 +3721,10 @@ class _GameOverPanel extends StatelessWidget {
                             ),
                             Text(
                               '+$earnedXp XP',
-                              style:
-                                  const TextStyle(
-                                color: Color(
-                                  0xFF80ED99,
-                                ),
+                              style: const TextStyle(
+                                color: Color(0xFF80ED99),
                                 fontSize: 16,
-                                fontWeight:
-                                    FontWeight.w900,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
                           ],
@@ -3011,6 +3756,38 @@ class _GameOverPanel extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (xpRewards.length > 1) ...<Widget>[
+                          const SizedBox(height: 10),
+                          ...xpRewards.map(
+                            (PlayerXpRewardSummary reward) => Padding(
+                              padding: const EdgeInsets.only(top: 3),
+                              child: Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Text(
+                                      reward.label,
+                                      style: TextStyle(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.78,
+                                        ),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '+${reward.xp} XP',
+                                    style: const TextStyle(
+                                      color: Color(0xFF80ED99),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -3085,6 +3862,7 @@ class _GameOverPanel extends StatelessWidget {
                       savingCountryIds: savingAtlasCountryIds,
                       onToggleVisited: onToggleVisited,
                       onToggleWishlist: onToggleWishlist,
+                      onToggleFavorite: onToggleFavorite,
                     ),
                   ],
 
@@ -3122,6 +3900,7 @@ class _MissionTravelCountries extends StatelessWidget {
     required this.savingCountryIds,
     required this.onToggleVisited,
     required this.onToggleWishlist,
+    required this.onToggleFavorite,
   });
 
   final List<GeoCountry> countries;
@@ -3129,6 +3908,7 @@ class _MissionTravelCountries extends StatelessWidget {
   final Set<String> savingCountryIds;
   final Future<void> Function(GeoCountry) onToggleVisited;
   final Future<void> Function(GeoCountry) onToggleWishlist;
+  final Future<void> Function(GeoCountry) onToggleFavorite;
 
   @override
   Widget build(BuildContext context) {
@@ -3144,9 +3924,11 @@ class _MissionTravelCountries extends StatelessWidget {
             _MissionTravelCountryRow(
               country: countries[index],
               status: progress.statusFor(countries[index].id),
+              favorite: progress.isFavorite(countries[index].id),
               busy: savingCountryIds.isNotEmpty,
               onToggleVisited: () => onToggleVisited(countries[index]),
               onToggleWishlist: () => onToggleWishlist(countries[index]),
+              onToggleFavorite: () => onToggleFavorite(countries[index]),
             ),
             if (index < countries.length - 1)
               const Divider(height: 1, color: Colors.white12),
@@ -3161,16 +3943,20 @@ class _MissionTravelCountryRow extends StatelessWidget {
   const _MissionTravelCountryRow({
     required this.country,
     required this.status,
+    required this.favorite,
     required this.busy,
     required this.onToggleVisited,
     required this.onToggleWishlist,
+    required this.onToggleFavorite,
   });
 
   final GeoCountry country;
   final AtlasCountryStatus status;
+  final bool favorite;
   final bool busy;
   final VoidCallback onToggleVisited;
   final VoidCallback onToggleWishlist;
+  final VoidCallback onToggleFavorite;
 
   @override
   Widget build(BuildContext context) {
@@ -3200,12 +3986,21 @@ class _MissionTravelCountryRow extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           _MissionStatusButton(
-            icon: Icons.favorite_rounded,
+            icon: Icons.bookmark_rounded,
             tooltip: 'À visiter',
             active: status == AtlasCountryStatus.wishlist,
             activeColor: const Color(0xFFFF756B),
             busy: busy,
             onPressed: onToggleWishlist,
+          ),
+          const SizedBox(width: 4),
+          _MissionStatusButton(
+            icon: Icons.favorite_rounded,
+            tooltip: 'Favori',
+            active: favorite,
+            activeColor: const Color(0xFFFFCE59),
+            busy: busy,
+            onPressed: onToggleFavorite,
           ),
         ],
       ),

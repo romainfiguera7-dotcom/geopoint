@@ -9,6 +9,8 @@ import '../../passport/progress/passport_continent_snapshot.dart';
 import '../../passport/progress/passport_entity_progress.dart';
 import '../../passport/progress/passport_progress_rules.dart';
 import '../../passport/progress/passport_progress_v2.dart';
+import '../atlas/atlas_personal_progress.dart';
+import '../atlas/atlas_personal_storage.dart';
 import '../design/geopoint_design.dart';
 import 'passport_country_stamp_view.dart';
 
@@ -31,6 +33,56 @@ class PassportContinentScreen extends StatefulWidget {
 
 class _PassportContinentScreenState extends State<PassportContinentScreen> {
   _CountryFilter _filter = _CountryFilter.all;
+
+  Future<PassportEntityProgress> _updatePersonalProgress(
+    GeoCountry country,
+    AtlasPersonalProgress Function(AtlasPersonalProgress current) update,
+  ) async {
+    final AtlasPersonalProgress current = await AtlasPersonalStorage.load();
+    final AtlasPersonalProgress next = update(current);
+    final bool saved = await AtlasPersonalStorage.save(next);
+
+    if (!saved) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impossible de sauvegarder ce pays pour le moment.'),
+          ),
+        );
+      }
+
+      return widget.controller.passportProgress.progressFor(country.id);
+    }
+
+    await widget.controller.synchronizePassportPersonalProgress(next);
+
+    if (mounted) {
+      setState(() {});
+    }
+
+    return widget.controller.passportProgress.progressFor(country.id);
+  }
+
+  Future<PassportEntityProgress> _toggleVisited(GeoCountry country) {
+    return _updatePersonalProgress(
+      country,
+      (AtlasPersonalProgress current) => current.toggleVisited(country.id),
+    );
+  }
+
+  Future<PassportEntityProgress> _toggleWishlist(GeoCountry country) {
+    return _updatePersonalProgress(
+      country,
+      (AtlasPersonalProgress current) => current.toggleWishlist(country.id),
+    );
+  }
+
+  Future<PassportEntityProgress> _toggleFavorite(GeoCountry country) {
+    return _updatePersonalProgress(
+      country,
+      (AtlasPersonalProgress current) => current.toggleFavorite(country.id),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,6 +197,12 @@ class _PassportContinentScreenState extends State<PassportContinentScreen> {
                                         context,
                                         entry: entry,
                                         accentColor: widget.color,
+                                        onToggleVisited: () =>
+                                            _toggleVisited(entry.country),
+                                        onToggleWishlist: () =>
+                                            _toggleWishlist(entry.country),
+                                        onToggleFavorite: () =>
+                                            _toggleFavorite(entry.country),
                                       );
                                     },
                                   );
@@ -818,6 +876,9 @@ void _showCountryProgress(
   BuildContext context, {
   required _CountryEntry entry,
   required Color accentColor,
+  required Future<PassportEntityProgress> Function() onToggleVisited,
+  required Future<PassportEntityProgress> Function() onToggleWishlist,
+  required Future<PassportEntityProgress> Function() onToggleFavorite,
 }) {
   showModalBottomSheet<void>(
     context: context,
@@ -827,23 +888,70 @@ void _showCountryProgress(
       return _CountryProgressSheet(
         entry: entry,
         accentColor: accentColor,
+        onToggleVisited: onToggleVisited,
+        onToggleWishlist: onToggleWishlist,
+        onToggleFavorite: onToggleFavorite,
       );
     },
   );
 }
 
-class _CountryProgressSheet extends StatelessWidget {
+class _CountryProgressSheet extends StatefulWidget {
   const _CountryProgressSheet({
     required this.entry,
     required this.accentColor,
+    required this.onToggleVisited,
+    required this.onToggleWishlist,
+    required this.onToggleFavorite,
   });
 
   final _CountryEntry entry;
   final Color accentColor;
+  final Future<PassportEntityProgress> Function() onToggleVisited;
+  final Future<PassportEntityProgress> Function() onToggleWishlist;
+  final Future<PassportEntityProgress> Function() onToggleFavorite;
+
+  @override
+  State<_CountryProgressSheet> createState() =>
+      _CountryProgressSheetState();
+}
+
+class _CountryProgressSheetState extends State<_CountryProgressSheet> {
+  late PassportEntityProgress _progress;
+  bool _savingPersonalProgress = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _progress = widget.entry.progress;
+  }
+
+  Future<void> _runPersonalAction(
+    Future<PassportEntityProgress> Function() action,
+  ) async {
+    if (_savingPersonalProgress) {
+      return;
+    }
+
+    setState(() {
+      _savingPersonalProgress = true;
+    });
+
+    final PassportEntityProgress progress = await action();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _progress = progress;
+      _savingPersonalProgress = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final PassportEntityProgress progress = entry.progress;
+    final PassportEntityProgress progress = _progress;
     final List<_ThemeDefinition> themes = <_ThemeDefinition>[
       const _ThemeDefinition('Pays', PassportKnowledgeTheme.location),
       const _ThemeDefinition('Capitale', PassportKnowledgeTheme.capital),
@@ -887,13 +995,13 @@ class _CountryProgressSheet extends StatelessWidget {
                     height: 62,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: accentColor,
+                      color: widget.accentColor,
                       borderRadius: BorderRadius.circular(19),
                     ),
                     child: Text(
-                      entry.country.flagEmoji.isEmpty
+                      widget.entry.country.flagEmoji.isEmpty
                           ? '🌍'
-                          : entry.country.flagEmoji,
+                          : widget.entry.country.flagEmoji,
                       style: const TextStyle(fontSize: 34),
                     ),
                   ),
@@ -903,7 +1011,7 @@ class _CountryProgressSheet extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          entry.country.name,
+                          widget.entry.country.name,
                           style: GoogleFonts.fredoka(
                             color: GeoColors.ink,
                             fontSize: 25,
@@ -927,7 +1035,7 @@ class _CountryProgressSheet extends StatelessWidget {
               const SizedBox(height: 20),
               Center(
                 child: PassportCountryStampView(
-                  country: entry.country,
+                  country: widget.entry.country,
                   progress: progress,
                   size: 138,
                 ),
@@ -954,12 +1062,20 @@ class _CountryProgressSheet extends StatelessWidget {
               }),
               const SizedBox(height: 10),
               _StampInformation(progress: progress),
-              if (progress.isVisited ||
-                  progress.isWishlisted ||
-                  progress.isFavorite) ...<Widget>[
-                const SizedBox(height: 12),
-                _PersonalInformation(progress: progress),
-              ],
+              const SizedBox(height: 12),
+              _PersonalActions(
+                progress: progress,
+                busy: _savingPersonalProgress,
+                onToggleVisited: () {
+                  _runPersonalAction(widget.onToggleVisited);
+                },
+                onToggleWishlist: () {
+                  _runPersonalAction(widget.onToggleWishlist);
+                },
+                onToggleFavorite: () {
+                  _runPersonalAction(widget.onToggleFavorite);
+                },
+              ),
             ],
           ),
         ),
@@ -1098,73 +1214,115 @@ class _StampInformation extends StatelessWidget {
   }
 }
 
-class _PersonalInformation extends StatelessWidget {
-  const _PersonalInformation({required this.progress});
+class _PersonalActions extends StatelessWidget {
+  const _PersonalActions({
+    required this.progress,
+    required this.busy,
+    required this.onToggleVisited,
+    required this.onToggleWishlist,
+    required this.onToggleFavorite,
+  });
 
   final PassportEntityProgress progress;
+  final bool busy;
+  final VoidCallback onToggleVisited;
+  final VoidCallback onToggleWishlist;
+  final VoidCallback onToggleFavorite;
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 7,
-      runSpacing: 7,
+    return Column(
       children: <Widget>[
-        if (progress.isVisited)
-          const _PersonalBadge(
-            label: 'Visité',
-            icon: Icons.flight_takeoff_rounded,
-            color: GeoColors.mint,
-          ),
-        if (progress.isWishlisted)
-          const _PersonalBadge(
-            label: 'À visiter',
-            icon: Icons.bookmark_rounded,
-            color: GeoColors.coral,
-          ),
-        if (progress.isFavorite)
-          const _PersonalBadge(
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: _PersonalActionButton(
+                label: 'Visité',
+                icon: Icons.flight_takeoff_rounded,
+                color: GeoColors.mint,
+                active: progress.isVisited,
+                busy: busy,
+                onPressed: onToggleVisited,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _PersonalActionButton(
+                label: 'À visiter',
+                icon: Icons.bookmark_rounded,
+                color: GeoColors.coral,
+                active: progress.isWishlisted,
+                busy: busy,
+                onPressed: onToggleWishlist,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: _PersonalActionButton(
             label: 'Favori',
             icon: Icons.favorite_rounded,
             color: GeoColors.gold,
+            active: progress.isFavorite,
+            busy: busy,
+            onPressed: onToggleFavorite,
           ),
+        ),
       ],
     );
   }
 }
 
-class _PersonalBadge extends StatelessWidget {
-  const _PersonalBadge({
+class _PersonalActionButton extends StatelessWidget {
+  const _PersonalActionButton({
     required this.label,
     required this.icon,
     required this.color,
+    required this.active,
+    required this.busy,
+    required this.onPressed,
   });
 
   final String label;
   final IconData icon;
   final Color color;
+  final bool active;
+  final bool busy;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Icon(icon, color: GeoColors.ink, size: 16),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: GoogleFonts.nunitoSans(
-              color: GeoColors.ink,
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-            ),
+    return FilledButton.icon(
+      onPressed: busy ? null : onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: active ? color : Colors.white,
+        foregroundColor: GeoColors.ink,
+        disabledBackgroundColor: active
+            ? color.withValues(alpha: 0.58)
+            : const Color(0xFFE2E8EF),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(13),
+          side: BorderSide(
+            color: active ? color : const Color(0xFFD2DCE7),
           ),
-        ],
+        ),
+        elevation: 0,
+      ),
+      icon: Icon(
+        active ? Icons.check_circle_rounded : icon,
+        size: 17,
+      ),
+      label: Text(
+        label.toUpperCase(),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.nunitoSans(
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }

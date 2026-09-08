@@ -1,0 +1,64 @@
+GEOPOINT — POINT 28.8
+SOCLE DISTANT ET CACHE SÉCURISÉ
+
+Cette archive est cumulative. Elle contient toute la base validée du point 27
+et les étapes 28.1 à 28.8.
+
+Nouveautés
+==========
+
+- Le centre des défis ne dépend plus directement du fichier JSON intégré.
+- Une interface distante indépendante de l’hébergeur est prête.
+- Un futur serveur pourra transmettre le pack actif, sa révision, sa date de
+  publication et l’heure serveur de référence.
+- L’écran indique si le pack vient du serveur, du cache hors ligne ou de
+  l’application.
+
+Sécurité et fonctionnement hors ligne
+======================================
+
+- Un pack distant n’est accepté qu’après validation complète.
+- Le dernier pack distant valide est conservé sur l’appareil.
+- Une révision plus ancienne que celle déjà reçue est refusée.
+- Une révision identique ne peut pas remplacer silencieusement son contenu.
+- Si le serveur est indisponible, GeoPoint utilise le dernier pack valide.
+- Si le cache est absent ou incorrect, GeoPoint revient au pack intégré.
+- Une configuration distante incorrecte ne bloque donc jamais l’écran Défis.
+
+Limite actuelle
+===============
+
+Cette étape prépare toute la mécanique de synchronisation mais ne choisit pas
+encore le fournisseur distant. Firebase, Supabase ou un serveur personnel
+pourront implémenter la même interface sans réécrire le système de défis.
+
+Installation et test
+====================
+
+1. Décompresser l’archive dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+2. Accepter le remplacement des fichiers.
+3. Exécuter dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+Parcours à vérifier
+===================
+
+1. Ouvrir JOUER > DÉFIS.
+2. Sous le titre du pack, vérifier la mention PACK INCLUS DANS L’APPLICATION.
+3. Vérifier que les défis et GeoPoint Studio fonctionnent comme auparavant.
+4. Le cache distant sera visible automatiquement lorsque le futur serveur sera
+   réellement branché.
+
+Résultat technique attendu
+==========================
+
+- flutter analyze : No issues found!
+- flutter test : tous les tests réussissent.
+- Environ 240 tests sont présents, dont 68 consacrés aux défis.

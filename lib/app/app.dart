@@ -14,7 +14,7 @@ class GeoPointApp extends StatelessWidget {
         ThemeData.light().textTheme;
 
     return MaterialApp(
-      title: 'GeoPoint',
+      title: 'PointGeo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

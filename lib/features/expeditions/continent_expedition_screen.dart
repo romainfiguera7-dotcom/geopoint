@@ -8,8 +8,15 @@ import '../../game/continent/continent_progress.dart';
 import '../../game/continent/continent_storage.dart';
 import '../../game/game_controller.dart';
 import '../../game/game_screen.dart';
+import '../../game/playable_country_policy.dart';
 import '../../game/ultimate/ultimate_game_screen.dart';
+import '../../geobrain/geobrain_attempt.dart';
+import '../../monetization/interstitial_ad_service.dart';
+import '../../passport/collections/passport_collection_catalog.dart';
+import '../../passport/collections/passport_collection_item.dart';
 import '../design/geopoint_design.dart';
+import '../quiz/world_quiz_engine.dart';
+import '../quiz/world_quiz_game_screen.dart';
 
 class ContinentExpeditionScreen extends StatefulWidget {
   const ContinentExpeditionScreen({
@@ -45,15 +52,17 @@ class _ContinentExpeditionScreenState
     required ContinentLevel level,
     required ContinentProgress progress,
   }) async {
+    final WorldQuizMode? worldQuizMode = _worldQuizModeFor(level.modeId);
+
     if (level.isSilhouette) {
       final Set<String> countryIds = level.countryIds
           .map<String>((String id) => id.trim().toUpperCase())
           .toSet();
 
       final availableCountries = widget.controller.countries.where((country) {
-        return countryIds.contains(
-          country.id.trim().toUpperCase(),
-        );
+        final String countryId = country.id.trim().toUpperCase();
+        return countryIds.contains(countryId) &&
+            PlayableCountryPolicy.isPlayableId(countryId);
       }).toList(growable: false);
 
       if (availableCountries.isEmpty) {
@@ -86,6 +95,7 @@ class _ContinentExpeditionScreenState
         MaterialPageRoute<UltimateGameResult>(
           builder: (BuildContext context) {
             return UltimateGameScreen(
+              controller: widget.controller,
               availableCountries: availableCountries,
               countryDifficulties:
                   widget.controller.countryDifficulties,
@@ -95,10 +105,16 @@ class _ContinentExpeditionScreenState
               onAnswer: ({
                 required String countryId,
                 required bool isCorrect,
+                required int elapsedSeconds,
+                required String difficultyId,
+                String? proposedAnswerId,
               }) {
                 return widget.controller.registerPassportSilhouetteAnswer(
                   countryId: countryId,
                   isCorrect: isCorrect,
+                  elapsedSeconds: elapsedSeconds,
+                  difficultyId: difficultyId,
+                  proposedAnswerId: proposedAnswerId,
                 );
               },
             );
@@ -107,8 +123,13 @@ class _ContinentExpeditionScreenState
       );
 
       if (result != null) {
+        await InterstitialAdService.instance.registerCompletedGame();
         final ContinentProgress currentProgress =
             await ContinentStorage.load();
+        final int previousStars = currentProgress.starsFor(
+          expeditionId: widget.expedition.id,
+          levelId: level.id,
+        );
 
         final ContinentProgress updatedProgress =
             currentProgress.registerLevelResult(
@@ -118,8 +139,66 @@ class _ContinentExpeditionScreenState
           score: result.totalScore,
         );
 
-        await ContinentStorage.save(updatedProgress);
+        final bool saved = await ContinentStorage.save(updatedProgress);
+
+        final int previousPlayerLevel =
+            widget.controller.playerProfile.currentLevel;
+        int earnedXp = 0;
+        if (saved && previousStars < 1 && result.earnedStars >= 1) {
+          final reward =
+              await widget.controller.registerExpeditionMissionCompletion(
+            expeditionId: widget.expedition.id,
+            missionId: level.id,
+            isExam: level.isExam || level.isMaster,
+            combineWithCurrentGame: false,
+          );
+          earnedXp += reward.earnedXp;
+        }
+
+        if (saved) {
+          earnedXp += await widget.controller.refreshPassportAchievements();
+        }
+
+        if (mounted && earnedXp > 0) {
+          final List<PassportCollectionItem> unlockedRewards =
+              PassportCollectionCatalog.levelRewardsUnlockedBetween(
+            previousLevel: previousPlayerLevel,
+            newLevel: widget.controller.playerProfile.currentLevel,
+          );
+          final String rewardText = unlockedRewards.isEmpty
+              ? ''
+              : unlockedRewards.length == 1
+                  ? ' · ${unlockedRewards.single.name}'
+                  : ' · ${unlockedRewards.length} récompenses';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Progression validée : +$earnedXp XP$rewardText',
+              ),
+            ),
+          );
+        }
       }
+    } else if (worldQuizMode != null) {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) {
+            return WorldQuizGameScreen(
+              controller: widget.controller,
+              mode: worldQuizMode,
+              modeTitle: level.title,
+              questionCount: level.questionCount,
+              regionId: widget.expedition.id,
+              difficultyId: level.difficultyId,
+              attemptContext: GeoBrainAttemptContext.expedition,
+              returnExpeditionResult: true,
+              onExpeditionCompleted: (WorldQuizGameResult result) {
+                return _saveWorldQuizResult(level: level, result: result);
+              },
+            );
+          },
+        ),
+      );
     } else {
       await Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
@@ -143,6 +222,78 @@ class _ContinentExpeditionScreenState
     }
 
     setState(_reloadProgress);
+  }
+
+  WorldQuizMode? _worldQuizModeFor(String modeId) {
+    switch (modeId) {
+      case 'place_city':
+        return WorldQuizMode.placeCity;
+      case 'currency':
+        return WorldQuizMode.currency;
+      case 'language':
+        return WorldQuizMode.language;
+      default:
+        return null;
+    }
+  }
+
+  Future<void> _saveWorldQuizResult({
+    required ContinentLevel level,
+    required WorldQuizGameResult result,
+  }) async {
+    final ContinentProgress currentProgress = await ContinentStorage.load();
+    final int previousStars = currentProgress.starsFor(
+      expeditionId: widget.expedition.id,
+      levelId: level.id,
+    );
+    final int earnedStars = level.starsForScore(result.totalScore);
+    final ContinentProgress updatedProgress =
+        currentProgress.registerLevelResult(
+      expeditionId: widget.expedition.id,
+      levelId: level.id,
+      stars: earnedStars,
+      score: result.totalScore,
+    );
+    final bool saved = await ContinentStorage.save(updatedProgress);
+
+    if (!saved) {
+      return;
+    }
+
+    final int previousPlayerLevel =
+        widget.controller.playerProfile.currentLevel;
+    int earnedXp = 0;
+    if (previousStars < 1 && earnedStars >= 1) {
+      final reward =
+          await widget.controller.registerExpeditionMissionCompletion(
+        expeditionId: widget.expedition.id,
+        missionId: level.id,
+        isExam: level.isExam || level.isMaster,
+        combineWithCurrentGame: false,
+      );
+      earnedXp += reward.earnedXp;
+    }
+    earnedXp += await widget.controller.refreshPassportAchievements();
+
+    if (!mounted || earnedXp <= 0) {
+      return;
+    }
+
+    final List<PassportCollectionItem> unlockedRewards =
+        PassportCollectionCatalog.levelRewardsUnlockedBetween(
+      previousLevel: previousPlayerLevel,
+      newLevel: widget.controller.playerProfile.currentLevel,
+    );
+    final String rewardText = unlockedRewards.isEmpty
+        ? ''
+        : unlockedRewards.length == 1
+            ? ' · ${unlockedRewards.single.name}'
+            : ' · ${unlockedRewards.length} récompenses';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Progression validée : +$earnedXp XP$rewardText'),
+      ),
+    );
   }
 
   @override
@@ -432,6 +583,11 @@ class _ContinentLevelCard extends StatelessWidget {
   final bool isUnlocked;
   final VoidCallback? onPressed;
 
+  bool get _usesWorldQuiz =>
+      level.modeId == 'place_city' ||
+      level.modeId == 'currency' ||
+      level.modeId == 'language';
+
   IconData get _icon {
     if (level.isMaster) {
       return Icons.workspace_premium_rounded;
@@ -446,6 +602,12 @@ class _ContinentLevelCard extends StatelessWidget {
     }
 
     switch (level.modeId) {
+      case 'place_city':
+        return Icons.location_city_rounded;
+      case 'currency':
+        return Icons.monetization_on_rounded;
+      case 'language':
+        return Icons.translate_rounded;
       case 'find_capital':
         return Icons.location_city_rounded;
       case 'find_flag':
@@ -463,6 +625,12 @@ class _ContinentLevelCard extends StatelessWidget {
     }
 
     switch (level.modeId) {
+      case 'place_city':
+        return 'GRANDES VILLES';
+      case 'currency':
+        return 'MONNAIES';
+      case 'language':
+        return 'LANGUES';
       case 'find_capital':
         return 'CAPITALES';
       case 'find_flag':
@@ -520,55 +688,70 @@ class _ContinentLevelCard extends StatelessWidget {
             children: <Widget>[
               SizedBox(
                 width: 63,
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: nodeColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isCurrent ? GeoColors.sky : Colors.white54,
-                      width: isCurrent ? 3 : 2,
-                    ),
-                    boxShadow: isCurrent
-                        ? <BoxShadow>[
-                            BoxShadow(
-                              color: GeoColors.blue.withValues(alpha: 0.38),
-                              blurRadius: 15,
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Center(
-                    child: isUnlocked
-                        ? Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Text(
-                                '${level.order}',
-                                style: GoogleFonts.fredoka(
-                                  color: GeoColors.navy,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1,
-                                ),
-                              ),
-                              if (isCompleted)
-                                Text(
-                                  '${'★' * normalizedStars}'
-                                  '${'☆' * (3 - normalizedStars)}',
-                                  style: const TextStyle(
-                                    color: GeoColors.gold,
-                                    fontSize: 8,
-                                  ),
-                                ),
-                            ],
-                          )
-                        : const Icon(
-                            Icons.lock_rounded,
-                            color: Colors.white54,
-                            size: 24,
+                child: Semantics(
+                  button: isUnlocked,
+                  label: isUnlocked
+                      ? 'Ouvrir le niveau ${level.order} : ${level.title}'
+                      : 'Niveau ${level.order} verrouillé',
+                  child: Material(
+                    color: Colors.transparent,
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      onTap: onPressed,
+                      customBorder: const CircleBorder(),
+                      child: Ink(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: nodeColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isCurrent ? GeoColors.sky : Colors.white54,
+                            width: isCurrent ? 3 : 2,
                           ),
+                          boxShadow: isCurrent
+                              ? <BoxShadow>[
+                                  BoxShadow(
+                                    color: GeoColors.blue
+                                        .withValues(alpha: 0.38),
+                                    blurRadius: 15,
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Center(
+                          child: isUnlocked
+                              ? Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Text(
+                                      '${level.order}',
+                                      style: GoogleFonts.fredoka(
+                                        color: GeoColors.navy,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w700,
+                                        height: 1,
+                                      ),
+                                    ),
+                                    if (isCompleted)
+                                      Text(
+                                        '${'★' * normalizedStars}'
+                                        '${'☆' * (3 - normalizedStars)}',
+                                        style: const TextStyle(
+                                          color: GeoColors.gold,
+                                          fontSize: 8,
+                                        ),
+                                      ),
+                                  ],
+                                )
+                              : const Icon(
+                                  Icons.lock_rounded,
+                                  color: Colors.white54,
+                                  size: 24,
+                                ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -649,7 +832,7 @@ class _ContinentLevelCard extends StatelessWidget {
                                           ? 'DÉFI VISUEL'
                                           : '${level.questionCount} QUESTIONS',
                                     ),
-                                    if (!level.isSilhouette)
+                                    if (!level.isSilhouette && !_usesWorldQuiz)
                                       _LevelBadge(
                                         label:
                                             '${level.questionDurationSeconds} SEC.',
@@ -775,55 +958,70 @@ class _ContinentPathLevelLayout extends StatelessWidget {
               Positioned(
                 left: nodeLeft,
                 top: 27,
-                child: Container(
-                  width: 74,
-                  height: 74,
-                  decoration: BoxDecoration(
-                    color: nodeColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isCurrent ? GeoColors.gold : Colors.white54,
-                      width: isCurrent ? 4 : 2.5,
-                    ),
-                    boxShadow: <BoxShadow>[
-                      BoxShadow(
-                        color: nodeColor.withValues(alpha: 0.34),
-                        blurRadius: isCurrent ? 22 : 11,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: isUnlocked
-                        ? Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Icon(
-                                level.isMaster
-                                    ? Icons.workspace_premium_rounded
-                                    : level.isExam
-                                        ? Icons.school_rounded
-                                        : icon,
-                                color: GeoColors.navy,
-                                size: 24,
-                              ),
-                              const SizedBox(height: 1),
-                              Text(
-                                '${level.order}',
-                                style: GoogleFonts.fredoka(
-                                  color: GeoColors.navy,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1,
-                                ),
-                              ),
-                            ],
-                          )
-                        : const Icon(
-                            Icons.lock_rounded,
-                            color: Colors.white54,
-                            size: 25,
+                child: Semantics(
+                  button: isUnlocked,
+                  label: isUnlocked
+                      ? 'Ouvrir le niveau ${level.order} : ${level.title}'
+                      : 'Niveau ${level.order} verrouillé',
+                  child: Material(
+                    color: Colors.transparent,
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      onTap: onPressed,
+                      customBorder: const CircleBorder(),
+                      child: Ink(
+                        width: 74,
+                        height: 74,
+                        decoration: BoxDecoration(
+                          color: nodeColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color:
+                                isCurrent ? GeoColors.gold : Colors.white54,
+                            width: isCurrent ? 4 : 2.5,
                           ),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: nodeColor.withValues(alpha: 0.34),
+                              blurRadius: isCurrent ? 22 : 11,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: isUnlocked
+                              ? Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Icon(
+                                      level.isMaster
+                                          ? Icons.workspace_premium_rounded
+                                          : level.isExam
+                                              ? Icons.school_rounded
+                                              : icon,
+                                      color: GeoColors.navy,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      '${level.order}',
+                                      style: GoogleFonts.fredoka(
+                                        color: GeoColors.navy,
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w700,
+                                        height: 1,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : const Icon(
+                                  Icons.lock_rounded,
+                                  color: Colors.white54,
+                                  size: 25,
+                                ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

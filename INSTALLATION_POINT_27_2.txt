@@ -1,0 +1,64 @@
+GEOPOINT — POINT 27.2 — REGISTRE CENTRAL DES GAINS D'XP
+======================================================
+
+CONTENU DE CETTE ÉTAPE
+----------------------
+
+- Catalogue central des sources d'XP.
+- Registre sauvegardé avec le profil joueur.
+- Identifiant unique pour chaque gain.
+- Protection contre les doubles validations.
+- Conservation permanente des récompenses uniques.
+- Historique roulant des gains répétables.
+- Plafond initial de 200 XP répétables par jour.
+- Les récompenses uniques ne sont jamais bloquées par ce plafond.
+- Refus automatique de l'XP liée à une publicité, un achat, une relance
+  payante, un tutoriel ou un entraînement.
+- Conservation de la valeur de base, du bonus, de la valeur accordée et de la
+  valeur plafonnée.
+- Nouveaux tests unitaires du registre et de la sauvegarde.
+
+Cette étape prépare le branchement des parties normales. Elle ne modifie pas
+encore l'écran de résultat et ne touche jamais à la maîtrise GeoBrain.
+
+INSTALLATION POWERSHELL
+-----------------------
+
+1. Fermer l'application GeoPoint si elle tourne.
+
+2. Extraire l'archive cumulative dans le projet :
+
+Expand-Archive "$env:USERPROFILE\Downloads\geopoint_point_27_etape_2_registre_xp.zip" "D:\romai\GEOPOINT\geopoint" -Force
+
+3. Ouvrir le projet :
+
+cd D:\romai\GEOPOINT\geopoint
+
+4. Vérifier le code :
+
+flutter analyze
+
+5. Lancer tous les tests :
+
+flutter test
+
+6. Lancer sur le Pixel 10 :
+
+flutter run -d 58041FDCR00681
+
+VÉRIFICATIONS DANS L'APPLICATION
+--------------------------------
+
+- Le Passeport doit toujours afficher le niveau et le palier du point 27.1.
+- La nouvelle XP gagnée précédemment doit être conservée.
+- Les statistiques, tampons, licences, listes et données GeoBrain doivent être
+  inchangés.
+- Les parties normales doivent encore fonctionner comme avant cette étape.
+- Le tutoriel et le mode entraînement doivent rester sans XP.
+
+PROCHAINE ÉTAPE
+---------------
+
+Brancher les parties normales sur le registre central avec un identifiant de
+session, puis afficher la valeur réellement accordée après application du
+plafond quotidien.

@@ -14,8 +14,10 @@ class CountryAtlasSheet extends StatefulWidget {
     required this.capital,
     required this.cities,
     required this.initialStatus,
+    required this.initialFavorite,
     required this.onToggleVisited,
     required this.onToggleWishlist,
+    required this.onToggleFavorite,
     required this.onExploreCities,
     this.showExploreCitiesButton = true,
     super.key,
@@ -26,8 +28,10 @@ class CountryAtlasSheet extends StatefulWidget {
   final Capital? capital;
   final List<AtlasCity> cities;
   final AtlasCountryStatus initialStatus;
+  final bool initialFavorite;
   final Future<AtlasCountryStatus> Function() onToggleVisited;
   final Future<AtlasCountryStatus> Function() onToggleWishlist;
+  final Future<bool> Function() onToggleFavorite;
   final VoidCallback onExploreCities;
   final bool showExploreCitiesButton;
 
@@ -37,12 +41,14 @@ class CountryAtlasSheet extends StatefulWidget {
 
 class _CountryAtlasSheetState extends State<CountryAtlasSheet> {
   late AtlasCountryStatus _status;
+  late bool _favorite;
   bool _savingStatus = false;
 
   @override
   void initState() {
     super.initState();
     _status = widget.initialStatus;
+    _favorite = widget.initialFavorite;
   }
 
   @override
@@ -52,6 +58,10 @@ class _CountryAtlasSheetState extends State<CountryAtlasSheet> {
     if (!_savingStatus && oldWidget.initialStatus != widget.initialStatus) {
       _status = widget.initialStatus;
     }
+
+    if (!_savingStatus && oldWidget.initialFavorite != widget.initialFavorite) {
+      _favorite = widget.initialFavorite;
+    }
   }
 
   Future<void> _toggleVisited() async {
@@ -60,6 +70,27 @@ class _CountryAtlasSheetState extends State<CountryAtlasSheet> {
 
   Future<void> _toggleWishlist() async {
     await _changeStatus(widget.onToggleWishlist);
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_savingStatus) {
+      return;
+    }
+
+    setState(() {
+      _savingStatus = true;
+    });
+
+    final bool favorite = await widget.onToggleFavorite();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _favorite = favorite;
+      _savingStatus = false;
+    });
   }
 
   Future<void> _changeStatus(
@@ -188,9 +219,11 @@ class _CountryAtlasSheetState extends State<CountryAtlasSheet> {
               const SizedBox(height: 16),
               _TravelActions(
                 status: _status,
+                favorite: _favorite,
                 busy: _savingStatus,
                 onToggleVisited: _toggleVisited,
                 onToggleWishlist: _toggleWishlist,
+                onToggleFavorite: _toggleFavorite,
               ),
               const SizedBox(height: 22),
               if (cities.isNotEmpty &&
@@ -325,7 +358,7 @@ class _CountryAtlasSheetState extends State<CountryAtlasSheet> {
               ],
               const SizedBox(height: 20),
               Text(
-                'Données urbaines : GeoNames et sélection GeoPoint',
+                'Données urbaines : GeoNames et sélection PointGeo',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.nunitoSans(
                   color: const Color(0xFF7C8FA5),
@@ -378,46 +411,68 @@ class _CountryAtlasSheetState extends State<CountryAtlasSheet> {
 class _TravelActions extends StatelessWidget {
   const _TravelActions({
     required this.status,
+    required this.favorite,
     required this.busy,
     required this.onToggleVisited,
     required this.onToggleWishlist,
+    required this.onToggleFavorite,
   });
 
   final AtlasCountryStatus status;
+  final bool favorite;
   final bool busy;
   final VoidCallback onToggleVisited;
   final VoidCallback onToggleWishlist;
+  final VoidCallback onToggleFavorite;
 
   @override
   Widget build(BuildContext context) {
     final bool visited = status == AtlasCountryStatus.visited;
     final bool wishlist = status == AtlasCountryStatus.wishlist;
 
-    return Row(
+    return Column(
       children: <Widget>[
-        Expanded(
-          child: _TravelButton(
-            label: visited ? 'VISITÉ' : 'DÉJÀ VISITÉ',
-            icon: visited
-                ? Icons.check_circle_rounded
-                : Icons.flight_takeoff_rounded,
-            active: visited,
-            activeColor: const Color(0xFF43CFA0),
-            busy: busy,
-            onPressed: onToggleVisited,
-          ),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: _TravelButton(
+                label: visited ? 'VISITÉ' : 'DÉJÀ VISITÉ',
+                icon: visited
+                    ? Icons.check_circle_rounded
+                    : Icons.flight_takeoff_rounded,
+                active: visited,
+                activeColor: const Color(0xFF43CFA0),
+                busy: busy,
+                onPressed: onToggleVisited,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _TravelButton(
+                label: wishlist ? 'À VISITER ✓' : 'À VISITER',
+                icon: wishlist
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_border_rounded,
+                active: wishlist,
+                activeColor: const Color(0xFFFF756B),
+                busy: busy,
+                onPressed: onToggleWishlist,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 10),
-        Expanded(
+        const SizedBox(height: 9),
+        SizedBox(
+          width: double.infinity,
           child: _TravelButton(
-            label: wishlist ? 'À VISITER ✓' : 'À VISITER',
-            icon: wishlist
+            label: favorite ? 'PAYS FAVORI ✓' : 'AJOUTER AUX FAVORIS',
+            icon: favorite
                 ? Icons.favorite_rounded
                 : Icons.favorite_border_rounded,
-            active: wishlist,
-            activeColor: const Color(0xFFFF756B),
+            active: favorite,
+            activeColor: const Color(0xFFFFCE59),
             busy: busy,
-            onPressed: onToggleWishlist,
+            onPressed: onToggleFavorite,
           ),
         ),
       ],

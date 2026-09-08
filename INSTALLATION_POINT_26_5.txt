@@ -1,0 +1,60 @@
+GEOPOINT - POINT 26.5 : RÉVISION ESPACÉE
+----------------------------------------
+
+Cette version donne à chaque pays un calendrier de révision indépendant pour
+la localisation, les capitales, les drapeaux, les silhouettes, les villes, les
+monnaies et les langues.
+
+CALENDRIER
+----------
+
+- premier apprentissage confirmé : nouvelle révision après 1 jour ;
+- réussites confirmées suivantes : 3, 7, 14, 30, 60 puis 120 jours ;
+- réponse donnée avant l'échéance : la date prévue n'est pas repoussée ;
+- erreur : nouvelle révision après 6 heures et recul de deux paliers ;
+- réponse avec aide ou en tutoriel : aucun nouveau palier confirmé et nouvelle
+  vérification le lendemain.
+
+SÉLECTION DES QUESTIONS
+-----------------------
+
+- la maîtrise et le calendrier sont évalués dans le thème du mode choisi ;
+- environ la moitié de la sélection est réservée aux nouveautés disponibles ;
+- une partie contient au maximum trois révisions prioritaires lorsque des
+  questions nouvelles ou non échues sont disponibles ;
+- les révisions, nouveautés et connaissances déjà vues sont mélangées dans
+  l'ordre final ;
+- une révision très en retard conserve davantage de priorité.
+
+MIGRATION
+---------
+
+Le schéma GeoBrain passe en version 5. Les anciennes dates de révision sont
+reprises automatiquement dans les calendriers par thème. Aucun score, compteur,
+pays visité, pays à visiter ou historique de réponse n'est supprimé.
+
+INSTALLATION
+------------
+
+1. Fermer GeoPoint.
+
+2. Décompresser le ZIP dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+   en remplaçant les fichiers existants.
+
+3. Lancer dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter pub get
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+RÉSULTAT ATTENDU
+----------------
+
+- flutter analyze : No issues found!
+- flutter test : 81 tests réussis
+- les anciennes sauvegardes sont conservées après le premier démarrage.

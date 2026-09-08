@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "843814612327",
+    "project_id": "geopoint-dev",
+    "storage_bucket": "geopoint-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:843814612327:android:bd255ea0cd16acd69153c2",
+        "android_client_info": {
+          "package_name": "com.romainfiguera.geopoint"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWJByYFJUy2N2wQ2LqHjccqn-QjSK2JFI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

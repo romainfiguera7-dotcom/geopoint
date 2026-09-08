@@ -1,0 +1,36 @@
+GEOPOINT — POINT 29.5 — VALIDATION DES SCORES FIREBASE
+
+1. Dans le terminal où flutter run est actif, taper :
+
+q
+
+2. Ouvrir PowerShell puis exécuter :
+
+cd D:\romai\GEOPOINT\geopoint
+.\android\gradlew.bat --stop
+
+Expand-Archive `
+"$env:USERPROFILE\Downloads\geopoint_point_29_5_validation_scores.zip" `
+"D:\romai\GEOPOINT\geopoint" -Force
+
+cd D:\romai\GEOPOINT\geopoint
+dart format lib test
+flutter pub get
+flutter analyze
+flutter test
+firebase deploy --only "firestore:rules,firestore:indexes,functions"
+flutter run
+
+3. Test du meilleur score :
+
+- ouvrir le défi hebdomadaire ;
+- activer « Participer au classement » ;
+- terminer une partie puis revenir au hub Défis ;
+- dans Firestore, ouvrir :
+  ranking_submissions/{uid}/submissions/{submissionId}
+  ranking_records/{uid}/groups/{rankingGroupId}
+- refaire une partie moins bonne : ranking_records ne doit pas changer ;
+- refaire une meilleure partie : ranking_records doit être remplacé.
+
+Note : le rang public et l'écran de classement arriveront au point 29.7.
+Au point 29.5, le serveur valide et conserve déjà la meilleure partie.

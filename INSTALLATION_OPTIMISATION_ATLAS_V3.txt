@@ -1,0 +1,29 @@
+GEOPOINT - OPTIMISATION ATLAS V3
+================================
+
+Cette version remplace entièrement les deux essais précédents.
+
+1. Arrêter Flutter avec Ctrl + C.
+
+2. Extraire le ZIP dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+3. Exécuter :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run --profile -d 58041FDCR00681
+
+4. Refaire un zoom continu depuis la vue Monde jusqu'à l'Europe.
+
+La V3 utilise trois niveaux préparés :
+
+- Monde : environ 20 000 points ;
+- Continent : environ 49 000 points ;
+- Région : environ 105 000 points ;
+- gros plan : carte originale complète.
+
+Les minuscules îles inférieures à un pixel ne sont calculées qu'à partir du
+zoom où elles deviennent visibles. Aucun pays n'est supprimé.

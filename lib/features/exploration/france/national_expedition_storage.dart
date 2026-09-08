@@ -30,4 +30,8 @@ class NationalExpeditionStorage {
       data: progress.toJson(),
     );
   }
+
+  static Future<bool> clear() {
+    return VersionedLocalStorage.clear(storageKey: _storageKey);
+  }
 }

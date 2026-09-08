@@ -1,0 +1,29 @@
+CORRECTIF CLASSEMENT FIREBASE - APPCHECK
+========================================
+
+Ce correctif rend explicitement publiques les quatre Functions callable de
+classement au niveau Cloud Run. Leur contenu reste protégé par Firebase Auth,
+App Check, les sessions officielles, le recalcul des scores et les contrôles
+anti-triche.
+
+1. Fermer flutter run avec la touche q.
+
+2. Depuis PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   npm --prefix functions ci
+   firebase deploy --only functions
+
+3. Quand le déploiement est terminé :
+
+   flutter analyze
+   flutter test
+   flutter run
+
+4. Dans l'application, ouvrir Défis puis Classements.
+
+Les anciennes parties lancées sans session officielle côté serveur peuvent
+être refusées. Dans ce cas, lancer une nouvelle partie : elle créera une vraie
+session Firebase, puis son score apparaîtra dans le classement.
+
+Important : ne pas désinstaller l'application et ne pas effacer ses données.

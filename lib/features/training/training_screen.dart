@@ -3,15 +3,26 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../game/game_controller.dart';
 import '../../game/game_screen.dart';
+import '../../geobrain/geobrain_attempt.dart';
+import '../../geobrain/geobrain_difficulty_adapter.dart';
+import '../../geobrain/geobrain_theme.dart';
+import '../../geobrain/geobrain_training_suggestion.dart';
 import '../design/geopoint_design.dart';
 import '../exploration/france/national_training_screen.dart';
 import '../quiz/world_quiz_engine.dart';
 import '../quiz/world_quiz_game_screen.dart';
 
 class TrainingScreen extends StatefulWidget {
-  const TrainingScreen({required this.controller, super.key});
+  const TrainingScreen({
+    required this.controller,
+    this.reviewDifficultiesOnly = false,
+    this.suggestion,
+    super.key,
+  });
 
   final GameController controller;
+  final bool reviewDifficultiesOnly;
+  final GeoBrainTrainingSuggestion? suggestion;
 
   @override
   State<TrainingScreen> createState() => _TrainingScreenState();
@@ -146,6 +157,12 @@ class _TrainingScreenState extends State<TrainingScreen> {
 
   static const List<_TrainingChoice> _difficulties = <_TrainingChoice>[
     _TrainingChoice(
+      id: 'adaptive',
+      label: 'ADAPTATIVE',
+      description: 'GeoBrain choisit un niveau fixe pour toute la séance',
+      icon: Icons.auto_awesome_rounded,
+    ),
+    _TrainingChoice(
       id: 'easy',
       label: 'FACILE',
       description: 'Repères connus et davantage d’aide',
@@ -176,8 +193,20 @@ class _TrainingScreenState extends State<TrainingScreen> {
   String _selectedFormatId = 'free';
   String _selectedRegionId = 'world';
   String _selectedModeId = 'find_country';
-  String _selectedDifficultyId = 'easy';
+  String _selectedDifficultyId = 'adaptive';
   int _selectedQuestionCount = 10;
+
+  @override
+  void initState() {
+    super.initState();
+    final GeoBrainTrainingSuggestion? suggestion = widget.suggestion;
+    if (suggestion != null) {
+      _selectedFormatId = 'free';
+      _selectedRegionId = suggestion.regionId;
+      _selectedModeId = suggestion.modeId;
+      _selectedQuestionCount = suggestion.questionCount;
+    }
+  }
 
   _TrainingChoice get _selectedMode {
     return _modes.firstWhere(
@@ -199,6 +228,11 @@ class _TrainingScreenState extends State<TrainingScreen> {
 
   bool get _isCompleteTraining => _selectedFormatId == 'complete';
 
+  bool get _reviewDifficulties {
+    return widget.reviewDifficultiesOnly ||
+        (widget.suggestion?.reviewDifficultiesOnly ?? false);
+  }
+
   bool get _usesKnowledgeEngine => const <String>{
         'place_city',
         'city_country',
@@ -206,8 +240,35 @@ class _TrainingScreenState extends State<TrainingScreen> {
         'language',
       }.contains(_selectedModeId);
 
+  GeoBrainDifficultyRecommendation get _adaptiveRecommendation {
+    return widget.controller.recommendedTrainingDifficulty(
+      modeId: _selectedModeId,
+      regionId: _selectedRegionId,
+      allowedCountryIds: widget.suggestion?.countryIds,
+    );
+  }
+
+  bool get _usesAdaptiveDifficulty {
+    return !_isCompleteTraining && _selectedDifficultyId == 'adaptive';
+  }
+
   String get _effectiveDifficultyId {
-    return _isCompleteTraining ? 'intermediate' : _selectedDifficultyId;
+    if (_isCompleteTraining) {
+      return 'intermediate';
+    }
+    return _selectedDifficultyId == 'adaptive'
+        ? _adaptiveRecommendation.difficultyId
+        : _selectedDifficultyId;
+  }
+
+  String get _effectiveDifficultyLabel {
+    if (_isCompleteTraining) {
+      return 'NORMAL';
+    }
+    if (_usesAdaptiveDifficulty) {
+      return 'AUTO → ${_adaptiveRecommendation.difficultyLabel.toUpperCase()}';
+    }
+    return _selectedDifficulty.label;
   }
 
   int get _availableCountryCount {
@@ -219,6 +280,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
       modeId: _selectedModeId,
       regionId: _selectedRegionId,
       completeRegion: _isCompleteTraining,
+      allowedCountryIds: widget.suggestion?.countryIds,
     );
   }
 
@@ -233,6 +295,17 @@ class _TrainingScreenState extends State<TrainingScreen> {
   }
 
   Future<void> _startTraining() async {
+    final GeoBrainDifficultyRecommendation? adaptiveRecommendation =
+        _usesAdaptiveDifficulty ? _adaptiveRecommendation : null;
+    final bool adaptiveConfirmed = await _confirmAdaptiveDifficulty(
+      adaptiveRecommendation,
+    );
+    if (!mounted || !adaptiveConfirmed) {
+      return;
+    }
+    final String resolvedDifficultyId =
+        adaptiveRecommendation?.difficultyId ?? _effectiveDifficultyId;
+
     if (_usesKnowledgeEngine) {
       if (_selectedRegionId == 'antarctica') {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -272,7 +345,8 @@ class _TrainingScreenState extends State<TrainingScreen> {
               modeTitle: _selectedMode.label,
               questionCount: _selectedQuestionCount,
               regionId: _selectedRegionId,
-              difficultyId: _selectedDifficultyId,
+              difficultyId: resolvedDifficultyId,
+              attemptContext: GeoBrainAttemptContext.training,
             );
           },
         ),
@@ -280,7 +354,14 @@ class _TrainingScreenState extends State<TrainingScreen> {
       return;
     }
 
-    final int availableCountryCount = _availableCountryCount;
+    final int availableCountryCount =
+        widget.controller.availableTrainingCountryCount(
+      difficultyId: resolvedDifficultyId,
+      modeId: _selectedModeId,
+      regionId: _selectedRegionId,
+      completeRegion: _isCompleteTraining,
+      allowedCountryIds: widget.suggestion?.countryIds,
+    );
 
     if (availableCountryCount == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -293,24 +374,125 @@ class _TrainingScreenState extends State<TrainingScreen> {
       return;
     }
 
+    final int resolvedQuestionCount = _isCompleteTraining
+        ? availableCountryCount
+        : _selectedQuestionCount > availableCountryCount
+            ? availableCountryCount
+            : _selectedQuestionCount;
+
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return GameScreen(
             controller: widget.controller,
             modeId: _selectedModeId,
-            difficultyId: _effectiveDifficultyId,
+            difficultyId: resolvedDifficultyId,
             missionTitle: _isCompleteTraining
                 ? 'Parcours ${_selectedRegion.label}'
-                : 'Entraînement • ${_selectedRegion.label}',
+                : widget.suggestion != null
+                    ? widget.suggestion!.title
+                    : _reviewDifficulties
+                    ? 'Réviser mes difficultés • ${_selectedRegion.label}'
+                    : 'Entraînement • ${_selectedRegion.label}',
             isTraining: true,
-            trainingQuestionCount: _effectiveQuestionCount,
+            trainingQuestionCount: resolvedQuestionCount,
             trainingRegionId: _selectedRegionId,
             completeTraining: _isCompleteTraining,
+            reviewDifficultiesOnly: _reviewDifficulties,
+            trainingCountryIds: widget.suggestion?.countryIds,
           );
         },
       ),
     );
+  }
+
+  Future<bool> _confirmAdaptiveDifficulty(
+    GeoBrainDifficultyRecommendation? recommendation,
+  ) async {
+    if (recommendation == null) {
+      return true;
+    }
+    final GeoBrainTheme? theme = _selectedModeId == 'mixed'
+        ? GeoBrainTheme.capital
+        : GeoBrainTheme.fromModeId(_selectedModeId);
+    final bool? confirmed = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              backgroundColor: GeoColors.cream,
+              title: Row(
+                children: <Widget>[
+                  const Icon(
+                    Icons.auto_awesome_rounded,
+                    color: GeoColors.purple,
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Text(
+                      'NIVEAU ${recommendation.difficultyLabel.toUpperCase()}',
+                      style: GoogleFonts.fredoka(
+                        color: GeoColors.ink,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    recommendation.reasonLabel,
+                    style: GoogleFonts.nunitoSans(
+                      color: GeoColors.ink,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: GeoColors.purple.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Text(
+                      recommendation.rulesSummary(
+                        theme: theme,
+                        standardMapMode: !_usesKnowledgeEngine,
+                      ),
+                      style: GoogleFonts.nunitoSans(
+                        color: GeoColors.ink,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Ces règles resteront fixes jusqu’à la fin de la séance.',
+                    style: GoogleFonts.nunitoSans(
+                      color: GeoColors.mutedInk,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('MODIFIER'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: const Text('COMMENCER'),
+                ),
+              ],
+            );
+          },
+        );
+    return confirmed ?? false;
   }
 
   void _selectMode(String modeId) {
@@ -361,66 +543,98 @@ class _TrainingScreenState extends State<TrainingScreen> {
                   padding: const EdgeInsets.fromLTRB(18, 12, 18, 34),
                   children: <Widget>[
                     GeoGameTopBar(
-                      title: 'ENTRAÎNEMENT',
-                      subtitle: 'Choisis ta zone et ton rythme',
+                      title: widget.suggestion != null
+                          ? 'SÉANCE CONSEILLÉE'
+                          : _reviewDifficulties
+                          ? 'MES DIFFICULTÉS'
+                          : 'ENTRAÎNEMENT',
+                      subtitle: widget.suggestion?.title ??
+                          (_reviewDifficulties
+                          ? 'Une séance choisie par ton GeoBrain'
+                          : 'Choisis ta zone et ton rythme'),
                       onBack: () => Navigator.of(context).pop(),
                     ),
                     const SizedBox(height: 26),
-                    const GeoSectionHeading(
-                      eyebrow: 'À TOI DE JOUER',
-                      title: 'Configure ta partie',
-                      description:
-                          'Choisis une zone puis entraîne-toi librement ou valide-la entièrement.',
+                    GeoSectionHeading(
+                      eyebrow: widget.suggestion != null
+                          ? 'PROPOSÉ PAR GEOBRAIN'
+                          : _reviewDifficulties
+                          ? 'SÉANCE PERSONNALISÉE'
+                          : 'À TOI DE JOUER',
+                      title: widget.suggestion?.title ??
+                          (_reviewDifficulties
+                          ? 'Réviser au bon moment'
+                          : 'Configure ta partie'),
+                      description: widget.suggestion?.reason ??
+                          (_reviewDifficulties
+                          ? 'GeoBrain privilégie les connaissances fragiles ou oubliées, puis ajoute quelques vérifications et nouveautés.'
+                          : 'Choisis une zone puis entraîne-toi librement ou valide-la entièrement.'),
                     ),
                     const SizedBox(height: 20),
-                    _TrainingSection(
-                      title: 'ÉCHELLE',
-                      child: GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          childAspectRatio: 1.40,
+                    if (widget.suggestion == null) ...<Widget>[
+                      _TrainingSection(
+                        title: 'ÉCHELLE',
+                        child: GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 10,
+                            childAspectRatio: 1.40,
+                          ),
+                          itemCount: _scales.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final _TrainingChoice choice = _scales[index];
+                            return _TrainingChoiceCard(
+                              choice: choice,
+                              selected: choice.id == 'world_scale',
+                              onPressed: () {
+                                if (choice.id == 'national_scale') {
+                                  Navigator.of(context).push<void>(
+                                    MaterialPageRoute<void>(
+                                      builder: (BuildContext context) =>
+                                          const NationalTrainingScreen(),
+                                    ),
+                                  );
+                                }
+                              },
+                            );
+                          },
                         ),
-                        itemCount: _scales.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          final _TrainingChoice choice = _scales[index];
-                          return _TrainingChoiceCard(
-                            choice: choice,
-                            selected: choice.id == 'world_scale',
-                            onPressed: () {
-                              if (choice.id == 'national_scale') {
-                                Navigator.of(context).push<void>(
-                                  MaterialPageRoute<void>(
-                                    builder: (BuildContext context) =>
-                                        const NationalTrainingScreen(),
-                                  ),
-                                );
-                              }
-                            },
-                          );
-                        },
                       ),
-                    ),
-                    const SizedBox(height: 14),
+                      const SizedBox(height: 14),
+                    ],
                     _TrainingSection(
                       title: 'FORMAT',
-                      child: _usesKnowledgeEngine
+                      child: _usesKnowledgeEngine ||
+                              _reviewDifficulties ||
+                              widget.suggestion != null
                           ? Column(
                               children: <Widget>[
                                 SizedBox(
                                   height: 92,
                                   child: _TrainingChoiceCard(
-                                    choice: _formats.first,
+                                    choice: widget.suggestion == null
+                                        ? _formats.first
+                                        : _TrainingChoice(
+                                            id: 'free',
+                                            label: 'SÉANCE CIBLÉE',
+                                            description:
+                                                '${widget.suggestion!.questionCount} questions choisies par GeoBrain',
+                                            icon: Icons.center_focus_strong_rounded,
+                                          ),
                                     selected: true,
                                     onPressed: () {},
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Ce mode se joue en session libre. Le Parcours complet reste réservé aux Pays, Capitales, Drapeaux et Mixte.',
+                                  widget.suggestion != null
+                                      ? 'Cette séance utilise uniquement les pays sélectionnés par GeoBrain.'
+                                      : _reviewDifficulties
+                                      ? 'La séance personnalisée reste libre pour respecter le nombre de questions choisi.'
+                                      : 'Ce mode se joue en session libre. Le Parcours complet reste réservé aux Pays, Capitales, Drapeaux et Mixte.',
                                   style: GoogleFonts.nunitoSans(
                                     color: Colors.white60,
                                     fontSize: 10,
@@ -461,7 +675,11 @@ class _TrainingScreenState extends State<TrainingScreen> {
                         spacing: 8,
                         runSpacing: 8,
                         children: <Widget>[
-                          for (final _TrainingChoice region in _regions)
+                          for (final _TrainingChoice region in _regions.where(
+                            (_TrainingChoice region) =>
+                                widget.suggestion == null ||
+                                region.id == _selectedRegionId,
+                          ))
                             _RegionChoiceChip(
                               region: region,
                               selected: region.id == _selectedRegionId,
@@ -490,19 +708,35 @@ class _TrainingScreenState extends State<TrainingScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          _buildModeGrid(_modes.take(6).toList(growable: false)),
-                          const SizedBox(height: 15),
-                          Text(
-                            'DÉCOUVRIR PLUSIEURS PAYS',
-                            style: GoogleFonts.nunitoSans(
-                              color: Colors.white54,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.7,
-                            ),
+                          _buildModeGrid(
+                            widget.suggestion == null
+                                ? _modes
+                                    .take(_reviewDifficulties ? 4 : 6)
+                                    .toList(growable: false)
+                                : _modes
+                                    .where(
+                                      (_TrainingChoice mode) =>
+                                          mode.id == _selectedModeId,
+                                    )
+                                    .toList(growable: false),
                           ),
-                          const SizedBox(height: 8),
-                          _buildModeGrid(_modes.skip(6).toList(growable: false)),
+                          if (!_reviewDifficulties &&
+                              widget.suggestion == null) ...<Widget>[
+                            const SizedBox(height: 15),
+                            Text(
+                              'DÉCOUVRIR PLUSIEURS PAYS',
+                              style: GoogleFonts.nunitoSans(
+                                color: Colors.white54,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.7,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildModeGrid(
+                              _modes.skip(6).toList(growable: false),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -529,38 +763,40 @@ class _TrainingScreenState extends State<TrainingScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      _TrainingSection(
-                        title: 'NOMBRE DE QUESTIONS',
-                        child: Row(
-                          children: <Widget>[
-                            for (int index = 0;
-                                index < _questionCounts.length;
-                                index++) ...<Widget>[
-                              Expanded(
-                                child: _QuestionCountButton(
-                                  value: _questionCounts[index],
-                                  selected: _questionCounts[index] ==
-                                      _selectedQuestionCount,
-                                  onPressed: () {
-                                    setState(() {
-                                      _selectedQuestionCount =
-                                          _questionCounts[index];
-                                    });
-                                  },
+                      if (widget.suggestion == null) ...<Widget>[
+                        const SizedBox(height: 14),
+                        _TrainingSection(
+                          title: 'NOMBRE DE QUESTIONS',
+                          child: Row(
+                            children: <Widget>[
+                              for (int index = 0;
+                                  index < _questionCounts.length;
+                                  index++) ...<Widget>[
+                                Expanded(
+                                  child: _QuestionCountButton(
+                                    value: _questionCounts[index],
+                                    selected: _questionCounts[index] ==
+                                        _selectedQuestionCount,
+                                    onPressed: () {
+                                      setState(() {
+                                        _selectedQuestionCount =
+                                            _questionCounts[index];
+                                      });
+                                    },
+                                  ),
                                 ),
-                              ),
-                              if (index < _questionCounts.length - 1)
-                                const SizedBox(width: 8),
+                                if (index < _questionCounts.length - 1)
+                                  const SizedBox(width: 8),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                     const SizedBox(height: 14),
                     _TrainingSummary(
                       mode: _selectedMode.label,
-                      difficulty: _selectedDifficulty.label,
+                      difficulty: _effectiveDifficultyLabel,
                       region: _selectedRegion.label,
                       questionCount: _effectiveQuestionCount,
                       complete: _isCompleteTraining,

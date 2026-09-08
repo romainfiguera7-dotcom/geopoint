@@ -1,0 +1,6 @@
+# Copy this file to android/key.properties only if you configure signing manually.
+# The provided tool/prepare_android_signing.ps1 script creates it automatically.
+storeFile=app/upload-keystore.jks
+storePassword=CHANGE_ME
+keyAlias=upload
+keyPassword=CHANGE_ME

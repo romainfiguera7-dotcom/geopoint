@@ -140,10 +140,10 @@ class WorldExpeditionCatalog {
       ContinentLevel(
         id: 'world_05_neighbors',
         order: 5,
-        title: 'Frontières du monde',
-        description: 'Les pays voisins peuvent facilement se confondre.',
-        objective: 'Différencier vingt pays proches les uns des autres.',
-        modeId: 'find_country',
+        title: 'Grandes villes du monde',
+        description: 'Place les grandes métropoles de la planète.',
+        objective: 'Localiser les grandes villes sur la carte.',
+        modeId: 'place_city',
         difficultyId: 'hard',
         countryIds: <String>[
           'ESP',
@@ -248,10 +248,10 @@ class WorldExpeditionCatalog {
       ContinentLevel(
         id: 'world_08_microstates',
         order: 8,
-        title: 'Micro-États de la planète',
-        description: 'Les plus petits pays demandent beaucoup de précision.',
-        objective: 'Repérer vingt petits États sur toute la carte.',
-        modeId: 'find_country',
+        title: 'Monnaies du monde',
+        description: 'Retrouve les pays qui partagent une même monnaie.',
+        objective: 'Sélectionner tous les pays correspondant à chaque monnaie.',
+        modeId: 'currency',
         difficultyId: 'expert',
         countryIds: <String>[
           'AND',
@@ -259,7 +259,6 @@ class WorldExpeditionCatalog {
           'LUX',
           'MCO',
           'SMR',
-          'VAT',
           'MLT',
           'CPV',
           'COM',
@@ -284,10 +283,10 @@ class WorldExpeditionCatalog {
       ContinentLevel(
         id: 'world_09_polar_territories',
         order: 9,
-        title: 'Territoires polaires et isolés',
-        description: 'Explore l’Antarctique, l’Arctique et les îles lointaines.',
-        objective: 'Trouver quinze territoires aux confins du monde.',
-        modeId: 'find_country',
+        title: 'Langues du monde',
+        description: 'Explore les langues officielles de la planète.',
+        objective: 'Sélectionner tous les pays correspondant à chaque langue.',
+        modeId: 'language',
         difficultyId: 'expert',
         countryIds: <String>[
           'ATA',

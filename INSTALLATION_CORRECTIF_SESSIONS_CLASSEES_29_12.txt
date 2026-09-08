@@ -1,0 +1,42 @@
+GEOPOINT — CORRECTIF DES SESSIONS CLASSÉES DU POINT 29.12
+=========================================================
+
+Ce paquet corrige les refus « La session officielle a expiré » :
+- la fin d'une partie est horodatée depuis l'heure Firebase de sa session ;
+- un résultat synchronisé plus tard reste valable si la partie a fini à temps ;
+- le contrôle interne peut rétablir un ancien refus après recalcul serveur.
+
+1. Quitter flutter run avec q, puis arrêter Gradle :
+
+cd D:\romai\GEOPOINT\geopoint
+.\android\gradlew.bat --stop
+
+2. Décompresser l'archive cumulative :
+
+Expand-Archive `
+"$env:USERPROFILE\Downloads\geopoint_point_29_12_sessions_classees_corrige_v4.zip" `
+"D:\romai\GEOPOINT" -Force
+
+3. Vérifier puis déployer le backend corrigé :
+
+cd D:\romai\GEOPOINT\geopoint
+npm --prefix functions run check
+$env:FUNCTIONS_DISCOVERY_TIMEOUT="120"
+firebase deploy --only functions
+
+4. Vérifier et relancer l'application :
+
+flutter pub get
+flutter analyze
+flutter test
+flutter run
+
+5. Pour rétablir un ancien score refusé par ce bug :
+- ouvrir CONTRÔLE INTERNE ;
+- rechercher l'UID du joueur ;
+- sur le meilleur refus concerné, toucher RÉTABLIR APRÈS CONTRÔLE ;
+- saisir un motif d'au moins 5 caractères, par exemple :
+  Correction expiration session.
+
+Le serveur recalcule le score depuis les preuves de jeu avant de le republier.
+Un autre motif de refus ne peut pas utiliser cette réparation.

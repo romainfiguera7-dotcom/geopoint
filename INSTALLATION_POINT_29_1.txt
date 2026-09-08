@@ -1,0 +1,90 @@
+GEOPOINT — POINT 29.1
+MEILLEURE TENTATIVE CLASSÉE
+
+CORRECTION
+==========
+
+La déclaration Dart du paramètre optionnel de confirm() a été corrigée.
+
+Cette archive est cumulative. Elle contient toute la base validée des points 27
+et 28, puis la première étape du point 29.
+
+RÈGLE RETENUE
+==============
+
+- Toutes les tentatives autorisées d'un défi classé sont enregistrées.
+- Le classement conserve le meilleur résultat du joueur.
+- Une tentative moins bonne ne remplace jamais le record précédent.
+- En cas de score identique, la distance moyenne la plus faible l'emporte.
+- Si la distance est également identique, le temps total le plus court l'emporte.
+- Chaque tentative possède un numéro et un identifiant distincts.
+
+REJOUER APRÈS UNE RÉUSSITE
+==========================
+
+- Un défi classé déjà réussi peut maintenant être rejoué afin d'améliorer le
+  score.
+- Le bouton devient « Améliorer mon score ».
+- Les règles de relance prévues par le défi continuent de s'appliquer.
+- Les défis personnels non classés restent terminés après leur réussite.
+- L'écran de résultat indique si la tentative devient le nouveau meilleur
+  résultat ou si l'ancien record reste conservé.
+
+RÉCOMPENSES
+===========
+
+- La récompense du défi reste accordée une seule fois.
+- Rejouer pour améliorer le classement ne redonne ni XP, ni pièces, ni diamant,
+  ni objet.
+- Une tentative échouée peut tout de même être envoyée au classement si le
+  joueur a choisi d'y participer.
+
+SYNCHRONISATION FUTURE
+======================
+
+- Chaque envoi contient désormais le numéro de tentative.
+- Plusieurs tentatives du même défi peuvent attendre la validation serveur.
+- Le serveur pourra confirmer une tentative moins bonne sans créer une nouvelle
+  position.
+- L'ancien format de sauvegarde est accepté : une ancienne entrée est migrée
+  comme tentative numéro 1.
+- Le registre de classement passe à la version 2.
+
+INSTALLATION ET TEST
+====================
+
+1. Décompresser l'archive dans :
+
+   D:\romai\GEOPOINT\geopoint
+
+2. Accepter le remplacement des fichiers.
+3. Exécuter dans PowerShell :
+
+   cd D:\romai\GEOPOINT\geopoint
+   flutter analyze
+   flutter test
+   flutter run -d 58041FDCR00681
+
+PARCOURS À VÉRIFIER
+===================
+
+1. Ouvrir JOUER > DÉFIS.
+2. Ouvrir un défi classé et activer « Participer au classement ».
+3. Terminer une première partie.
+4. Vérifier le message « Nouveau meilleur résultat enregistré ».
+5. Après une réussite, toucher « Améliorer mon score ».
+6. Accepter la publicité simulée en mode debug.
+7. Réaliser un score inférieur et vérifier que l'ancien meilleur résultat reste
+   conservé.
+8. Rejouer et réaliser un meilleur score.
+9. Vérifier que le nouveau résultat devient le record.
+10. Vérifier qu'aucune récompense n'est distribuée une seconde fois.
+11. Ouvrir un défi personnel déjà réussi et vérifier qu'il ne peut pas être
+    rejoué.
+
+RÉSULTAT TECHNIQUE ATTENDU
+==========================
+
+- flutter analyze : No issues found!
+- flutter test : tous les tests réussissent.
+- 273 tests sont présents, dont 101 consacrés aux défis.

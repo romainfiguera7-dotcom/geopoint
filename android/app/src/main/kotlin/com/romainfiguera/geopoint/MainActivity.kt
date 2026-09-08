@@ -1,4 +1,4 @@
-package com.example.geopoint
+package com.romainfiguera.geopoint
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -10,17 +10,21 @@ class PassportProgressV2 {
     required this.licenseProgress,
     required this.playerProfile,
     required this.entities,
+    this.unlockedCollectionItemIds = const <String>{},
+    this.completedAchievementTierDates = const <String, DateTime>{},
     required this.migratedFromSchemaVersions,
     required this.createdAt,
     required this.updatedAt,
   });
 
-  static const int currentSchemaVersion = 2;
+  static const int currentSchemaVersion = 4;
 
   final int schemaVersion;
   final PlayerPassport licenseProgress;
   final PlayerProfile playerProfile;
   final Map<String, PassportEntityProgress> entities;
+  final Set<String> unlockedCollectionItemIds;
+  final Map<String, DateTime> completedAchievementTierDates;
   final Map<String, int> migratedFromSchemaVersions;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -35,6 +39,8 @@ class PassportProgressV2 {
       licenseProgress: PlayerPassport.initial(createdAt: now),
       playerProfile: PlayerProfile.initial(createdAt: now),
       entities: const <String, PassportEntityProgress>{},
+      unlockedCollectionItemIds: const <String>{},
+      completedAchievementTierDates: const <String, DateTime>{},
       migratedFromSchemaVersions: const <String, int>{},
       createdAt: now,
       updatedAt: now,
@@ -124,6 +130,8 @@ class PassportProgressV2 {
       entities: Map<String, PassportEntityProgress>.unmodifiable(
         updatedEntities,
       ),
+      unlockedCollectionItemIds: unlockedCollectionItemIds,
+      completedAchievementTierDates: completedAchievementTierDates,
       migratedFromSchemaVersions: migratedFromSchemaVersions,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
@@ -164,6 +172,114 @@ class PassportProgressV2 {
     return replaceEntity(updatedEntity, updatedAt: discoveryDate);
   }
 
+  PassportProgressV2 unlockCollectionItem(
+    String itemId, {
+    DateTime? unlockedAt,
+  }) {
+    final String normalizedId = itemId.trim().toLowerCase();
+    if (normalizedId.isEmpty || unlockedCollectionItemIds.contains(normalizedId)) {
+      return this;
+    }
+
+    return PassportProgressV2(
+      schemaVersion: currentSchemaVersion,
+      licenseProgress: licenseProgress,
+      playerProfile: playerProfile,
+      entities: entities,
+      unlockedCollectionItemIds: Set<String>.unmodifiable(
+        <String>{...unlockedCollectionItemIds, normalizedId},
+      ),
+      completedAchievementTierDates: completedAchievementTierDates,
+      migratedFromSchemaVersions: migratedFromSchemaVersions,
+      createdAt: createdAt,
+      updatedAt: unlockedAt ?? DateTime.now(),
+    );
+  }
+
+  PassportProgressV2 recordAchievementTiers(
+    Map<String, DateTime> completedDates, {
+    DateTime? recordedAt,
+  }) {
+    final Map<String, DateTime> merged =
+        Map<String, DateTime>.from(completedAchievementTierDates);
+    bool changed = false;
+
+    for (final MapEntry<String, DateTime> entry in completedDates.entries) {
+      final String tierId = entry.key.trim().toLowerCase();
+      if (tierId.isEmpty || merged.containsKey(tierId)) {
+        continue;
+      }
+      merged[tierId] = entry.value;
+      changed = true;
+    }
+    if (!changed) {
+      return this;
+    }
+
+    return PassportProgressV2(
+      schemaVersion: currentSchemaVersion,
+      licenseProgress: licenseProgress,
+      playerProfile: playerProfile,
+      entities: entities,
+      unlockedCollectionItemIds: unlockedCollectionItemIds,
+      completedAchievementTierDates:
+          Map<String, DateTime>.unmodifiable(merged),
+      migratedFromSchemaVersions: migratedFromSchemaVersions,
+      createdAt: createdAt,
+      updatedAt: recordedAt ?? DateTime.now(),
+    );
+  }
+
+  PassportProgressV2 recordMigrationVersions(
+    Map<String, int> versions, {
+    DateTime? recordedAt,
+  }) {
+    final Map<String, int> merged =
+        Map<String, int>.from(migratedFromSchemaVersions);
+    bool changed = false;
+    for (final MapEntry<String, int> entry in versions.entries) {
+      if (entry.key.trim().isEmpty || entry.value < 0) {
+        continue;
+      }
+      if (merged[entry.key] != entry.value) {
+        merged[entry.key] = entry.value;
+        changed = true;
+      }
+    }
+    if (!changed) {
+      return this;
+    }
+    return PassportProgressV2(
+      schemaVersion: currentSchemaVersion,
+      licenseProgress: licenseProgress,
+      playerProfile: playerProfile,
+      entities: entities,
+      unlockedCollectionItemIds: unlockedCollectionItemIds,
+      completedAchievementTierDates: completedAchievementTierDates,
+      migratedFromSchemaVersions: Map<String, int>.unmodifiable(merged),
+      createdAt: createdAt,
+      updatedAt: recordedAt ?? DateTime.now(),
+    );
+  }
+
+  PassportProgressV2 replaceCoreProgress({
+    required PlayerPassport licenseProgress,
+    required PlayerProfile playerProfile,
+    DateTime? replacedAt,
+  }) {
+    return PassportProgressV2(
+      schemaVersion: currentSchemaVersion,
+      licenseProgress: licenseProgress,
+      playerProfile: playerProfile,
+      entities: entities,
+      unlockedCollectionItemIds: unlockedCollectionItemIds,
+      completedAchievementTierDates: completedAchievementTierDates,
+      migratedFromSchemaVersions: migratedFromSchemaVersions,
+      createdAt: createdAt,
+      updatedAt: replacedAt ?? DateTime.now(),
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'schemaVersion': schemaVersion,
@@ -173,6 +289,12 @@ class PassportProgressV2 {
         for (final MapEntry<String, PassportEntityProgress> entry
             in entities.entries)
           entry.key: entry.value.toJson(),
+      },
+      'unlockedCollectionItemIds': unlockedCollectionItemIds.toList(),
+      'completedAchievementTierDates': <String, dynamic>{
+        for (final MapEntry<String, DateTime> entry
+            in completedAchievementTierDates.entries)
+          entry.key: entry.value.toIso8601String(),
       },
       'migratedFromSchemaVersions': migratedFromSchemaVersions,
       'createdAt': createdAt.toIso8601String(),
@@ -218,6 +340,12 @@ class PassportProgressV2 {
           ? PlayerProfile.fromJson(_asStringMap(rawPlayerProfile))
           : PlayerProfile.initial(createdAt: now),
       entities: Map<String, PassportEntityProgress>.unmodifiable(entities),
+      unlockedCollectionItemIds: Set<String>.unmodifiable(
+        _readStringSet(json['unlockedCollectionItemIds']),
+      ),
+      completedAchievementTierDates: Map<String, DateTime>.unmodifiable(
+        _readDateMap(json['completedAchievementTierDates']),
+      ),
       migratedFromSchemaVersions: Map<String, int>.unmodifiable(
         _readSchemaVersions(json['migratedFromSchemaVersions']),
       ),
@@ -225,6 +353,32 @@ class PassportProgressV2 {
       updatedAt: _readDateTime(json['updatedAt'], fallback: now),
     );
   }
+}
+
+Map<String, DateTime> _readDateMap(Object? value) {
+  if (value is! Map) {
+    return <String, DateTime>{};
+  }
+  final Map<String, DateTime> result = <String, DateTime>{};
+  for (final MapEntry<dynamic, dynamic> entry in value.entries) {
+    final String key = entry.key.toString().trim().toLowerCase();
+    final DateTime? date = DateTime.tryParse(entry.value?.toString() ?? '');
+    if (key.isNotEmpty && date != null) {
+      result[key] = date;
+    }
+  }
+  return result;
+}
+
+Set<String> _readStringSet(Object? value) {
+  if (value is! List) {
+    return <String>{};
+  }
+
+  return value
+      .map((dynamic item) => item.toString().trim().toLowerCase())
+      .where((String item) => item.isNotEmpty)
+      .toSet();
 }
 
 Map<String, int> _readSchemaVersions(Object? value) {

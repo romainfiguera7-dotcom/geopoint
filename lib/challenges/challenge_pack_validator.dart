@@ -371,35 +371,6 @@ class ChallengePackValidator {
       }
     }
 
-    final List<ChallengeDefinition> publishedChallenges = pack.challenges
-        .where(
-          (ChallengeDefinition challenge) =>
-              challenge.audience == ChallengeAudience.standard &&
-              !challenge.disabled &&
-              !pack.disabledChallengeIds.contains(challenge.id),
-        )
-        .toList(growable: false);
-    for (int index = 0; index < publishedChallenges.length; index++) {
-      final ChallengeDefinition challenge = publishedChallenges[index];
-      for (int otherIndex = index + 1;
-          otherIndex < publishedChallenges.length;
-          otherIndex++) {
-        final ChallengeDefinition other = publishedChallenges[otherIndex];
-        if (challenge.period != ChallengePeriod.permanent &&
-            challenge.period == other.period &&
-            _periodsOverlap(challenge, other)) {
-          issues.add(
-            _error(
-              other,
-              'overlapping_period_challenges',
-              'Deux défis ${challenge.period.label.toLowerCase()}s sont '
-                  'actifs en même temps.',
-            ),
-          );
-        }
-      }
-    }
-
     for (final String disabledId in pack.disabledChallengeIds) {
       if (!ids.contains(disabledId)) {
         issues.add(
@@ -515,11 +486,4 @@ class ChallengePackValidator {
     return RegExp(r'^\d{4}-(0[1-9]|1[0-2])$').hasMatch(value);
   }
 
-  static bool _periodsOverlap(
-    ChallengeDefinition first,
-    ChallengeDefinition second,
-  ) {
-    return first.validFromUtc.isBefore(second.validUntilUtc) &&
-        second.validFromUtc.isBefore(first.validUntilUtc);
-  }
 }

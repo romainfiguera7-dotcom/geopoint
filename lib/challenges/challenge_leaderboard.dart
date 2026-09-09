@@ -241,6 +241,14 @@ class ChallengeLeaderboardSnapshot {
     return null;
   }
 
+  List<ChallengeLeaderboardBoard> boardsFor(
+    ChallengeLeaderboardKind kind,
+  ) {
+    return boards
+        .where((ChallengeLeaderboardBoard board) => board.kind == kind)
+        .toList(growable: false);
+  }
+
   factory ChallengeLeaderboardSnapshot.fromJson(Map<String, dynamic> json) {
     final DateTime? serverNow =
         DateTime.tryParse(json['serverNowUtc']?.toString() ?? '');

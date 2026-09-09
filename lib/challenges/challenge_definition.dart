@@ -119,8 +119,13 @@ class ChallengeSuccessCondition {
   }
 
   String get competitiveSignature {
+    final String maximumDistance = maximumAverageDistanceKilometers == null
+        ? '-'
+        : _canonicalCompetitiveNumber(
+            maximumAverageDistanceKilometers!,
+          );
     return '$minimumCorrectAnswers|$minimumScore|'
-        '${maximumAverageDistanceKilometers ?? '-'}';
+        '$maximumDistance';
   }
 }
 
@@ -443,6 +448,13 @@ Map<String, dynamic> _readMap(Object? value, {required String field}) {
       item,
     ),
   );
+}
+
+String _canonicalCompetitiveNumber(num value) {
+  if (value.isFinite && value == value.roundToDouble()) {
+    return value.toInt().toString();
+  }
+  return value.toString();
 }
 
 String _readRequiredString(Object? value, {required String field}) {

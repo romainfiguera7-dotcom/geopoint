@@ -1,0 +1,31 @@
+POINTGEO — CORRECTIF DES DEFIS CUMULATIFS
+
+Ce correctif permet :
+- d'ajouter des défis depuis PointGeo Studio sans supprimer les précédents ;
+- de publier plusieurs défis le même jour, la même semaine ou le même mois ;
+- d'afficher toutes les cartes actives dans chaque section ;
+- de sélectionner le défi voulu dans les classements ;
+- de conserver automatiquement le calendrier officiel et les six défis permanents ;
+- de corriger la désynchronisation d'une ancienne saison mise en cache ;
+- de ne plus afficher la trace technique Firebase en cas d'erreur.
+
+INSTALLATION DEPUIS LE DOSSIER D:\romai\GEOPOINT
+
+cd D:\romai\GEOPOINT
+Expand-Archive "$env:USERPROFILE\Downloads\pointgeo_correctif_defis_cumulatifs.zip" "D:\romai\GEOPOINT" -Force
+
+cd D:\romai\GEOPOINT\geopoint
+flutter pub get
+dart format lib\challenges\challenge_leaderboard.dart lib\challenges\challenge_pack_repository.dart lib\challenges\challenge_pack_validator.dart lib\features\challenges\challenge_leaderboards_screen.dart lib\features\challenges\challenge_studio_screen.dart lib\features\challenges\challenges_screen.dart test\challenges\challenge_pack_repository_test.dart test\challenges\challenge_pack_validator_test.dart test\challenges\challenge_studio_exporter_test.dart
+flutter analyze
+flutter test
+npm --prefix functions run check
+
+Si toutes les vérifications passent :
+
+firebase deploy --only "functions"
+flutter run -d 58041FDCR00681
+
+Après validation sur le téléphone, sauvegarder sur GitHub dans une nouvelle
+branche ou un nouveau commit. Ne pas déplacer le tag v1.0.0 existant : il reste
+le point de restauration de la première V1 validée.

@@ -12,7 +12,28 @@
           "package_name": "com.romainfiguera.geopoint"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "843814612327-k29gohaeuvtm4mfjh7c5el768q1u0t6j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.romainfiguera.geopoint",
+            "certificate_hash": "b03feb3ecff7f6bf350f9e133dbf6b626479c127"
+          }
+        },
+        {
+          "client_id": "843814612327-onrl0dhnki6uq73d5qt3cotrdr4f5epv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.romainfiguera.geopoint",
+            "certificate_hash": "68ab955932a09f84933356715935614c56efaf86"
+          }
+        },
+        {
+          "client_id": "843814612327-cm8bivtgtrm1b2kdldpptmv588e5jk18.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAWJByYFJUy2N2wQ2LqHjccqn-QjSK2JFI"
@@ -20,7 +41,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "843814612327-cm8bivtgtrm1b2kdldpptmv588e5jk18.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "843814612327-564k5bbi0nc45i2okd7pf4dsrl38icc9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.romainfiguera.geopoint"
+              }
+            }
+          ]
         }
       }
     }

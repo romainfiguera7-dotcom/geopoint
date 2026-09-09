@@ -328,8 +328,8 @@ function validateRankingSubmissionBatch(data) {
 function validateLeaderboardRequest(data) {
   const source = requireApiVersion(data);
   if (!Array.isArray(source.rankingGroupIds) ||
-      source.rankingGroupIds.length > 3) {
-    throw new TypeError("rankingGroupIds doit contenir au plus 3 éléments.");
+      source.rankingGroupIds.length > 50) {
+    throw new TypeError("rankingGroupIds doit contenir au plus 50 éléments.");
   }
   const rankingGroupIds = source.rankingGroupIds.map((value, index) =>
     requireIdentifier(value, `rankingGroupIds[${index}]`));

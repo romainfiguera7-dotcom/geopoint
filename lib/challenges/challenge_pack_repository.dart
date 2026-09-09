@@ -46,20 +46,22 @@ class ChallengePackRepository {
         );
         _requireValidPack(remotePack, context: context);
 
-        if (cached != null && document.revision < cached.revision) {
+        final bool sameRemotePack =
+            cached != null && cached.pack.id == remotePack.id;
+        if (sameRemotePack && document.revision < cached.revision) {
           throw FormatException(
             'La révision distante ${document.revision} est antérieure à la '
             'révision ${cached.revision} déjà reçue.',
           );
         }
 
-        ChallengePack resolvedPack = _withBundledPermanentChallenges(
+        ChallengePack resolvedPack = _withBundledFallbackChallenges(
           remotePack,
           bundled,
         );
         _requireValidPack(resolvedPack, context: context);
-        if (cached != null && document.revision == cached.revision) {
-          resolvedPack = _withBundledPermanentChallenges(
+        if (sameRemotePack && document.revision == cached.revision) {
+          resolvedPack = _withBundledFallbackChallenges(
             cached.pack,
             bundled,
           );
@@ -85,7 +87,7 @@ class ChallengePackRepository {
         if (cached != null) {
           try {
             final ChallengePack completedCache =
-                _withBundledPermanentChallenges(cached.pack, bundled);
+                _withBundledFallbackChallenges(cached.pack, bundled);
             _requireValidPack(completedCache, context: context);
             return ChallengePackResolution(
               pack: completedCache,
@@ -108,21 +110,32 @@ class ChallengePackRepository {
     );
   }
 
-  static ChallengePack _withBundledPermanentChallenges(
+  static ChallengePack _withBundledFallbackChallenges(
     ChallengePack candidate,
     ChallengePack bundled,
   ) {
     final Set<String> existingIds = candidate.challenges
         .map((ChallengeDefinition challenge) => challenge.id)
         .toSet();
-    final List<ChallengeDefinition> missingPermanent = bundled.challenges
-        .where(
-          (ChallengeDefinition challenge) =>
-              challenge.period == ChallengePeriod.permanent &&
-              !existingIds.contains(challenge.id),
-        )
-        .toList(growable: false);
-    if (missingPermanent.isEmpty) {
+    final bool sameMonth = candidate.monthKey == bundled.monthKey;
+    final List<ChallengeDefinition> fallbacks = bundled.challenges.where(
+      (ChallengeDefinition challenge) {
+        if (existingIds.contains(challenge.id)) {
+          return false;
+        }
+        return challenge.period == ChallengePeriod.permanent || sameMonth;
+      },
+    ).map((ChallengeDefinition challenge) {
+      if (sameMonth || challenge.period != ChallengePeriod.permanent) {
+        return challenge;
+      }
+      return ChallengeDefinition.fromJson(<String, dynamic>{
+        ...challenge.toJson(),
+        'validFromUtc': candidate.validFromUtc.toIso8601String(),
+        'validUntilUtc': candidate.validUntilUtc.toIso8601String(),
+      });
+    }).toList(growable: false);
+    if (fallbacks.isEmpty) {
       return candidate;
     }
     return ChallengePack(
@@ -130,12 +143,18 @@ class ChallengePackRepository {
       id: candidate.id,
       title: candidate.title,
       monthKey: candidate.monthKey,
-      validFromUtc: candidate.validFromUtc,
-      validUntilUtc: candidate.validUntilUtc,
+      validFromUtc: sameMonth &&
+              bundled.validFromUtc.isBefore(candidate.validFromUtc)
+          ? bundled.validFromUtc
+          : candidate.validFromUtc,
+      validUntilUtc: sameMonth &&
+              bundled.validUntilUtc.isAfter(candidate.validUntilUtc)
+          ? bundled.validUntilUtc
+          : candidate.validUntilUtc,
       challenges: List<ChallengeDefinition>.unmodifiable(
         <ChallengeDefinition>[
           ...candidate.challenges,
-          ...missingPermanent,
+          ...fallbacks,
         ],
       ),
       disabledChallengeIds: candidate.disabledChallengeIds,

@@ -27,24 +27,71 @@ function applyAutomaticRanking(challenge) {
   };
 }
 
-function mergeBundledPermanentChallenges(pack, bundled = bundledPack) {
+function mergeBundledChallengeFallbacks(pack, bundled = bundledPack) {
   if (!isObject(pack) || !isObject(bundled)) {
     throw new TypeError("Les packs de défis doivent être des objets.");
   }
   const challenges = Array.isArray(pack.challenges) ? pack.challenges : [];
-  const existingIds = new Set(challenges
+  const expandedCandidate = expandChallengePack(pack);
+  const existingIds = new Set(expandedCandidate
     .filter(isObject)
     .map((challenge) => challenge.id));
-  const missingPermanent = (Array.isArray(bundled.challenges) ?
-    bundled.challenges : [])
-    .filter((challenge) => isObject(challenge) &&
-      challenge.period === "permanent" &&
-      !existingIds.has(challenge.id));
-  if (missingPermanent.length === 0) return pack;
+  const sameMonth = pack.monthKey === bundled.monthKey;
+  const fallbacks = expandChallengePack(bundled)
+    .filter((challenge) => {
+      if (!isObject(challenge) || existingIds.has(challenge.id)) return false;
+      return challenge.period === "permanent" || sameMonth;
+    })
+    .map((challenge) => challenge.period === "permanent" ? {
+      ...challenge,
+      validFromUtc: pack.validFromUtc,
+      validUntilUtc: pack.validUntilUtc,
+    } : challenge);
+  if (fallbacks.length === 0) return pack;
   return {
     ...pack,
-    challenges: [...challenges, ...missingPermanent],
+    validFromUtc: sameMonth &&
+      new Date(bundled.validFromUtc) < new Date(pack.validFromUtc) ?
+      bundled.validFromUtc : pack.validFromUtc,
+    validUntilUtc: sameMonth &&
+      new Date(bundled.validUntilUtc) > new Date(pack.validUntilUtc) ?
+      bundled.validUntilUtc : pack.validUntilUtc,
+    challenges: [...challenges, ...fallbacks],
   };
+}
+
+// Alias conservé pour les appels historiques.
+const mergeBundledPermanentChallenges = mergeBundledChallengeFallbacks;
+
+function mergeChallengePacksAdditively(currentPack, incomingPack) {
+  if (!isObject(currentPack) || !isObject(incomingPack)) {
+    throw new TypeError("Les packs à fusionner doivent être des objets.");
+  }
+  const completedIncoming = mergeBundledChallengeFallbacks(incomingPack);
+  if (currentPack.monthKey !== incomingPack.monthKey) {
+    return completedIncoming;
+  }
+  const completedCurrent = mergeBundledChallengeFallbacks(currentPack);
+  const byId = new Map();
+  for (const challenge of expandChallengePack(completedCurrent)) {
+    byId.set(challenge.id, challenge);
+  }
+  for (const challenge of expandChallengePack(completedIncoming)) {
+    byId.set(challenge.id, challenge);
+  }
+  const merged = {
+    ...completedIncoming,
+    validFromUtc: new Date(completedCurrent.validFromUtc) <
+      new Date(completedIncoming.validFromUtc) ?
+      completedCurrent.validFromUtc : completedIncoming.validFromUtc,
+    validUntilUtc: new Date(completedCurrent.validUntilUtc) >
+      new Date(completedIncoming.validUntilUtc) ?
+      completedCurrent.validUntilUtc : completedIncoming.validUntilUtc,
+    challenges: [...byId.values()],
+  };
+  delete merged.templates;
+  delete merged.schedule;
+  return merged;
 }
 
 function expandChallengePack(pack) {
@@ -89,7 +136,9 @@ function competitiveSignature(challenge) {
     condition.minimumCorrectAnswers,
     condition.minimumScore || 0,
     condition.maximumAverageDistanceKilometers == null ?
-      "-" : condition.maximumAverageDistanceKilometers,
+      "-" : canonicalCompetitiveNumber(
+        condition.maximumAverageDistanceKilometers,
+      ),
     retry.maximumAttempts,
     retry.unlimitedFreeAttempts === true,
     retry.diamondRetryCost || 0,
@@ -98,6 +147,12 @@ function competitiveSignature(challenge) {
     retry.maximumRewardedAdvertisementRetries || 0,
     retry.unlimitedRewardedAdvertisementRetries === true,
   ].join("|");
+}
+
+function canonicalCompetitiveNumber(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return String(value);
+  return Number.isInteger(number) ? String(Math.trunc(number)) : String(number);
 }
 
 function resolveOfficialChallenge(pack, input, now = new Date()) {
@@ -209,6 +264,8 @@ module.exports = {
   bundledChallengePack,
   competitiveSignature,
   expandChallengePack,
+  mergeChallengePacksAdditively,
+  mergeBundledChallengeFallbacks,
   mergeBundledPermanentChallenges,
   rankedSubmissionTimingRejection,
   resolveOfficialChallenge,

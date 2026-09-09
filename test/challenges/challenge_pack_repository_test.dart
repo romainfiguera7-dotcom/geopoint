@@ -112,6 +112,57 @@ void main() {
     expect(result.pack.challengeById('permanent_world'), isNotNull);
   });
 
+  test('complète un pack Studio sans supprimer semaine et mois', () async {
+    final ChallengePack studioPack = ChallengePack(
+      schemaVersion: ChallengePack.currentSchemaVersion,
+      id: 'studio_pack_2026_09',
+      title: 'Pack Studio',
+      monthKey: '2026-09',
+      validFromUtc: DateTime.utc(2026, 9, 4),
+      validUntilUtc: DateTime.utc(2026, 9, 5),
+      challenges: <ChallengeDefinition>[
+        challengeFixture(id: 'studio_daily'),
+      ],
+    );
+    final ChallengePack bundledPack = ChallengePack(
+      schemaVersion: ChallengePack.currentSchemaVersion,
+      id: 'bundled_calendar',
+      title: 'Calendrier inclus',
+      monthKey: '2026-09',
+      validFromUtc: DateTime.utc(2026, 9),
+      validUntilUtc: DateTime.utc(2026, 10),
+      challenges: <ChallengeDefinition>[
+        challengeFixture(id: 'bundled_daily'),
+        challengeFixture(
+          id: 'bundled_weekly',
+          period: ChallengePeriod.weekly,
+          validFromUtc: DateTime.utc(2026, 9, 1),
+          validUntilUtc: DateTime.utc(2026, 9, 8),
+        ),
+        challengeFixture(
+          id: 'bundled_monthly',
+          period: ChallengePeriod.monthly,
+          validFromUtc: DateTime.utc(2026, 9),
+          validUntilUtc: DateTime.utc(2026, 10),
+        ),
+      ],
+    );
+
+    final ChallengePackResolution result = await repository(
+      gateway: _FakeRemoteGateway(
+        document: document(pack: studioPack, revision: 1),
+      ),
+      bundled: bundledPack,
+    ).load(countryIds: const <String>{'FRA'});
+
+    expect(result.pack.challengeById('studio_daily'), isNotNull);
+    expect(result.pack.challengeById('bundled_daily'), isNotNull);
+    expect(result.pack.challengeById('bundled_weekly'), isNotNull);
+    expect(result.pack.challengeById('bundled_monthly'), isNotNull);
+    expect(result.pack.validFromUtc, DateTime.utc(2026, 9));
+    expect(result.pack.validUntilUtc, DateTime.utc(2026, 10));
+  });
+
   test('utilise le dernier pack valide lorsque le serveur est indisponible',
       () async {
     final ChallengePack remotePack = pack('cached');
@@ -135,20 +186,42 @@ void main() {
   test('refuse une révision distante plus ancienne que le cache', () async {
     await repository(
       gateway: _FakeRemoteGateway(
-        document: document(pack: pack('revision_8'), revision: 8),
+        document: document(pack: pack('revisioned'), revision: 8),
       ),
     ).load(countryIds: const <String>{'FRA'});
 
     final ChallengePackResolution result = await repository(
       gateway: _FakeRemoteGateway(
-        document: document(pack: pack('revision_7'), revision: 7),
+        document: document(
+          pack: pack('revisioned', modeId: 'find_capital'),
+          revision: 7,
+        ),
       ),
     ).load(countryIds: const <String>{'FRA'});
 
     expect(result.origin, ChallengePackOrigin.cache);
-    expect(result.pack.id, 'revision_8');
+    expect(result.pack.id, 'revisioned');
     expect(result.revision, 8);
     expect(result.usedFallback, isTrue);
+  });
+
+  test('accepte la révision initiale d’un nouveau pack actif', () async {
+    await repository(
+      gateway: _FakeRemoteGateway(
+        document: document(pack: pack('old_pack'), revision: 8),
+      ),
+    ).load(countryIds: const <String>{'FRA'});
+
+    final ChallengePackResolution result = await repository(
+      gateway: _FakeRemoteGateway(
+        document: document(pack: pack('new_pack'), revision: 1),
+      ),
+    ).load(countryIds: const <String>{'FRA'});
+
+    expect(result.origin, ChallengePackOrigin.remote);
+    expect(result.pack.id, 'new_pack');
+    expect(result.revision, 1);
+    expect(result.usedFallback, isFalse);
   });
 
   test('refuse un pack distant invalide et revient au pack inclus', () async {
@@ -169,18 +242,25 @@ void main() {
   test('réutilise le cache immuable pour une révision identique', () async {
     await repository(
       gateway: _FakeRemoteGateway(
-        document: document(pack: pack('original'), revision: 3),
+        document: document(pack: pack('same_pack'), revision: 3),
       ),
     ).load(countryIds: const <String>{'FRA'});
 
     final ChallengePackResolution result = await repository(
       gateway: _FakeRemoteGateway(
-        document: document(pack: pack('modified_same_revision'), revision: 3),
+        document: document(
+          pack: pack('same_pack', modeId: 'find_capital'),
+          revision: 3,
+        ),
       ),
     ).load(countryIds: const <String>{'FRA'});
 
     expect(result.origin, ChallengePackOrigin.remote);
-    expect(result.pack.id, 'original');
+    expect(result.pack.id, 'same_pack');
+    expect(
+      result.pack.challengeById('same_pack_daily')?.modeId,
+      'find_country',
+    );
     expect(result.revision, 3);
   });
 }

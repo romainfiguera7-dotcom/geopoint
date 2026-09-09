@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../account/player_account_service.dart';
 import '../../challenges/challenge_definition.dart';
 import '../../challenges/challenge_hub_service.dart';
 import '../../challenges/challenge_player_state.dart';
@@ -28,11 +31,13 @@ class ChallengesScreen extends StatefulWidget {
 
 class _ChallengesScreenState extends State<ChallengesScreen> {
   late Future<ChallengeHubSnapshot> _snapshotFuture;
+  bool _canAccessStudio = false;
 
   @override
   void initState() {
     super.initState();
     _load();
+    unawaited(_refreshStudioAccess());
   }
 
   void _load() {
@@ -76,10 +81,26 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
 
   void _retry() {
     setState(_load);
+    unawaited(_refreshStudioAccess());
+  }
+
+  Future<void> _refreshStudioAccess() async {
+    try {
+      final bool canAccess = await PlayerAccountService.instance
+          .isAdministrator(forceRefresh: true);
+      if (!mounted || canAccess == _canAccessStudio) {
+        return;
+      }
+      setState(() => _canAccessStudio = canAccess);
+    } on Object catch (error) {
+      debugPrint(
+        'PointGeo Studio : vérification administrateur différée : $error',
+      );
+    }
   }
 
   Future<void> _openStudio() async {
-    if (!kDebugMode) {
+    if (!_canAccessStudio) {
       return;
     }
     await Navigator.of(context).push<void>(
@@ -114,15 +135,15 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
 
   Future<void> _openLeaderboards({
     required ChallengeHubSnapshot snapshot,
-    required ChallengeDefinition? daily,
-    required ChallengeDefinition? weekly,
+    required List<ChallengeDefinition> daily,
+    required List<ChallengeDefinition> weekly,
   }) {
     return Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (BuildContext context) => ChallengeLeaderboardsScreen(
           seasonKey: snapshot.pack.monthKey,
-          dailyChallenge: daily,
-          weeklyChallenge: weekly,
+          dailyChallenges: daily,
+          weeklyChallenges: weekly,
         ),
       ),
     );
@@ -163,7 +184,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          if (kDebugMode) ...<Widget>[
+          if (_canAccessStudio) ...<Widget>[
             GeoRoundAction(
               icon: Icons.dashboard_customize_rounded,
               tooltip: 'PointGeo Studio',
@@ -210,17 +231,14 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     }
 
     final ChallengeHubSnapshot snapshot = asyncSnapshot.data!;
-    final ChallengeDefinition? daily = snapshot.dailyChallenge;
+    final List<ChallengeDefinition> daily =
+        snapshot.challengesFor(ChallengePeriod.daily);
     final List<ChallengeDefinition> weekly =
         snapshot.challengesFor(ChallengePeriod.weekly);
     final List<ChallengeDefinition> monthly =
         snapshot.challengesFor(ChallengePeriod.monthly);
     final List<ChallengeDefinition> permanent =
         snapshot.challengesFor(ChallengePeriod.permanent);
-    final ChallengeDefinition? weeklyChallenge =
-        weekly.isEmpty ? null : weekly.first;
-    final ChallengeDefinition? monthlyChallenge =
-        monthly.isEmpty ? null : monthly.first;
     final List<ChallengeDefinition> history =
         snapshot.recentlyCompletedChallenges;
 
@@ -229,7 +247,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
       children: <Widget>[
         header,
         const SizedBox(height: 24),
-        if (kDebugMode) ...<Widget>[
+        if (_canAccessStudio) ...<Widget>[
           const SizedBox(height: 12),
           _StudioAccessCard(onPressed: _openStudio),
         ],
@@ -252,71 +270,93 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
             onPressed: () => _openLeaderboards(
               snapshot: snapshot,
               daily: daily,
-              weekly: weeklyChallenge,
+              weekly: weekly,
             ),
           )
         else
           const _ChildProtectionCard(),
         const SizedBox(height: 24),
-        const GeoSectionHeading(
+        GeoSectionHeading(
           eyebrow: 'Aujourd’hui',
-          title: 'Le défi du jour',
-          description: 'Un objectif rapide pour faire avancer ton Passeport.',
+          title: daily.length > 1 ? 'Les défis du jour' : 'Le défi du jour',
+          description: daily.length > 1
+              ? '${daily.length} missions sont disponibles aujourd’hui.'
+              : 'Un objectif rapide pour faire avancer ton Passeport.',
         ),
         const SizedBox(height: 14),
-        if (daily != null)
-          _ChallengeCard(
-            challenge: daily,
-            progress: snapshot.playerState.progressFor(daily.id),
-            nowUtc: snapshot.clock.effectiveNowUtc,
-            color: GeoColors.coral,
-            featured: true,
-            onPressed: () => _openChallenge(snapshot, daily),
-          )
-        else
+        if (daily.isEmpty)
           const _EmptyPeriodCard(
             message: 'Aucun défi quotidien n’est disponible actuellement.',
+          )
+        else
+          ...daily.map(
+            (ChallengeDefinition challenge) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _ChallengeCard(
+                challenge: challenge,
+                progress: snapshot.playerState.progressFor(challenge.id),
+                nowUtc: snapshot.clock.effectiveNowUtc,
+                color: GeoColors.coral,
+                featured: true,
+                onPressed: () => _openChallenge(snapshot, challenge),
+              ),
+            ),
           ),
         const SizedBox(height: 28),
-        const GeoSectionHeading(
+        GeoSectionHeading(
           eyebrow: 'Cette semaine',
-          title: 'Le défi de la semaine',
-          description:
-              'Une mission plus longue à réussir avant la fin de la semaine.',
+          title: weekly.length > 1
+              ? 'Les défis de la semaine'
+              : 'Le défi de la semaine',
+          description: weekly.length > 1
+              ? '${weekly.length} missions sont disponibles cette semaine.'
+              : 'Une mission plus longue à réussir avant la fin de la semaine.',
         ),
         const SizedBox(height: 14),
-        if (weeklyChallenge == null)
+        if (weekly.isEmpty)
           const _EmptyPeriodCard(
             message: 'Le prochain défi de la semaine arrive bientôt.',
           )
         else
-          _ChallengeCard(
-            challenge: weeklyChallenge,
-            progress: snapshot.playerState.progressFor(weeklyChallenge.id),
-            nowUtc: snapshot.clock.effectiveNowUtc,
-            color: GeoColors.gold,
-            featured: true,
-            onPressed: () => _openChallenge(snapshot, weeklyChallenge),
+          ...weekly.map(
+            (ChallengeDefinition challenge) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _ChallengeCard(
+                challenge: challenge,
+                progress: snapshot.playerState.progressFor(challenge.id),
+                nowUtc: snapshot.clock.effectiveNowUtc,
+                color: GeoColors.gold,
+                featured: true,
+                onPressed: () => _openChallenge(snapshot, challenge),
+              ),
+            ),
           ),
         const SizedBox(height: 28),
         GeoSectionHeading(
           eyebrow: challengeMonthLabel(snapshot.pack.monthKey),
-          title: 'Le défi du mois',
-          description: 'La grande mission du mois et sa récompense spéciale.',
+          title: monthly.length > 1 ? 'Les défis du mois' : 'Le défi du mois',
+          description: monthly.length > 1
+              ? '${monthly.length} grandes missions sont disponibles ce mois-ci.'
+              : 'La grande mission du mois et sa récompense spéciale.',
         ),
         const SizedBox(height: 14),
-        if (monthlyChallenge == null)
+        if (monthly.isEmpty)
           const _EmptyPeriodCard(
             message: 'Le prochain défi du mois arrive bientôt.',
           )
         else
-          _ChallengeCard(
-            challenge: monthlyChallenge,
-            progress: snapshot.playerState.progressFor(monthlyChallenge.id),
-            nowUtc: snapshot.clock.effectiveNowUtc,
-            color: GeoColors.purple,
-            featured: true,
-            onPressed: () => _openChallenge(snapshot, monthlyChallenge),
+          ...monthly.map(
+            (ChallengeDefinition challenge) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _ChallengeCard(
+                challenge: challenge,
+                progress: snapshot.playerState.progressFor(challenge.id),
+                nowUtc: snapshot.clock.effectiveNowUtc,
+                color: GeoColors.purple,
+                featured: true,
+                onPressed: () => _openChallenge(snapshot, challenge),
+              ),
+            ),
           ),
         const SizedBox(height: 28),
         const GeoSectionHeading(

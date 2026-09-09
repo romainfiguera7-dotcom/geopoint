@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "843814612327-q51c8sm0p3nl3ue2m17068jq7jqk2uhj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.romainfiguera.geopoint",
+            "certificate_hash": "16ae32d379f245735527f8f304782b65d3d898bd"
+          }
+        },
+        {
           "client_id": "843814612327-cm8bivtgtrm1b2kdldpptmv588e5jk18.apps.googleusercontent.com",
           "client_type": 3
         }

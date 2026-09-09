@@ -6,6 +6,7 @@ const {
   bundledChallengePack,
   competitiveSignature,
   expandChallengePack,
+  mergeChallengePacksAdditively,
   mergeBundledPermanentChallenges,
   rankedSubmissionTimingRejection,
   resolveOfficialChallenge,
@@ -53,6 +54,32 @@ test("rend aussi le défi quotidien classé", () => {
   assert.equal(daily.minimumPlayerLevel, 1);
 });
 
+test("signe Capitales chrono avec une distance canonique", () => {
+  const daily = expandChallengePack(bundledChallengePack())
+    .find((item) => item.id === "daily_2026_09_09");
+  assert.equal(
+    competitiveSignature(daily),
+    [
+      "find_capital",
+      "intermediate",
+      "europe",
+      "",
+      "6",
+      "-",
+      "4",
+      "350",
+      "450",
+      "1",
+      "false",
+      "0",
+      "0",
+      "true",
+      "0",
+      "true",
+    ].join("|"),
+  );
+});
+
 test("complète un ancien pack distant avec les défis permanents inclus", () => {
   const oldRemotePack = {
     ...bundledChallengePack(),
@@ -70,6 +97,89 @@ test("complète un ancien pack distant avec les défis permanents inclus", () =>
     "permanent_asia",
     "permanent_oceania",
   ]);
+});
+
+test("complète un pack Studio avec le calendrier officiel manquant", () => {
+  const bundled = bundledChallengePack();
+  const bundledChallenges = expandChallengePack(bundled);
+  const sourceDaily = bundledChallenges.find(
+    (item) => item.id === "daily_2026_09_09",
+  );
+  const studioDaily = {
+    ...sourceDaily,
+    id: "studio_daily_2026_09_09",
+    rankingGroupId: "studio_daily_2026_09_09",
+  };
+  const studioPack = {
+    schemaVersion: 1,
+    id: "studio_pack_2026_09",
+    title: "Pack Studio",
+    monthKey: "2026-09",
+    validFromUtc: studioDaily.validFromUtc,
+    validUntilUtc: studioDaily.validUntilUtc,
+    challenges: [studioDaily],
+  };
+
+  const completed = mergeBundledPermanentChallenges(studioPack, bundled);
+  const challenges = expandChallengePack(completed);
+  const activeAt = new Date("2026-09-09T12:00:00.000Z");
+  const activeStandard = challenges.filter((challenge) =>
+    (challenge.audience || "standard") === "standard" &&
+    (challenge.period === "permanent" ||
+      (new Date(challenge.validFromUtc) <= activeAt &&
+       activeAt < new Date(challenge.validUntilUtc))),
+  );
+
+  assert.ok(activeStandard.some(
+    (challenge) => challenge.id === "studio_daily_2026_09_09",
+  ));
+  assert.ok(activeStandard.some((challenge) => challenge.period === "weekly"));
+  assert.ok(activeStandard.some((challenge) => challenge.period === "monthly"));
+  assert.ok(activeStandard.some(
+    (challenge) => challenge.id === "permanent_world",
+  ));
+  assert.equal(completed.validFromUtc, bundled.validFromUtc);
+  assert.equal(completed.validUntilUtc, bundled.validUntilUtc);
+});
+
+test("ajoute un nouveau défi sans supprimer ceux déjà publiés", () => {
+  const bundled = bundledChallengePack();
+  const baseChallenge = expandChallengePack(bundled)
+    .find((item) => item.id === "daily_2026_09_09");
+  const firstCustom = {
+    ...baseChallenge,
+    id: "custom_first",
+    rankingGroupId: "custom_first",
+  };
+  const secondCustom = {
+    ...baseChallenge,
+    id: "custom_second",
+    rankingGroupId: "custom_second",
+  };
+  const currentPack = {
+    schemaVersion: 1,
+    id: "studio_pack_2026_09",
+    title: "Pack actuel",
+    monthKey: "2026-09",
+    validFromUtc: baseChallenge.validFromUtc,
+    validUntilUtc: baseChallenge.validUntilUtc,
+    challenges: [firstCustom],
+  };
+  const incomingPack = {
+    ...currentPack,
+    title: "Nouvelle publication",
+    challenges: [secondCustom],
+  };
+
+  const merged = mergeChallengePacksAdditively(currentPack, incomingPack);
+  const ids = new Set(expandChallengePack(merged).map((item) => item.id));
+
+  assert.ok(ids.has("custom_first"));
+  assert.ok(ids.has("custom_second"));
+  assert.ok(ids.has("daily_2026_09_09"));
+  assert.ok(ids.has("weekly_02"));
+  assert.ok(ids.has("monthly_2026_09_world"));
+  assert.ok(ids.has("permanent_world"));
 });
 
 test("calcule la même signature compétitive que Flutter", () => {

@@ -305,11 +305,11 @@ class _ChallengeStudioScreenState extends State<ChallengeStudioScreen> {
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
         icon: const Icon(Icons.cloud_upload_rounded, color: GeoColors.gold),
-        title: const Text('Publier ce pack ?'),
+        title: const Text('Ajouter ces défis ?'),
         content: Text(
           '${export.pack.challenges.length} configuration(s) seront envoyées '
-          'à Firebase. Le pack deviendra la version active de PointGeo dès '
-          'la fin de la publication.',
+          'à Firebase. Elles s’ajouteront aux défis déjà publiés. Un défi '
+          'portant le même identifiant sera simplement mis à jour.',
         ),
         actions: <Widget>[
           TextButton(
@@ -319,7 +319,7 @@ class _ChallengeStudioScreenState extends State<ChallengeStudioScreen> {
           FilledButton.icon(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             icon: const Icon(Icons.publish_rounded),
-            label: const Text('PUBLIER'),
+            label: const Text('AJOUTER'),
           ),
         ],
       ),

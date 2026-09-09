@@ -100,7 +100,7 @@ void main() {
     );
   });
 
-  test('refuse deux défis du même rythme actifs en même temps', () {
+  test('accepte plusieurs défis du même rythme actifs en même temps', () {
     final ChallengeDefinition first = challengeFixture(id: 'daily_a');
     final ChallengeDefinition second = challengeFixture(
       id: 'daily_b',
@@ -115,7 +115,7 @@ void main() {
 
     expect(
       issues.map((ChallengeValidationIssue issue) => issue.code),
-      contains('overlapping_period_challenges'),
+      isNot(contains('overlapping_period_challenges')),
     );
   });
 

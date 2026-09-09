@@ -225,6 +225,19 @@ test("valide une demande de classements bornée", () => {
   assert.equal(request.scope, "friends");
 });
 
+test("accepte de nombreux défis simultanés dans les classements", () => {
+  const rankingGroupIds = Array.from(
+    {length: 10},
+    (_, index) => `daily_custom_${index + 1}`,
+  );
+  const request = validateLeaderboardRequest({
+    apiVersion: 1,
+    rankingGroupIds,
+    seasonKey: "2026-09",
+  });
+  assert.deepEqual(request.rankingGroupIds, rankingGroupIds);
+});
+
 test("valide un code ami et les actions de relation", () => {
   assert.equal(validateFriendCodeRequest({
     apiVersion: 1,

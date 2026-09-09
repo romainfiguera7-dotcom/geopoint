@@ -50,6 +50,15 @@ class PlayerAccountService {
     );
   }
 
+  Future<bool> isAdministrator({bool forceRefresh = false}) async {
+    final User? user = _auth.currentUser;
+    if (user == null || user.isAnonymous) {
+      return false;
+    }
+    final IdTokenResult token = await user.getIdTokenResult(forceRefresh);
+    return token.claims?['admin'] == true;
+  }
+
   Future<void> signInWithGoogle() async {
     if (!_googleInitialized) {
       await GoogleSignIn.instance.initialize();

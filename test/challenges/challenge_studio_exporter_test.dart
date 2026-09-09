@@ -65,7 +65,7 @@ void main() {
     expect(jsonDecode(export.json), isA<Map<String, dynamic>>());
   });
 
-  test('refuse deux défis quotidiens qui se chevauchent', () {
+  test('accepte plusieurs défis quotidiens qui se chevauchent', () {
     final ChallengeStudioExport export = ChallengeStudioExporter.build(
       drafts: <ChallengeStudioDraft>[
         draft(
@@ -84,10 +84,10 @@ void main() {
       countryIds: const <String>{'FRA'},
     );
 
-    expect(export.isValid, isFalse);
+    expect(export.isValid, isTrue);
     expect(
       export.issues.map((issue) => issue.code),
-      contains('overlapping_period_challenges'),
+      isNot(contains('overlapping_period_challenges')),
     );
   });
 }

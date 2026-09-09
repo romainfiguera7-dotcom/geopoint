@@ -143,6 +143,17 @@ void main() {
     );
   });
 
+  test('Capitales chrono utilise la même signature numérique que Firebase', () {
+    final ChallengeDefinition challenge = septemberPack.challenges.firstWhere(
+      (ChallengeDefinition item) => item.id == 'daily_2026_09_09',
+    );
+
+    expect(
+      challenge.competitiveSignature,
+      'find_capital|intermediate|europe||6|-|4|350|450|1|false|0|0|true|0|true',
+    );
+  });
+
   test('un adulte voit les trois défis programmés et six permanents', () {
     final List<ChallengeDefinition> active =
         ChallengeEligibility.activeForPlayer(

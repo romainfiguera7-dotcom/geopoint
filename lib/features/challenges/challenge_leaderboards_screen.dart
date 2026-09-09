@@ -12,14 +12,14 @@ import 'challenge_ui_helpers.dart';
 class ChallengeLeaderboardsScreen extends StatefulWidget {
   const ChallengeLeaderboardsScreen({
     required this.seasonKey,
-    this.dailyChallenge,
-    this.weeklyChallenge,
+    this.dailyChallenges = const <ChallengeDefinition>[],
+    this.weeklyChallenges = const <ChallengeDefinition>[],
     super.key,
   });
 
   final String seasonKey;
-  final ChallengeDefinition? dailyChallenge;
-  final ChallengeDefinition? weeklyChallenge;
+  final List<ChallengeDefinition> dailyChallenges;
+  final List<ChallengeDefinition> weeklyChallenges;
 
   @override
   State<ChallengeLeaderboardsScreen> createState() =>
@@ -47,10 +47,12 @@ class _ChallengeLeaderboardsScreenState
       return;
     }
     final List<String> groupIds = <String>{
-      if (widget.dailyChallenge?.rankingGroupId != null)
-        widget.dailyChallenge!.rankingGroupId!,
-      if (widget.weeklyChallenge?.rankingGroupId != null)
-        widget.weeklyChallenge!.rankingGroupId!,
+      ...widget.dailyChallenges
+          .map((ChallengeDefinition item) => item.rankingGroupId)
+          .whereType<String>(),
+      ...widget.weeklyChallenges
+          .map((ChallengeDefinition item) => item.rankingGroupId)
+          .whereType<String>(),
     }.toList(growable: false);
     _future = gateway.fetchLeaderboards(
       rankingGroupIds: groupIds,
@@ -173,8 +175,9 @@ class _ChallengeLeaderboardsScreenState
                             if (snapshot.hasError || !snapshot.hasData) {
                               return _LeaderboardError(
                                 onRetry: _retry,
-                                message: snapshot.error?.toString() ??
-                                    'Les classements sont indisponibles.',
+                                message: _leaderboardErrorMessage(
+                                  snapshot.error,
+                                ),
                               );
                             }
                             final ChallengeLeaderboardSnapshot data =
@@ -185,7 +188,7 @@ class _ChallengeLeaderboardsScreenState
                                     (ChallengeLeaderboardKind kind) =>
                                         _LeaderboardView(
                                       kind: kind,
-                                      board: data.boardFor(kind),
+                                      boards: data.boardsFor(kind),
                                       seasonRewardTiers:
                                           data.seasonRewardTiers,
                                       history: data.currentPlayerHistory,
@@ -207,6 +210,17 @@ class _ChallengeLeaderboardsScreenState
       ),
     );
   }
+}
+
+String _leaderboardErrorMessage(Object? error) {
+  final String technicalMessage = error?.toString().toLowerCase() ?? '';
+  if (technicalMessage.contains('saison demandée') ||
+      technicalMessage.contains('saison demandee')) {
+    return 'La saison vient d’être actualisée. Retourne aux Défis, '
+        'actualise la page puis ouvre de nouveau les classements.';
+  }
+  return 'Impossible de charger les classements pour le moment. '
+      'Vérifie ta connexion puis réessaie.';
 }
 
 class _LeaderboardScopeSelector extends StatelessWidget {
@@ -373,38 +387,80 @@ class _LeaderboardHero extends StatelessWidget {
   }
 }
 
-class _LeaderboardView extends StatelessWidget {
+class _LeaderboardView extends StatefulWidget {
   const _LeaderboardView({
     required this.kind,
-    required this.board,
+    required this.boards,
     required this.seasonRewardTiers,
     required this.history,
     required this.scope,
   });
 
   final ChallengeLeaderboardKind kind;
-  final ChallengeLeaderboardBoard? board;
+  final List<ChallengeLeaderboardBoard> boards;
   final List<ChallengeSeasonRewardTier> seasonRewardTiers;
   final List<ChallengeRankingHistoryEntry> history;
   final ChallengeLeaderboardScope scope;
 
   @override
+  State<_LeaderboardView> createState() => _LeaderboardViewState();
+}
+
+class _LeaderboardViewState extends State<_LeaderboardView> {
+  String? _selectedBoardId;
+
+  @override
   Widget build(BuildContext context) {
-    final ChallengeLeaderboardBoard? currentBoard = board;
+    final ChallengeLeaderboardKind kind = widget.kind;
+    final List<ChallengeSeasonRewardTier> seasonRewardTiers =
+        widget.seasonRewardTiers;
+    final List<ChallengeRankingHistoryEntry> history = widget.history;
+    final ChallengeLeaderboardScope scope = widget.scope;
+    final List<ChallengeLeaderboardBoard> boards = widget.boards;
+    ChallengeLeaderboardBoard? currentBoard;
+    for (final ChallengeLeaderboardBoard board in boards) {
+      if (board.boardId == _selectedBoardId) {
+        currentBoard = board;
+        break;
+      }
+    }
+    currentBoard ??= boards.isEmpty ? null : boards.first;
     if (currentBoard == null) {
       return const _LeaderboardEmpty(
         message: 'Ce classement n’est pas disponible actuellement.',
       );
     }
+    final ChallengeLeaderboardBoard selectedBoard = currentBoard;
     final ChallengeLeaderboardEntry? currentPlayer =
-        currentBoard.visibleCurrentPlayerEntry;
+        selectedBoard.visibleCurrentPlayerEntry;
     final List<ChallengeLeaderboardEntry> podium =
-        currentBoard.entries.take(3).toList(growable: false);
+        selectedBoard.entries.take(3).toList(growable: false);
     final List<ChallengeLeaderboardEntry> remaining =
-        currentBoard.entries.skip(3).toList(growable: false);
+        selectedBoard.entries.skip(3).toList(growable: false);
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 34),
       children: <Widget>[
+        if (boards.length > 1) ...<Widget>[
+          SizedBox(
+            height: 42,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: boards.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (BuildContext context, int index) {
+                final ChallengeLeaderboardBoard board = boards[index];
+                return ChoiceChip(
+                  label: Text(board.title),
+                  selected: board.boardId == selectedBoard.boardId,
+                  onSelected: (_) {
+                    setState(() => _selectedBoardId = board.boardId);
+                  },
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         Row(
           children: <Widget>[
             Expanded(
@@ -412,7 +468,7 @@ class _LeaderboardView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    currentBoard.title,
+                    selectedBoard.title,
                     style: GoogleFonts.fredoka(
                       color: Colors.white,
                       fontSize: 21,
@@ -420,7 +476,7 @@ class _LeaderboardView extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${currentBoard.totalParticipants} participant${currentBoard.totalParticipants > 1 ? 's' : ''}',
+                    '${selectedBoard.totalParticipants} participant${selectedBoard.totalParticipants > 1 ? 's' : ''}',
                     style: const TextStyle(
                       color: Colors.white60,
                       fontSize: 11,
@@ -449,7 +505,7 @@ class _LeaderboardView extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 14),
-        if (currentBoard.entries.isEmpty)
+        if (selectedBoard.entries.isEmpty)
           _LeaderboardEmpty(
             message: scope == ChallengeLeaderboardScope.friends
                 ? 'Aucun score parmi tes amis pour le moment. Invite-les avec ton code ami !'

@@ -26,7 +26,8 @@ const {
 const {
   bundledChallengePack,
   expandChallengePack,
-  mergeBundledPermanentChallenges,
+  mergeChallengePacksAdditively,
+  mergeBundledChallengeFallbacks,
   rankedSubmissionTimingRejection,
   resolveOfficialChallenge,
   scoringRulesFor,
@@ -685,7 +686,7 @@ async function loadOfficialChallengePack(database) {
     throw new HttpsError("not-found", "Le pack officiel est indisponible.");
   }
   try {
-    return mergeBundledPermanentChallenges(JSON.parse(pack.jsonSource));
+    return mergeBundledChallengeFallbacks(JSON.parse(pack.jsonSource));
   } catch (_) {
     throw new HttpsError("data-loss", "Le pack officiel est invalide.");
   }
@@ -1837,12 +1838,9 @@ exports.getChallengeLeaderboards = onCall(
     }
     assertCompetitiveAllowed(playerSnapshot.data());
     const pack = await loadOfficialChallengePack(database);
-    if (pack.monthKey !== input.seasonKey) {
-      throw new HttpsError(
-        "failed-precondition",
-        "La saison demandée n'est pas active.",
-      );
-    }
+    // Le serveur reste la source de vérité si le téléphone possède encore
+    // le cache de la publication précédente.
+    const seasonKey = pack.monthKey;
     const challenges = expandChallengePack(pack);
     let friendUids = null;
     if (input.scope === "friends") {
@@ -1852,28 +1850,29 @@ exports.getChallengeLeaderboards = onCall(
     const readRequestedLeaderboard = (metadata) => input.scope === "friends" ?
       readFriendLeaderboard(database, uid, metadata, friendUids) :
       readLeaderboard(database, uid, metadata);
-    const boards = [];
-    for (const groupId of input.rankingGroupIds) {
-      const challenge = challenges.find((item) =>
-        item.rankingGroupId === groupId && item.disabled !== true);
-      if (!challenge) {
-        throw new HttpsError(
-          "not-found",
-          "Le classement demandé est introuvable.",
-        );
-      }
-      boards.push(await readRequestedLeaderboard({
-        boardId: groupId,
-        type: challenge.period,
-        title: challenge.title,
-        seasonKey: input.seasonKey,
-      }));
-    }
+    const boards = await Promise.all(input.rankingGroupIds.map(
+      async (groupId) => {
+        const challenge = challenges.find((item) =>
+          item.rankingGroupId === groupId && item.disabled !== true);
+        if (!challenge) {
+          throw new HttpsError(
+            "not-found",
+            "Le classement demandé est introuvable.",
+          );
+        }
+        return readRequestedLeaderboard({
+          boardId: groupId,
+          type: challenge.period,
+          title: challenge.title,
+          seasonKey,
+        });
+      },
+    ));
     boards.push(await readRequestedLeaderboard({
-      boardId: seasonBoardId(input.seasonKey),
+      boardId: seasonBoardId(seasonKey),
       type: "season",
-      title: `Saison ${input.seasonKey}`,
-      seasonKey: input.seasonKey,
+      title: `Saison ${seasonKey}`,
+      seasonKey,
     }));
     const currentPlayerHistory = await readCurrentPlayerRankingHistory(
       database,
@@ -1886,7 +1885,7 @@ exports.getChallengeLeaderboards = onCall(
       scope: input.scope,
       seasonRewardPolicy: {
         version: SEASON_REWARD_POLICY_VERSION,
-        claimOpensAtUtc: seasonClaimOpensAt(input.seasonKey).toISOString(),
+        claimOpensAtUtc: seasonClaimOpensAt(seasonKey).toISOString(),
         tiers: seasonRewardTiers(),
       },
       boards,
@@ -2267,21 +2266,7 @@ function validatedChallengePackJson(data) {
       from >= until) {
     throw new TypeError("La période du pack est invalide.");
   }
-  const permanent = expandChallengePack(bundledChallengePack())
-    .filter((challenge) => challenge.period === "permanent")
-    .map((challenge) => ({
-      ...challenge,
-      validFromUtc: pack.validFromUtc,
-      validUntilUtc: pack.validUntilUtc,
-    }));
-  const existingIds = new Set(
-    (Array.isArray(pack.challenges) ? pack.challenges : [])
-      .map((challenge) => challenge && challenge.id),
-  );
-  pack.challenges = [
-    ...(Array.isArray(pack.challenges) ? pack.challenges : []),
-    ...permanent.filter((challenge) => !existingIds.has(challenge.id)),
-  ];
+  pack = mergeBundledChallengeFallbacks(pack);
   const challenges = expandChallengePack(pack);
   if (challenges.length === 0 || challenges.length > 500) {
     throw new TypeError("Le pack doit contenir entre 1 et 500 défis.");
@@ -2345,6 +2330,32 @@ exports.adminPublishChallengePack = onCall(
       const revision = previousRevision + 1;
       const previousPackId = configSnapshot.data() &&
         configSnapshot.data().activeChallengePackId;
+      let activePackSnapshot = null;
+      if (typeof previousPackId === "string" && previousPackId.length > 0) {
+        activePackSnapshot = previousPackId === publication.pack.id ?
+          packSnapshot : await transaction.get(
+            database.doc(`challenge_packs/${previousPackId}`),
+          );
+      }
+      let publishedPack = publication.pack;
+      if (activePackSnapshot && activePackSnapshot.exists) {
+        const activeData = activePackSnapshot.data();
+        if (activeData.status === "published" &&
+            typeof activeData.jsonSource === "string") {
+          try {
+            publishedPack = mergeChallengePacksAdditively(
+              JSON.parse(activeData.jsonSource),
+              publication.pack,
+            );
+          } catch (_) {
+            throw new HttpsError(
+              "data-loss",
+              "Le pack actif ne peut pas être fusionné.",
+            );
+          }
+        }
+      }
+      const publishedChallenges = expandChallengePack(publishedPack);
       if (typeof previousPackId === "string" &&
           previousPackId.length > 0 && previousPackId !== publication.pack.id) {
         transaction.set(database.doc(`challenge_packs/${previousPackId}`), {
@@ -2357,8 +2368,8 @@ exports.adminPublishChallengePack = onCall(
         schemaVersion: SCHEMA_VERSION,
         revision,
         status: "published",
-        monthKey: publication.pack.monthKey,
-        jsonSource: publication.jsonSource,
+        monthKey: publishedPack.monthKey,
+        jsonSource: JSON.stringify(publishedPack),
         publishedAtUtc: new Date().toISOString(),
         publishedAt: FieldValue.serverTimestamp(),
         publishedBy: actorUid,
@@ -2369,7 +2380,11 @@ exports.adminPublishChallengePack = onCall(
         updatedAt: FieldValue.serverTimestamp(),
         updatedBy: actorUid,
       }, {merge: true});
-      return {revision, previousPackId: previousPackId || "none"};
+      return {
+        revision,
+        previousPackId: previousPackId || "none",
+        challengeCount: publishedChallenges.length,
+      };
     });
     await writeAdminAudit(database, {
       actorUid,
@@ -2384,7 +2399,7 @@ exports.adminPublishChallengePack = onCall(
       status: "published",
       packId: publication.pack.id,
       revision: result.revision,
-      challengeCount: publication.challenges.length,
+      challengeCount: result.challengeCount,
       serverNowUtc: new Date().toISOString(),
     };
   },

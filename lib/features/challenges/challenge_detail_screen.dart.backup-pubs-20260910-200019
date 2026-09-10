@@ -35,7 +35,8 @@ class ChallengeDetailScreen extends StatefulWidget {
   final DateTime effectiveNowUtc;
 
   @override
-  State<ChallengeDetailScreen> createState() => _ChallengeDetailScreenState();
+  State<ChallengeDetailScreen> createState() =>
+      _ChallengeDetailScreenState();
 }
 
 class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
@@ -47,8 +48,8 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
   DateTime get effectiveNowUtc => widget.effectiveNowUtc;
 
   Future<bool> _showRewardedAdvertisement() async {
-    final bool rewarded = await InterstitialAdService.instance
-        .showRewardedChallengeRetry();
+    final bool rewarded =
+        await InterstitialAdService.instance.showRewardedChallengeRetry();
     if (!rewarded && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -107,49 +108,49 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
       difficultyId: challenge.difficultyId,
       regionId: _challengeRegionId,
       allowedCountryIds: _challengeCountryIds,
-      geoBrainPersonalizationAllowed: challenge.geoBrainPersonalizationAllowed,
+      geoBrainPersonalizationAllowed:
+          challenge.geoBrainPersonalizationAllowed,
       questionCount: questionCount,
     );
     if (countries.isEmpty) {
       _showInvalidConfigurationMessage();
       return null;
     }
-    final UltimateGameResult? result = await Navigator.of(context)
-        .push<UltimateGameResult>(
-          MaterialPageRoute<UltimateGameResult>(
-            builder: (BuildContext context) {
-              return UltimateGameScreen(
-                controller: controller,
-                availableCountries: countries,
-                countryDifficulties: controller.countryDifficulties,
-                difficultyId: challenge.difficultyId,
-                previousBestScore: progress.bestScore,
-                missionTitle: challenge.title,
-                questionCount: questionCount,
-                randomSeed: controller.challengeRandomSeed(challenge.id),
-                returnButtonLabel: 'VOIR LE RÉSULTAT DU DÉFI',
-                onAnswer:
-                    ({
-                      required String countryId,
-                      required bool isCorrect,
-                      required int elapsedSeconds,
-                      required String difficultyId,
-                      String? proposedAnswerId,
-                    }) {
-                      return controller.registerPassportSilhouetteAnswer(
-                        countryId: countryId,
-                        isCorrect: isCorrect,
-                        elapsedSeconds: elapsedSeconds,
-                        difficultyId: difficultyId,
-                        proposedAnswerId: proposedAnswerId,
-                        source: PassportDiscoverySource.challenge,
-                        context: GeoBrainAttemptContext.challenge,
-                      );
-                    },
+    final UltimateGameResult? result =
+        await Navigator.of(context).push<UltimateGameResult>(
+      MaterialPageRoute<UltimateGameResult>(
+        builder: (BuildContext context) {
+          return UltimateGameScreen(
+            controller: controller,
+            availableCountries: countries,
+            countryDifficulties: controller.countryDifficulties,
+            difficultyId: challenge.difficultyId,
+            previousBestScore: progress.bestScore,
+            missionTitle: challenge.title,
+            questionCount: questionCount,
+            randomSeed: controller.challengeRandomSeed(challenge.id),
+            returnButtonLabel: 'VOIR LE RÉSULTAT DU DÉFI',
+            onAnswer: ({
+              required String countryId,
+              required bool isCorrect,
+              required int elapsedSeconds,
+              required String difficultyId,
+              String? proposedAnswerId,
+            }) {
+              return controller.registerPassportSilhouetteAnswer(
+                countryId: countryId,
+                isCorrect: isCorrect,
+                elapsedSeconds: elapsedSeconds,
+                difficultyId: difficultyId,
+                proposedAnswerId: proposedAnswerId,
+                source: PassportDiscoverySource.challenge,
+                context: GeoBrainAttemptContext.challenge,
               );
             },
-          ),
-        );
+          );
+        },
+      ),
+    );
     if (result == null) {
       return null;
     }
@@ -170,7 +171,9 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
   }
 
   Set<String>? get _challengeCountryIds {
-    return challenge.countryIds.isEmpty ? null : challenge.countryIds.toSet();
+    return challenge.countryIds.isEmpty
+        ? null
+        : challenge.countryIds.toSet();
   }
 
   Future<void> _playChallenge() async {
@@ -182,21 +185,20 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
     try {
       bool keepPlaying = true;
       while (keepPlaying && mounted) {
-        final ChallengeAttemptKind kind =
-            currentProgress.canUseFreeAttempt(
-              challenge.retryPolicy,
-              allowAfterCompletion: challenge.isRanked,
-            )
+        final ChallengeAttemptKind kind = currentProgress.canUseFreeAttempt(
+          challenge.retryPolicy,
+          allowAfterCompletion: challenge.isRanked,
+        )
             ? ChallengeAttemptKind.free
             : ChallengeAttemptKind.rewardedAdvertisementRetry;
         final ChallengeAttemptDecision decision =
             ChallengeAttemptRules.authorize(
-              challenge: challenge,
-              progress: currentProgress,
-              kind: kind,
-              availableDiamonds: 0,
-              isChildProfile: false,
-            );
+          challenge: challenge,
+          progress: currentProgress,
+          kind: kind,
+          availableDiamonds: 0,
+          isChildProfile: false,
+        );
         if (!decision.isAllowed) {
           _showUnavailableMessage();
           break;
@@ -215,13 +217,12 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
         if (challenge.isRanked) {
           final ChallengeOfficialSessionStartReport sessionReport =
               await ChallengeOfficialSessionService.start(
-                challenge: challenge,
-                participationEnabled: true,
-                launchId:
-                    'launch_${DateTime.now().microsecondsSinceEpoch}_'
-                    '${currentProgress.attemptsUsed + 1}',
-                gateway: ChallengeServerConnection.officialSessionGateway,
-              );
+            challenge: challenge,
+            participationEnabled: true,
+            launchId: 'launch_${DateTime.now().microsecondsSinceEpoch}_'
+                '${currentProgress.attemptsUsed + 1}',
+            gateway: ChallengeServerConnection.officialSessionGateway,
+          );
           if (!mounted) {
             break;
           }
@@ -245,24 +246,25 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
         }
         final ChallengeSessionOutcome outcome =
             await ChallengeSessionService.complete(
-              challenge: challenge,
-              performance: ChallengePerformance(
-                score: gameResult.totalScore,
-                correctAnswers: gameResult.correctAnswers,
-                averageDistanceKilometers:
-                    gameResult.averageDistanceInKilometers,
-                elapsedSeconds: gameResult.totalElapsedSeconds,
-                answerEvidence: gameResult.answerEvidence,
-              ),
-              usedRewardedAdvertisementRetry: usesAdvertisement,
-              participateInRanking: challenge.isRanked,
-              officialSessionId: officialSession?.sessionId,
-              serverNow: officialSession?.serverNowUtc.add(
-                Duration(seconds: gameResult.totalElapsedSeconds),
-              ),
-              rankingGateway: ChallengeServerConnection.rankingGateway,
-              playerIdentity: controller.playerIdentity,
-            );
+          challenge: challenge,
+          performance: ChallengePerformance(
+            score: gameResult.totalScore,
+            correctAnswers: gameResult.correctAnswers,
+            averageDistanceKilometers:
+                gameResult.averageDistanceInKilometers,
+            elapsedSeconds: gameResult.totalElapsedSeconds,
+            answerEvidence: gameResult.answerEvidence,
+          ),
+          usedRewardedAdvertisementRetry: usesAdvertisement,
+          participateInRanking:
+              challenge.isRanked,
+          officialSessionId: officialSession?.sessionId,
+          serverNow: officialSession?.serverNowUtc.add(
+            Duration(seconds: gameResult.totalElapsedSeconds),
+          ),
+          rankingGateway: ChallengeServerConnection.rankingGateway,
+          playerIdentity: controller.playerIdentity,
+        );
         final rankingSync = outcome.rankingSync;
         if (rankingSync != null) {
           debugPrint(
@@ -286,20 +288,20 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
         if (!mounted) {
           break;
         }
-        final ChallengeResultAction? action = await Navigator.of(context)
-            .push<ChallengeResultAction>(
-              MaterialPageRoute<ChallengeResultAction>(
-                builder: (BuildContext context) {
-                  return ChallengeResultScreen(
-                    challenge: challenge,
-                    outcome: outcome,
-                    awardedXp: awardedXp,
-                    rankingSync: outcome.rankingSync,
-                    adFree: AdFreeAccess.instance.isActive,
-                  );
-                },
-              ),
-            );
+        final ChallengeResultAction? action =
+            await Navigator.of(context).push<ChallengeResultAction>(
+          MaterialPageRoute<ChallengeResultAction>(
+            builder: (BuildContext context) {
+              return ChallengeResultScreen(
+                challenge: challenge,
+                outcome: outcome,
+                awardedXp: awardedXp,
+                rankingSync: outcome.rankingSync,
+                adFree: AdFreeAccess.instance.isActive,
+              );
+            },
+          ),
+        );
         if (!mounted) {
           break;
         }
@@ -308,8 +310,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
           break;
         }
         currentProgress = outcome.playerState.progressFor(challenge.id);
-        keepPlaying =
-            action == ChallengeResultAction.retry &&
+        keepPlaying = action == ChallengeResultAction.retry &&
             (!currentProgress.isCompleted || challenge.isRanked);
         if (!keepPlaying && mounted) {
           Navigator.of(context).pop(true);
@@ -333,7 +334,9 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
   void _showInvalidConfigurationMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Ce défi ne contient pas assez de questions jouables.'),
+        content: Text(
+          'Ce défi ne contient pas assez de questions jouables.',
+        ),
       ),
     );
   }
@@ -351,9 +354,8 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Duration remaining = challenge.validUntilUtc.difference(
-      effectiveNowUtc,
-    );
+    final Duration remaining =
+        challenge.validUntilUtc.difference(effectiveNowUtc);
     return Scaffold(
       body: Stack(
         children: <Widget>[
@@ -389,12 +391,13 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                     if (challenge.isRanked ||
                         challenge.geoBrainPersonalizationAllowed) ...<Widget>[
                       const SizedBox(height: 16),
-                      _FairnessCard(challenge: challenge),
+                      _FairnessCard(
+                        challenge: challenge,
+                      ),
                     ],
                     const SizedBox(height: 24),
                     FilledButton.icon(
-                      onPressed:
-                          (progress.isCompleted && !challenge.isRanked) ||
+                      onPressed: (progress.isCompleted && !challenge.isRanked) ||
                               _isLaunching
                           ? null
                           : _playChallenge,
@@ -411,8 +414,8 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                             : progress.isCompleted
                             ? 'Défi terminé'
                             : _isLaunching
-                            ? 'Préparation…'
-                            : 'Jouer ce défi',
+                                ? 'Préparation…'
+                                : 'Jouer ce défi',
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -513,8 +516,8 @@ class _ChallengeHero extends StatelessWidget {
             child: Text(
               challenge.period == ChallengePeriod.permanent
                   ? progress.isCompleted
-                        ? 'RÉCOMPENSE OBTENUE • SCORE AMÉLIORABLE'
-                        : 'TOUJOURS DISPONIBLE'
+                      ? 'RÉCOMPENSE OBTENUE • SCORE AMÉLIORABLE'
+                      : 'TOUJOURS DISPONIBLE'
                   : progress.isCompleted
                   ? 'TERMINÉ'
                   : challengeTimeRemaining(remaining).toUpperCase(),
@@ -616,8 +619,7 @@ class _RewardsCard extends StatelessWidget {
           if (reward.diamonds > 0)
             _RewardChip(
               icon: Icons.diamond_rounded,
-              label:
-                  '${reward.diamonds} diamant${reward.diamonds > 1 ? 's' : ''}',
+              label: '${reward.diamonds} diamant${reward.diamonds > 1 ? 's' : ''}',
               color: GeoColors.sky,
             ),
           if (reward.emblemId != null)
@@ -646,9 +648,8 @@ class _RetryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ChallengeRetryPolicy policy = challenge.retryPolicy;
-    final int freeRemaining = (policy.maximumAttempts - progress.attemptsUsed)
-        .clamp(0, 999)
-        .toInt();
+    final int freeRemaining =
+        (policy.maximumAttempts - progress.attemptsUsed).clamp(0, 999).toInt();
     return _WhiteCard(
       title: 'Essai et recommencement',
       icon: Icons.replay_rounded,
@@ -662,16 +663,15 @@ class _RetryCard extends StatelessWidget {
             value: policy.unlimitedFreeAttempts
                 ? 'Illimités'
                 : freeRemaining > 0
-                ? 'Disponible'
-                : 'Utilisé',
+                    ? 'Disponible'
+                    : 'Utilisé',
           ),
           _InfoRow(
             icon: Icons.ondemand_video_rounded,
             label: policy.rewardedAdvertisementAllowed && !adFree
                 ? 'Recommencer avec une pub'
                 : 'Recommencer gratuitement',
-            value:
-                policy.unlimitedRewardedAdvertisementRetries ||
+            value: policy.unlimitedRewardedAdvertisementRetries ||
                     policy.unlimitedFreeAttempts
                 ? 'Illimité'
                 : 'Indisponible',
@@ -725,7 +725,10 @@ class _FairnessCard extends StatelessWidget {
           if (ranked) ...<Widget>[
             const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.34),
                 borderRadius: BorderRadius.circular(16),

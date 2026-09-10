@@ -15,8 +15,10 @@ class InterstitialAdService {
 
   static const String _counterKey = 'geopoint_interstitial_game_counter';
   static const int gamesBetweenAds = 3;
-  static const String _androidTestId = 'ca-app-pub-3940256099942544/1033173712';
-  static const String _iosTestId = 'ca-app-pub-3940256099942544/4411468910';
+  static const String _androidTestId =
+      'ca-app-pub-3940256099942544/1033173712';
+  static const String _iosTestId =
+      'ca-app-pub-3940256099942544/4411468910';
   static const String _androidRewardedTestId =
       'ca-app-pub-3940256099942544/5224354917';
   static const String _iosRewardedTestId =
@@ -37,8 +39,8 @@ class InterstitialAdService {
     if (!AdFreeAccess.instance.advertisementsAllowed) {
       return;
     }
-    final bool consentAllowsAds = await AdConsentService.instance
-        .gatherAtLaunch();
+    final bool consentAllowsAds =
+        await AdConsentService.instance.gatherAtLaunch();
     if (!consentAllowsAds) {
       debugPrint(
         'PointGeo publicité : aucune demande envoyée sans consentement valide.',
@@ -73,8 +75,7 @@ class InterstitialAdService {
     _ad = null;
     await preferences.setInt(_counterKey, 0);
     final Completer<void> closed = Completer<void>();
-    readyAd
-        .fullScreenContentCallback = FullScreenContentCallback<InterstitialAd>(
+    readyAd.fullScreenContentCallback = FullScreenContentCallback<InterstitialAd>(
       onAdDismissedFullScreenContent: (InterstitialAd ad) {
         ad.dispose();
         if (!closed.isCompleted) closed.complete();
@@ -90,6 +91,7 @@ class InterstitialAdService {
     await closed.future;
     return true;
   }
+
 
   /// Affiche une publicité récompensée pour autoriser une nouvelle tentative
   /// de défi. La tentative n'est accordée que si la récompense a été reçue.

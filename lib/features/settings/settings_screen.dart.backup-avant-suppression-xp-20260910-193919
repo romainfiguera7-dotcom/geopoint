@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -12,6 +13,7 @@ import 'account_screen.dart';
 import 'ad_free_purchase_screen.dart';
 import 'gameplay_feedback.dart';
 import 'legal_information_screen.dart';
+import 'player_xp_debug_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({required this.controller, super.key});
@@ -213,7 +215,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           icon: Icons.celebration_rounded,
                           iconColor: GeoColors.gold,
                           title: 'Grands niveaux',
-                          subtitle: 'Anime les passages des 12 grands niveaux.',
+                          subtitle:
+                              'Anime les passages des 12 grands niveaux.',
                           value: _preferences.majorLevelAnimationsEnabled,
                           enabled: !_isLoading && !_isSaving,
                           onChanged: (bool value) {
@@ -242,6 +245,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ],
                     ),
+                    if (kDebugMode) ...<Widget>[
+                      const SizedBox(height: 16),
+                      _DebugToolsCard(controller: widget.controller),
+                    ],
                     const SizedBox(height: 16),
                     const _AboutCard(),
                   ],
@@ -266,54 +273,51 @@ class _AccountSettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      borderRadius: BorderRadius.circular(24),
-      onTap: onPressed,
-      child: Ink(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.96),
+        color: Colors.transparent,
+        child: InkWell(
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white),
-        ),
-        child: Row(
-          children: <Widget>[
-            const Icon(
-              Icons.account_circle_rounded,
-              color: GeoColors.blue,
-              size: 38,
+          onTap: onPressed,
+          child: Ink(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.96),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white),
             ),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    'MON COMPTE',
-                    style: GoogleFonts.fredoka(
-                      color: GeoColors.ink,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                    ),
+            child: Row(
+              children: <Widget>[
+                const Icon(Icons.account_circle_rounded,
+                    color: GeoColors.blue, size: 38),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'MON COMPTE',
+                        style: GoogleFonts.fredoka(
+                          color: GeoColors.ink,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Text(
+                        '${controller.playerProfile.displayName} • connexion et profil',
+                        style: const TextStyle(
+                          color: Color(0xFF58708D),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    '${controller.playerProfile.displayName} • connexion et profil',
-                    style: const TextStyle(
-                      color: Color(0xFF58708D),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const Icon(Icons.chevron_right_rounded, color: GeoColors.ink),
+              ],
             ),
-            const Icon(Icons.chevron_right_rounded, color: GeoColors.ink),
-          ],
+          ),
         ),
-      ),
-    ),
-  );
+      );
 }
 
 class _SettingsSection extends StatelessWidget {
@@ -394,9 +398,7 @@ class _AdFreeSettingsCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      active
-                          ? 'COMPTE SANS PUBLICITÉ'
-                          : 'RETIRER LES PUBLICITÉS',
+                      active ? 'COMPTE SANS PUBLICITÉ' : 'RETIRER LES PUBLICITÉS',
                       style: GoogleFonts.fredoka(
                         color: Colors.white,
                         fontSize: 17,
@@ -575,6 +577,56 @@ class _SettingsDivider extends StatelessWidget {
       indent: 77,
       endIndent: 16,
       color: Color(0x1A173B61),
+    );
+  }
+}
+
+class _DebugToolsCard extends StatelessWidget {
+  const _DebugToolsCard({required this.controller});
+
+  final GameController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: () {
+          Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(
+              builder: (BuildContext context) {
+                return PlayerXpDebugScreen(controller: controller);
+              },
+            ),
+          );
+        },
+        child: Ink(
+          padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
+          decoration: BoxDecoration(
+            color: GeoColors.coral.withValues(alpha: 0.96),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white70),
+          ),
+          child: Row(
+            children: <Widget>[
+              const Icon(Icons.science_rounded, color: Colors.white, size: 30),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Text(
+                  'Outils XP de développement',
+                  style: GoogleFonts.fredoka(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: Colors.white),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

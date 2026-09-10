@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -105,9 +104,8 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     }
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (BuildContext context) => ChallengeStudioScreen(
-          controller: widget.controller,
-        ),
+        builder: (BuildContext context) =>
+            ChallengeStudioScreen(controller: widget.controller),
       ),
     );
   }
@@ -161,12 +159,13 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                 constraints: const BoxConstraints(maxWidth: 680),
                 child: FutureBuilder<ChallengeHubSnapshot>(
                   future: _snapshotFuture,
-                  builder: (
-                    BuildContext context,
-                    AsyncSnapshot<ChallengeHubSnapshot> asyncSnapshot,
-                  ) {
-                    return _buildBody(asyncSnapshot);
-                  },
+                  builder:
+                      (
+                        BuildContext context,
+                        AsyncSnapshot<ChallengeHubSnapshot> asyncSnapshot,
+                      ) {
+                        return _buildBody(asyncSnapshot);
+                      },
                 ),
               ),
             ),
@@ -208,9 +207,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
         children: <Widget>[
           header,
           const SizedBox(height: 120),
-          const Center(
-            child: CircularProgressIndicator(color: GeoColors.gold),
-          ),
+          const Center(child: CircularProgressIndicator(color: GeoColors.gold)),
         ],
       );
     }
@@ -222,7 +219,8 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
           header,
           const SizedBox(height: 40),
           _LoadErrorCard(
-            message: asyncSnapshot.error?.toString() ??
+            message:
+                asyncSnapshot.error?.toString() ??
                 'Les défis sont momentanément indisponibles.',
             onRetry: _retry,
           ),
@@ -231,14 +229,18 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     }
 
     final ChallengeHubSnapshot snapshot = asyncSnapshot.data!;
-    final List<ChallengeDefinition> daily =
-        snapshot.challengesFor(ChallengePeriod.daily);
-    final List<ChallengeDefinition> weekly =
-        snapshot.challengesFor(ChallengePeriod.weekly);
-    final List<ChallengeDefinition> monthly =
-        snapshot.challengesFor(ChallengePeriod.monthly);
-    final List<ChallengeDefinition> permanent =
-        snapshot.challengesFor(ChallengePeriod.permanent);
+    final List<ChallengeDefinition> daily = snapshot.challengesFor(
+      ChallengePeriod.daily,
+    );
+    final List<ChallengeDefinition> weekly = snapshot.challengesFor(
+      ChallengePeriod.weekly,
+    );
+    final List<ChallengeDefinition> monthly = snapshot.challengesFor(
+      ChallengePeriod.monthly,
+    );
+    final List<ChallengeDefinition> permanent = snapshot.challengesFor(
+      ChallengePeriod.permanent,
+    );
     final List<ChallengeDefinition> history =
         snapshot.recentlyCompletedChallenges;
 
@@ -260,9 +262,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
         ),
         if (snapshot.seasonRewardClaim?.wasDelivered == true) ...<Widget>[
           const SizedBox(height: 12),
-          _SeasonRewardDeliveredCard(
-            report: snapshot.seasonRewardClaim!,
-          ),
+          _SeasonRewardDeliveredCard(report: snapshot.seasonRewardClaim!),
         ],
         const SizedBox(height: 12),
         if (!snapshot.isChildProfile)
@@ -397,10 +397,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
           title: 'Historique récent',
         ),
         const SizedBox(height: 14),
-        _HistoryCard(
-          challenges: history,
-          playerState: snapshot.playerState,
-        ),
+        _HistoryCard(challenges: history, playerState: snapshot.playerState),
       ],
     );
   }
@@ -414,8 +411,9 @@ class _SeasonRewardDeliveredCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ChallengeReward reward = report.reward!;
-    final ChallengeSeasonRewardTier tier =
-        ChallengeSeasonRewardTier.forRank(report.rank!);
+    final ChallengeSeasonRewardTier tier = ChallengeSeasonRewardTier.forRank(
+      report.rank!,
+    );
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -427,8 +425,11 @@ class _SeasonRewardDeliveredCard extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          const Icon(Icons.workspace_premium_rounded,
-              color: GeoColors.gold, size: 34),
+          const Icon(
+            Icons.workspace_premium_rounded,
+            color: GeoColors.gold,
+            size: 34,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -582,8 +583,7 @@ class _ChallengeWalletCard extends StatelessWidget {
 
   String? get _syncMessage {
     final ChallengeRewardSyncReport? report = syncReport;
-    if (report == null ||
-        report.status == ChallengeRewardSyncStatus.upToDate) {
+    if (report == null || report.status == ChallengeRewardSyncStatus.upToDate) {
       return null;
     }
     switch (report.status) {
@@ -710,9 +710,7 @@ class _StudioAccessCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: GeoColors.purple.withValues(alpha: 0.24),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: GeoColors.purple.withValues(alpha: 0.72),
-            ),
+            border: Border.all(color: GeoColors.purple.withValues(alpha: 0.72)),
           ),
           child: const Row(
             children: <Widget>[
@@ -876,8 +874,8 @@ class _ChallengeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color foreground =
         ThemeData.estimateBrightnessForColor(color) == Brightness.dark
-            ? Colors.white
-            : GeoColors.navy;
+        ? Colors.white
+        : GeoColors.navy;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -890,10 +888,7 @@ class _ChallengeCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: <Color>[
-                Color.alphaBlend(
-                  Colors.white.withValues(alpha: 0.14),
-                  color,
-                ),
+                Color.alphaBlend(Colors.white.withValues(alpha: 0.14), color),
                 color,
               ],
             ),
@@ -994,11 +989,13 @@ class _ChallengeCard extends StatelessWidget {
                     text: '+${challenge.reward.xp} XP',
                     foreground: foreground,
                   ),
-                  if (challenge.retryPolicy
+                  if (challenge
+                          .retryPolicy
                           .unlimitedRewardedAdvertisementRetries ||
                       challenge.retryPolicy.unlimitedFreeAttempts)
                     _CardPill(
-                      text: challenge.retryPolicy.rewardedAdvertisementAllowed &&
+                      text:
+                          challenge.retryPolicy.rewardedAdvertisementAllowed &&
                               !AdFreeAccess.instance.isActive
                           ? 'Pub • illimité'
                           : 'Rejouer • illimité',
@@ -1042,10 +1039,7 @@ class _CardPill extends StatelessWidget {
 }
 
 class _HistoryCard extends StatelessWidget {
-  const _HistoryCard({
-    required this.challenges,
-    required this.playerState,
-  });
+  const _HistoryCard({required this.challenges, required this.playerState});
 
   final List<ChallengeDefinition> challenges;
   final ChallengePlayerState playerState;
@@ -1103,10 +1097,7 @@ class _HistoryTile extends StatelessWidget {
     final ChallengeLeaderboardPosition? position = rankingSubmission?.position;
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: const Icon(
-        Icons.check_circle_rounded,
-        color: GeoColors.mint,
-      ),
+      leading: const Icon(Icons.check_circle_rounded, color: GeoColors.mint),
       title: Text(
         challenge.title,
         style: GoogleFonts.fredoka(

@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "843814612327-392kjqbh8dd72q5kcn8afm0s0qf49no6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.romainfiguera.geopoint",
+            "certificate_hash": "6fd2053177bbb9caaa00012cbc9bbf5d08158678"
+          }
+        },
+        {
+          "client_id": "843814612327-emrjje29f7ljab6v8s8m792v24p1ohoe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.romainfiguera.geopoint",
+            "certificate_hash": "5bd47d271f8b6292815e3518915ddc9f5b9204aa"
+          }
+        },
+        {
           "client_id": "843814612327-k29gohaeuvtm4mfjh7c5el768q1u0t6j.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
